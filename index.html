@@ -51,12 +51,36 @@
             justify-content: space-between;
         }
 
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .top-nav .logo {
             color: #D9B99B;
             font-weight: 800;
             font-size: 24px;
             cursor: pointer;
             letter-spacing: -1px;
+        }
+
+        .admin-btn {
+            background: #D9B99B;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: #c5a589;
+            transform: scale(1.05);
         }
 
         .nav-links {
@@ -117,6 +141,165 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* Admin Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        .close-modal {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(0,0,0,0.05);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #FFF0DB;
+            border-radius: 20px;
+        }
+
+        .admin-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-primary {
+            background: #D9B99B;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #c5a589;
+            transform: translateY(-2px);
+        }
+
+        .item-list {
+            margin-top: 20px;
+        }
+
+        .item-entry {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .item-detail {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .btn-delete {
+            background: #ff4444;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 12px;
         }
 
         .reader-view {
@@ -559,13 +742,26 @@
         .spacer {
             height: 100px;
         }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
     </style>
 </head>
 
 <body>
     <nav class="top-nav">
         <div class="nav-content">
-            <div class="logo" onclick="switchTab('home-view', 'n-h')">LUMINARY</div>
+            <div class="logo-section">
+                <div class="logo" onclick="switchTab('home-view', 'n-h')">LUMINARY</div>
+                <button class="admin-btn" onclick="openAdminPanel()">🔐 Admin</button>
+            </div>
             <div class="nav-links">
                 <button class="nav-item active" id="n-h" onclick="switchTab('home-view', 'n-h')">
                     <svg viewBox="0 0 24 24">
@@ -594,6 +790,77 @@
             </div>
         </div>
     </nav>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Admin Panel</div>
+                <button class="close-modal" onclick="closeAdminPanel()">×</button>
+            </div>
+
+            <div id="password-section">
+                <div class="admin-section">
+                    <h3>🔐 Enter Password</h3>
+                    <div class="form-group">
+                        <input type="password" id="admin-password" placeholder="Enter admin password">
+                    </div>
+                    <button class="btn-primary" onclick="checkPassword()">Login</button>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666;">Default password: admin123</p>
+                </div>
+            </div>
+
+            <div id="admin-content" style="display: none;">
+                <!-- SAT Vocabulary Section -->
+                <div class="admin-section">
+                    <h3>📚 Add SAT Vocabulary</h3>
+                    <div class="form-group">
+                        <label>Word</label>
+                        <input type="text" id="sat-word" placeholder="e.g., Benevolent">
+                    </div>
+                    <div class="form-group">
+                        <label>Definition</label>
+                        <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
+                    </div>
+                    <button class="btn-primary" onclick="addSATWord()">Add SAT Word</button>
+                    
+                    <div class="item-list" id="sat-word-list"></div>
+                </div>
+
+                <!-- IELTS Vocabulary Section -->
+                <div class="admin-section">
+                    <h3>🎓 Add IELTS Vocabulary</h3>
+                    <div class="form-group">
+                        <label>Word</label>
+                        <input type="text" id="ielts-word" placeholder="e.g., Coherent">
+                    </div>
+                    <div class="form-group">
+                        <label>Definition</label>
+                        <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
+                    </div>
+                    <button class="btn-primary" onclick="addIELTSWord()">Add IELTS Word</button>
+                    
+                    <div class="item-list" id="ielts-word-list"></div>
+                </div>
+
+                <!-- Podcast/Audio Section -->
+                <div class="admin-section">
+                    <h3>🎧 Add Podcast/Audio</h3>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="podcast-title" placeholder="e.g., Romeo and Juliet">
+                    </div>
+                    <div class="form-group">
+                        <label>YouTube URL</label>
+                        <input type="text" id="podcast-url" placeholder="https://youtu.be/...">
+                    </div>
+                    <button class="btn-primary" onclick="addPodcast()">Add Podcast</button>
+                    
+                    <div class="item-list" id="podcast-list-admin"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <div id="home-view" class="view active">
@@ -648,7 +915,7 @@
 
             <div id="edu-sat" class="edu-section">
                 <button class="back-btn-edu" onclick="openEduLevel('edu-main')">← Назад</button>
-                <div class="edu-card" onclick="openEduLevel('edu-vocab')">
+                <div class="edu-card" onclick="openEduLevel('edu-vocab-sat')">
                     <div class="edu-title">Vocabulary</div>
                     <div class="edu-icon">📖</div>
                 </div>
@@ -656,13 +923,22 @@
 
             <div id="edu-ielts" class="edu-section">
                 <button class="back-btn-edu" onclick="openEduLevel('edu-main')">← Назад</button>
-                <div class="sub-card">Материалы IELTS в разработке...</div>
+                <div class="edu-card" onclick="openEduLevel('edu-vocab-ielts')">
+                    <div class="edu-title">Vocabulary</div>
+                    <div class="edu-icon">📖</div>
+                </div>
             </div>
 
-            <div id="edu-vocab" class="edu-section">
+            <div id="edu-vocab-sat" class="edu-section">
                 <button class="back-btn-edu" onclick="openEduLevel('edu-sat')">← Назад</button>
-                <div class="label">400+ SAT Words</div>
-                <div class="vocab-list" id="vocab-list"></div>
+                <div class="label">SAT Words</div>
+                <div class="vocab-list" id="vocab-list-sat"></div>
+            </div>
+
+            <div id="edu-vocab-ielts" class="edu-section">
+                <button class="back-btn-edu" onclick="openEduLevel('edu-ielts')">← Назад</button>
+                <div class="label">IELTS Words</div>
+                <div class="vocab-list" id="vocab-list-ielts"></div>
             </div>
             <div class="spacer"></div>
         </div>
@@ -739,28 +1015,9 @@
                 i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
                 pages: [
                     "Глава 1\n\nЭто истина, не требующая доказательств: владелец крупного состояния непременно нуждается в жене.\n\nКаким бы малоизвестным ни был этот человек, когда он переезжает в новое графство, местные семьи сразу начинают видеть в нём законную собственность одной из своих дочерей.",
-                    "Глава 2\n\nМистер Беннет был одним из первых, кто навестил мистера Бингли. Он всегда делал вид, что не хочет этого, но в итоге всё равно пошёл.\n\nЕго жена и пять дочерей не могли дождаться новостей. Миссис Беннет не скрывала своего восторга: «Я так рада! Мистер Бингли такой приятный молодой человек!»",
-                    "Глава 3\n\nМистер Бингли ответил на визит мистера Беннета. Он был молод, красив, обходителен — и, что самое главное, холост. Вскоре весь Мертон только и говорил, что о нём.\n\nНа балу в Меритоне мистер Бингли произвёл фурор. Он танцевал с каждой незамужней девушкой, но особенно выделял старшую дочь Беннетов — Джейн.",
-                    "Его друг, мистер Дарси, напротив, казался гордым и надменным. Он не танцевал ни с кем, кроме мисс Бингли, и заявил, что «все местные девушки недостаточно хороши для него». Элизабет Беннет слышала это и решила, что он самый неприятный человек в мире.",
-                    "Мистер Бингли влюбился в Джейн с первого взгляда. Она была красива, добра и скромна. Но миссис Беннет уже планировала свадьбу, а мистер Беннет лишь посмеивался: «Бедный мистер Бингли! Ему не спастись». Элизабет наблюдала за сестрой и надеялась, что её сердце не разобьют.",
-                    "Мистер Дарси тоже заметил Элизабет. Он находил её лицо «милым» и глаза «умными», но его гордость не позволяла ему признаться в этом даже себе. Элизабет же считала его последним человеком, за которого она вышла бы замуж."
+                    "Глава 2\n\nМистер Беннет был одним из первых, кто навестил мистера Бингли. Он всегда делал вид, что не хочет этого, но в итоге всё равно пошёл.\n\nЕго жена и пять дочерей не могли дождаться новостей. Миссис Беннет не скрывала своего восторга: «Я так рада! Мистер Бингли такой приятный молодой человек!»"
                 ]
             }
-        ];
-
-        const podcasts = [
-            { t: "Чувство и чувствительность", u: "https://youtu.be/FJzqGLflxXA", i: "https://img.youtube.com/vi/FJzqGLflxXA/mqdefault.jpg" },
-            { t: "Бриджертоны: Часть 1", u: "https://youtu.be/2m7TkhXrCo0", i: "https://img.youtube.com/vi/2m7TkhXrCo0/mqdefault.jpg" },
-            { t: "Бриджертоны: Часть 2", u: "https://youtu.be/wNozq1sYBdY", i: "https://img.youtube.com/vi/wNozq1sYBdY/mqdefault.jpg" },
-            { t: "НИ СЫ (Мотивация)", u: "https://youtu.be/eCt8Yq6xLVM", i: "https://img.youtube.com/vi/eCt8Yq6xLVM/mqdefault.jpg" }
-        ];
-
-        const satWords = [
-            { w: "Illusory", d: "Based on illusion; not real or true; deceptive." },
-            { w: "Imposing", d: "Grand and impressive in appearance." },
-            { w: "Ingenious", d: "Clever, original, and inventive." },
-            { w: "Meticulous", d: "Showing great attention to detail; very careful." },
-            { w: "Pristine", d: "In its original condition; unspoiled or clean." }
         ];
 
         const themes = [
@@ -778,7 +1035,268 @@
         let isAnimating = false;
         let heroClickHandler = null;
 
-        // FIXED: Renamed to switchTab to match HTML onclick calls
+        const ADMIN_PASSWORD = "admin123";
+
+        // ===== PERSISTENT STORAGE FUNCTIONS =====
+        async function loadFromStorage(key) {
+            try {
+                const result = await window.storage.get(key);
+                return result ? JSON.parse(result.value) : null;
+            } catch (error) {
+                console.log(`Key '${key}' not found, returning null`);
+                return null;
+            }
+        }
+
+        async function saveToStorage(key, data) {
+            try {
+                await window.storage.set(key, JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error('Storage error:', error);
+                return false;
+            }
+        }
+
+        async function deleteFromStorage(key) {
+            try {
+                await window.storage.delete(key);
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+
+        // ===== ADMIN PANEL FUNCTIONS =====
+        function openAdminPanel() {
+            document.getElementById('admin-modal').classList.add('active');
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-modal').classList.remove('active');
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('admin-password').value;
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('password-section').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                loadAdminData();
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+
+        async function loadAdminData() {
+            // Load and display SAT words
+            const satWords = await loadFromStorage('sat-words') || [];
+            displayAdminWords('sat-word-list', satWords, 'sat');
+
+            // Load and display IELTS words
+            const ieltsWords = await loadFromStorage('ielts-words') || [];
+            displayAdminWords('ielts-word-list', ieltsWords, 'ielts');
+
+            // Load and display podcasts
+            const podcasts = await loadFromStorage('podcasts') || [];
+            displayAdminPodcasts(podcasts);
+        }
+
+        function displayAdminWords(containerId, words, type) {
+            const container = document.getElementById(containerId);
+            if (words.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No words added yet</p>';
+                return;
+            }
+            
+            container.innerHTML = words.map((word, idx) => `
+                <div class="item-entry">
+                    <div class="item-info">
+                        <div class="item-title">${word.w}</div>
+                        <div class="item-detail">${word.d}</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteWord('${type}', ${idx})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function displayAdminPodcasts(podcasts) {
+            const container = document.getElementById('podcast-list-admin');
+            if (podcasts.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No podcasts added yet</p>';
+                return;
+            }
+            
+            container.innerHTML = podcasts.map((podcast, idx) => `
+                <div class="item-entry">
+                    <div class="item-info">
+                        <div class="item-title">${podcast.t}</div>
+                        <div class="item-detail">${podcast.u}</div>
+                    </div>
+                    <button class="btn-delete" onclick="deletePodcast(${idx})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        async function addSATWord() {
+            const word = document.getElementById('sat-word').value.trim();
+            const def = document.getElementById('sat-def').value.trim();
+            
+            if (!word || !def) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const satWords = await loadFromStorage('sat-words') || [];
+            satWords.push({ w: word, d: def });
+            await saveToStorage('sat-words', satWords);
+
+            document.getElementById('sat-word').value = '';
+            document.getElementById('sat-def').value = '';
+            
+            showSuccess('SAT word added successfully!');
+            loadAdminData();
+            await renderVocabLists();
+        }
+
+        async function addIELTSWord() {
+            const word = document.getElementById('ielts-word').value.trim();
+            const def = document.getElementById('ielts-def').value.trim();
+            
+            if (!word || !def) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const ieltsWords = await loadFromStorage('ielts-words') || [];
+            ieltsWords.push({ w: word, d: def });
+            await saveToStorage('ielts-words', ieltsWords);
+
+            document.getElementById('ielts-word').value = '';
+            document.getElementById('ielts-def').value = '';
+            
+            showSuccess('IELTS word added successfully!');
+            loadAdminData();
+            await renderVocabLists();
+        }
+
+        async function addPodcast() {
+            const title = document.getElementById('podcast-title').value.trim();
+            const url = document.getElementById('podcast-url').value.trim();
+            
+            if (!title || !url) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Extract YouTube ID
+            let videoId = '';
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch?v=')) {
+                videoId = url.split('v=')[1].split('&')[0];
+            }
+
+            const podcasts = await loadFromStorage('podcasts') || [];
+            podcasts.push({
+                t: title,
+                u: url,
+                i: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+            });
+            await saveToStorage('podcasts', podcasts);
+
+            document.getElementById('podcast-title').value = '';
+            document.getElementById('podcast-url').value = '';
+            
+            showSuccess('Podcast added successfully!');
+            loadAdminData();
+            await renderPodcasts();
+        }
+
+        async function deleteWord(type, idx) {
+            if (!confirm('Are you sure you want to delete this word?')) return;
+
+            const key = type === 'sat' ? 'sat-words' : 'ielts-words';
+            const words = await loadFromStorage(key) || [];
+            words.splice(idx, 1);
+            await saveToStorage(key, words);
+            
+            loadAdminData();
+            await renderVocabLists();
+        }
+
+        async function deletePodcast(idx) {
+            if (!confirm('Are you sure you want to delete this podcast?')) return;
+
+            const podcasts = await loadFromStorage('podcasts') || [];
+            podcasts.splice(idx, 1);
+            await saveToStorage(key, podcasts);
+            
+            loadAdminData();
+            await renderPodcasts();
+        }
+
+        function showSuccess(message) {
+            const existing = document.querySelector('.success-message');
+            if (existing) existing.remove();
+
+            const msg = document.createElement('div');
+            msg.className = 'success-message';
+            msg.textContent = message;
+            document.querySelector('.modal-content').insertBefore(msg, document.querySelector('.modal-content').firstChild.nextSibling);
+            
+            setTimeout(() => msg.remove(), 3000);
+        }
+
+        // ===== RENDER FUNCTIONS =====
+        async function renderVocabLists() {
+            // Render SAT words
+            const satWords = await loadFromStorage('sat-words') || [];
+            const satContainer = document.getElementById('vocab-list-sat');
+            if (satWords.length === 0) {
+                satContainer.innerHTML = '<div class="sub-card">No SAT words added yet. Ask admin to add some!</div>';
+            } else {
+                satContainer.innerHTML = satWords.map(w => `
+                    <div class="vocab-item">
+                        <div class="v-word">${w.w}</div>
+                        <div class="v-def">${w.d}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Render IELTS words
+            const ieltsWords = await loadFromStorage('ielts-words') || [];
+            const ieltsContainer = document.getElementById('vocab-list-ielts');
+            if (ieltsWords.length === 0) {
+                ieltsContainer.innerHTML = '<div class="sub-card">No IELTS words added yet. Ask admin to add some!</div>';
+            } else {
+                ieltsContainer.innerHTML = ieltsWords.map(w => `
+                    <div class="vocab-item">
+                        <div class="v-word">${w.w}</div>
+                        <div class="v-def">${w.d}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function renderPodcasts() {
+            const podcasts = await loadFromStorage('podcasts') || [];
+            const container = document.getElementById('podcast-container');
+            
+            if (podcasts.length === 0) {
+                container.innerHTML = '<div class="sub-card">No podcasts added yet. Ask admin to add some!</div>';
+            } else {
+                container.innerHTML = podcasts.map(p => `
+                    <a href="${p.u}" target="_blank" class="podcast-item">
+                        <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
+                        <div class="podcast-body">
+                            <h3>${p.t}</h3>
+                            <span>Слушать на YouTube</span>
+                        </div>
+                    </a>
+                `).join('');
+            }
+        }
+
+        // ===== ORIGINAL FUNCTIONS =====
         function switchTab(viewId, buttonId) {
             document.querySelectorAll('.view').forEach(view => {
                 view.classList.remove('active');
@@ -875,24 +1393,6 @@
             `).join('');
         }
 
-        function renderContent() {
-            document.getElementById('vocab-list').innerHTML = satWords.map(w => `
-                <div class="vocab-item">
-                    <div class="v-word">${w.w}</div>
-                    <div class="v-def">${w.d}</div>
-                </div>
-            `).join('');
-            document.getElementById('podcast-container').innerHTML = podcasts.map(p => `
-                <a href="${p.u}" target="_blank" class="podcast-item">
-                    <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
-                    <div class="podcast-body">
-                        <h3>${p.t}</h3>
-                        <span>Слушать на YouTube</span>
-                    </div>
-                </a>
-            `).join('');
-        }
-
         function handleSearch(e) {
             const q = e.target.value.toLowerCase();
             renderBooks(books.filter(b => b.t.toLowerCase().includes(q)));
@@ -902,69 +1402,40 @@
             localStorage.setItem('lum_notes', document.getElementById('notes-area').value);
         }
 
-        // FIXED: Update hero banner properly
         function updateHeroBanner(idx) {
             const heroBanner = document.getElementById('hero-banner');
             heroBanner.style.backgroundImage = `url('${books[idx].i}')`;
             document.getElementById('hero-title').innerText = books[idx].t;
             
-            // Remove old click handler
             if (heroClickHandler) {
                 heroBanner.removeEventListener('click', heroClickHandler);
             }
             
-            // Add new click handler
             heroClickHandler = function() { openBook(idx); };
             heroBanner.addEventListener('click', heroClickHandler);
         }
 
-        // Загрузка книги из папки books
-        async function loadPrideAndPrejudice() {
-            const chapters = [];
-            let chapterNum = 1;
+        // ===== INITIALIZATION =====
+        async function init() {
+            renderBooks(books);
+            await renderVocabLists();
+            await renderPodcasts();
+            renderThemeGrid();
             
-            while (true) {
-                try {
-                    const response = await fetch(`books/glava${chapterNum}.txt`);
-                    if (!response.ok) break;
-                    const text = await response.text();
-                    chapters.push(text);
-                    chapterNum++;
-                } catch {
-                    break;
-                }
-            }
-            
-            if (chapters.length > 0) {
-                books.push({
-                    t: "Гордость и предубеждение",
-                    a: "Джейн Остин",
-                    i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
-                    pages: chapters
-                });
-                renderBooks(books);
-            }
+            document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
+            setTheme(localStorage.getItem('lum_theme') || 'beige');
+            updateHeroBanner(0);
+
+            // Hero banner rotation
+            let hIdx = 0;
+            setInterval(() => {
+                hIdx = (hIdx + 1) % books.length;
+                updateHeroBanner(hIdx);
+            }, 5000);
         }
 
-        // INITIALIZATION
-        renderBooks(books);
-        renderContent();
-        renderThemeGrid();
-        document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
-        setTheme(localStorage.getItem('lum_theme') || 'beige');
-
-        // Set initial hero banner
-        updateHeroBanner(0);
-
-        // Load additional book
-        loadPrideAndPrejudice();
-
-        // Hero banner rotation
-        let hIdx = 0;
-        setInterval(() => {
-            hIdx = (hIdx + 1) % books.length;
-            updateHeroBanner(hIdx);
-        }, 5000);
+        // Start the app
+        init();
     </script>
 </body>
 </html>
