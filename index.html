@@ -1023,9 +1023,11 @@ And continues..." style="min-height: 150px;"></textarea>
         async function loadFromStorage(key) {
             try {
                 const result = localStorage.getItem('lum_' + key);
-                return result ? JSON.parse(result) : null;
+                const parsed = result ? JSON.parse(result) : null;
+                console.log('[LOAD]', key, '->', parsed);
+                return parsed;
             } catch (error) {
-                console.log(`Key '${key}' not found`);
+                console.error('[LOAD ERROR]', key, error);
                 return null;
             }
         }
@@ -1033,9 +1035,10 @@ And continues..." style="min-height: 150px;"></textarea>
         async function saveToStorage(key, data) {
             try {
                 localStorage.setItem('lum_' + key, JSON.stringify(data));
+                console.log('[SAVE]', key, '->', data);
                 return true;
             } catch (error) {
-                console.error('Storage error:', error);
+                console.error('[SAVE ERROR]', key, error);
                 return false;
             }
         }
