@@ -15,6 +15,10 @@
             --card-shadow: 0 4px 25px rgba(0,0,0,0.05);
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: 'Nunito', sans-serif;
@@ -40,7 +44,6 @@
             box-shadow: 0 2px 20px rgba(0,0,0,0.03);
             z-index: 1000;
             padding: 0 20px;
-            box-sizing: border-box;
         }
 
         .nav-content {
@@ -119,7 +122,6 @@
             width: 94%;
             max-width: 1000px;
             padding-top: 100px;
-            box-sizing: border-box;
         }
 
         .view {
@@ -133,14 +135,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Admin Modal */
@@ -155,7 +151,6 @@
             justify-content: center;
             align-items: center;
             z-index: 3000;
-            animation: fadeIn 0.3s ease;
         }
 
         .modal.active {
@@ -167,8 +162,8 @@
             border-radius: 25px;
             padding: 40px;
             width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
+            max-width: 700px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -226,8 +221,7 @@
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group textarea {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid rgba(0,0,0,0.1);
@@ -235,7 +229,6 @@
             font-family: inherit;
             font-size: 14px;
             background: white;
-            box-sizing: border-box;
         }
 
         .form-group textarea {
@@ -274,6 +267,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
+        }
+
+        .book-admin-entry {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .book-admin-thumb {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
         }
 
         .item-info {
@@ -300,6 +313,17 @@
             font-family: inherit;
             font-weight: 700;
             font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
         }
 
         .reader-view {
@@ -308,7 +332,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #FFF0DB;
+            background: var(--bg-page);
             z-index: 2000;
             display: none;
             flex-direction: column;
@@ -316,12 +340,8 @@
         }
 
         @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
 
         .reader-header {
@@ -331,7 +351,6 @@
             padding: 0 20px;
             background: #FFFFFF;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
-            color: #000000;
         }
 
         .back-arrow {
@@ -367,25 +386,14 @@
             width: 100%;
             font-size: 19px;
             line-height: 1.8;
-            color: #000000;
+            color: var(--text-main);
             text-align: justify;
             transition: transform 0.4s ease, opacity 0.4s ease;
         }
 
-        .page-enter-right {
-            transform: translateX(50px);
-            opacity: 0;
-        }
-
-        .page-enter-left {
-            transform: translateX(-50px);
-            opacity: 0;
-        }
-
-        .page-active {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        .page-enter-right { transform: translateX(50px); opacity: 0; }
+        .page-enter-left { transform: translateX(-50px); opacity: 0; }
+        .page-active { transform: translateX(0); opacity: 1; }
 
         .touch-zone-left, .touch-zone-right {
             position: absolute;
@@ -396,13 +404,8 @@
             cursor: pointer;
         }
 
-        .touch-zone-left {
-            left: 0;
-        }
-
-        .touch-zone-right {
-            right: 0;
-        }
+        .touch-zone-left { left: 0; }
+        .touch-zone-right { right: 0; }
 
         .search-bar {
             background: #FFFFFF;
@@ -440,7 +443,6 @@
             flex-direction: column;
             justify-content: flex-end;
             padding: 40px;
-            box-sizing: border-box;
             color: white;
             margin-bottom: 30px;
             position: relative;
@@ -479,7 +481,7 @@
             font-size: 26px;
             font-weight: 800;
             margin: 35px 0 20px 5px;
-            color: #000000;
+            color: var(--text-main);
         }
 
         .book-grid {
@@ -505,7 +507,6 @@
 
         .edu-section {
             display: none;
-            animation: fadeIn 0.3s ease;
         }
 
         .edu-section.active {
@@ -634,7 +635,6 @@
             max-width: 320px;
             margin-left: auto;
             margin-right: auto;
-            color: #000000;
             border: 1px solid rgba(0,0,0,0.05);
         }
 
@@ -669,17 +669,9 @@
             fill: currentColor;
         }
 
-        .tg-c {
-            background: #26A5E4;
-        }
-
-        .ig-c {
-            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-        }
-
-        .yt-c {
-            background: #FF0000;
-        }
+        .tg-c { background: #26A5E4; }
+        .ig-c { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
+        .yt-c { background: #FF0000; }
 
         .sub-card {
             background: #FFFFFF;
@@ -700,7 +692,6 @@
         .theme-btn {
             padding: 15px;
             border-radius: 15px;
-            border: 2.5px solid transparent;
             background: #FFFFFF;
             cursor: pointer;
             display: flex;
@@ -709,11 +700,12 @@
             font-weight: 700;
             color: #000000;
             border: 1px solid rgba(0,0,0,0.05);
+            transition: 0.3s;
         }
 
         .theme-btn.active {
             border-color: #D9B99B;
-            background: #FFFFFF;
+            border-width: 2.5px;
         }
 
         .color-dot {
@@ -742,16 +734,6 @@
         .spacer {
             height: 100px;
         }
-
-        .success-message {
-            background: #4CAF50;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: 700;
-        }
     </style>
 </head>
 
@@ -759,32 +741,24 @@
     <nav class="top-nav">
         <div class="nav-content">
             <div class="logo-section">
-                <div class="logo" onclick="switchTab('home-view', 'n-h')">LUMINARY</div>
+                <div class="logo" onclick="goHome()">LUMINARY</div>
                 <button class="admin-btn" onclick="openAdminPanel()">🔐 Admin</button>
             </div>
             <div class="nav-links">
-                <button class="nav-item active" id="n-h" onclick="switchTab('home-view', 'n-h')">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                    </svg>
+                <button class="nav-item active" id="n-h" onclick="switchTab('home')">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
                     Дом
                 </button>
-                <button class="nav-item" id="n-e" onclick="switchTab('edu-view', 'n-e')">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
-                    </svg>
+                <button class="nav-item" id="n-e" onclick="switchTab('edu')">
+                    <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" /></svg>
                     Обучение
                 </button>
-                <button class="nav-item" id="n-a" onclick="switchTab('audio-view', 'n-a')">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z" />
-                    </svg>
+                <button class="nav-item" id="n-a" onclick="switchTab('audio')">
+                    <svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z" /></svg>
                     Аудио
                 </button>
-                <button class="nav-item" id="n-u" onclick="switchTab('user-view', 'n-u')">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
+                <button class="nav-item" id="n-u" onclick="switchTab('user')">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
                     Профиль
                 </button>
             </div>
@@ -803,17 +777,47 @@
                 <div class="admin-section">
                     <h3>🔐 Enter Password</h3>
                     <div class="form-group">
-                        <input type="password" id="admin-password" placeholder="Enter admin password">
+                        <input type="password" id="admin-password" placeholder="Enter admin password" onkeypress="if(event.key==='Enter') checkPassword()">
                     </div>
                     <button class="btn-primary" onclick="checkPassword()">Login</button>
-                    <p style="margin-top: 10px; font-size: 12px; color: #666;">Default password: admin123</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">Default password: <strong>admin123</strong></p>
                 </div>
             </div>
 
             <div id="admin-content" style="display: none;">
-                <!-- SAT Vocabulary Section -->
+                <!-- Books Section -->
                 <div class="admin-section">
-                    <h3>📚 Add SAT Vocabulary</h3>
+                    <h3>📚 Add Book</h3>
+                    <div class="form-group">
+                        <label>Book Title</label>
+                        <input type="text" id="book-title" placeholder="e.g., The Great Gatsby">
+                    </div>
+                    <div class="form-group">
+                        <label>Author</label>
+                        <input type="text" id="book-author" placeholder="e.g., F. Scott Fitzgerald">
+                    </div>
+                    <div class="form-group">
+                        <label>Cover Image URL</label>
+                        <input type="text" id="book-cover" placeholder="https://example.com/cover.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Book Content (separate pages with double line breaks)</label>
+                        <textarea id="book-content" placeholder="Chapter 1
+
+The story begins...
+
+Chapter 2
+
+And continues..." style="min-height: 150px;"></textarea>
+                    </div>
+                    <button class="btn-primary" onclick="addBook()">Add Book</button>
+                    
+                    <div class="item-list" id="book-list-admin"></div>
+                </div>
+
+                <!-- SAT Vocabulary -->
+                <div class="admin-section">
+                    <h3>📖 Add SAT Vocabulary</h3>
                     <div class="form-group">
                         <label>Word</label>
                         <input type="text" id="sat-word" placeholder="e.g., Benevolent">
@@ -823,11 +827,10 @@
                         <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
                     </div>
                     <button class="btn-primary" onclick="addSATWord()">Add SAT Word</button>
-                    
                     <div class="item-list" id="sat-word-list"></div>
                 </div>
 
-                <!-- IELTS Vocabulary Section -->
+                <!-- IELTS Vocabulary -->
                 <div class="admin-section">
                     <h3>🎓 Add IELTS Vocabulary</h3>
                     <div class="form-group">
@@ -839,11 +842,10 @@
                         <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
                     </div>
                     <button class="btn-primary" onclick="addIELTSWord()">Add IELTS Word</button>
-                    
                     <div class="item-list" id="ielts-word-list"></div>
                 </div>
 
-                <!-- Podcast/Audio Section -->
+                <!-- Podcast/Audio -->
                 <div class="admin-section">
                     <h3>🎧 Add Podcast/Audio</h3>
                     <div class="form-group">
@@ -855,7 +857,6 @@
                         <input type="text" id="podcast-url" placeholder="https://youtu.be/...">
                     </div>
                     <button class="btn-primary" onclick="addPodcast()">Add Podcast</button>
-                    
                     <div class="item-list" id="podcast-list-admin"></div>
                 </div>
             </div>
@@ -863,6 +864,7 @@
     </div>
 
     <div class="container">
+        <!-- HOME VIEW -->
         <div id="home-view" class="view active">
             <div class="search-bar">
                 <input type="text" placeholder="Поиск книг..." oninput="handleSearch(event)">
@@ -880,26 +882,15 @@
             <div class="home-footer">
                 <div class="soc-title">МЫ В СОЦСЕТЯХ</div>
                 <div class="soc-row">
-                    <a href="#" class="soc-circle tg-c" aria-label="Telegram">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-                        </svg>
-                    </a>
-                    <a href="#" class="soc-circle ig-c" aria-label="Instagram">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                        </svg>
-                    </a>
-                    <a href="#" class="soc-circle yt-c" aria-label="YouTube">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                        </svg>
-                    </a>
+                    <a href="#" class="soc-circle tg-c"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" /></svg></a>
+                    <a href="#" class="soc-circle ig-c"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg></a>
+                    <a href="#" class="soc-circle yt-c"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg></a>
                 </div>
             </div>
             <div class="spacer"></div>
         </div>
 
+        <!-- EDUCATION VIEW -->
         <div id="edu-view" class="view">
             <div id="edu-main" class="edu-section active">
                 <div class="label">Направления</div>
@@ -943,12 +934,14 @@
             <div class="spacer"></div>
         </div>
 
+        <!-- AUDIO VIEW -->
         <div id="audio-view" class="view">
             <div class="label">Подкасты</div>
             <div class="podcast-list" id="podcast-container"></div>
             <div class="spacer"></div>
         </div>
 
+        <!-- USER VIEW -->
         <div id="user-view" class="view">
             <div class="label">Мои заметки</div>
             <div class="sub-card">
@@ -960,12 +953,11 @@
         </div>
     </div>
 
+    <!-- READER VIEW -->
     <div id="reader-view" class="reader-view">
         <div class="reader-header">
             <div class="back-arrow" onclick="closeBook()">
-                <svg viewBox="0 0 24 24">
-                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
             </div>
             <div id="reader-book-title" style="font-weight:800; color: #000000;"></div>
         </div>
@@ -977,8 +969,7 @@
     </div>
 
     <script>
-        // --- ДАННЫЕ ---
-        const books = [
+        const defaultBooks = [
             {
                 t: "Steve Jobs",
                 a: "Walter Isaacson",
@@ -1008,15 +999,6 @@
                     "1% прогресса каждый день делает вас в 37 раз лучше через год.",
                     "Система важнее целей. Если вы хотите успеха, сосредоточьтесь на процессах."
                 ]
-            },
-            {
-                t: "Pride and Prejudice",
-                a: "Jane Austen",
-                i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
-                pages: [
-                    "Глава 1\n\nЭто истина, не требующая доказательств: владелец крупного состояния непременно нуждается в жене.\n\nКаким бы малоизвестным ни был этот человек, когда он переезжает в новое графство, местные семьи сразу начинают видеть в нём законную собственность одной из своих дочерей.",
-                    "Глава 2\n\nМистер Беннет был одним из первых, кто навестил мистера Бингли. Он всегда делал вид, что не хочет этого, но в итоге всё равно пошёл.\n\nЕго жена и пять дочерей не могли дождаться новостей. Миссис Беннет не скрывала своего восторга: «Я так рада! Мистер Бингли такой приятный молодой человек!»"
-                ]
             }
         ];
 
@@ -1030,27 +1012,27 @@
             { id: 'black', n: 'Black', bg: '#1A1A1A', card: '#333333', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#FFFFFF' }
         ];
 
+        let allBooks = [];
         let currentBookIdx = 0;
         let currentPageIdx = 0;
         let isAnimating = false;
         let heroClickHandler = null;
-
         const ADMIN_PASSWORD = "admin123";
 
-        // ===== PERSISTENT STORAGE FUNCTIONS =====
+        // ===== STORAGE (localStorage - works on GitHub Pages) =====
         async function loadFromStorage(key) {
             try {
-                const result = await window.storage.get(key);
-                return result ? JSON.parse(result.value) : null;
+                const result = localStorage.getItem('lum_' + key);
+                return result ? JSON.parse(result) : null;
             } catch (error) {
-                console.log(`Key '${key}' not found, returning null`);
+                console.log(`Key '${key}' not found`);
                 return null;
             }
         }
 
         async function saveToStorage(key, data) {
             try {
-                await window.storage.set(key, JSON.stringify(data));
+                localStorage.setItem('lum_' + key, JSON.stringify(data));
                 return true;
             } catch (error) {
                 console.error('Storage error:', error);
@@ -1058,15 +1040,35 @@
             }
         }
 
-        async function deleteFromStorage(key) {
-            try {
-                await window.storage.delete(key);
-            } catch (error) {
-                console.error('Delete error:', error);
-            }
+        // ===== NAVIGATION =====
+        function switchTab(tab) {
+            console.log('Switching to tab:', tab);
+            
+            // Reset education view to main ALWAYS when switching tabs
+            document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
+            document.getElementById('edu-main').classList.add('active');
+            
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            
+            // Show selected view
+            document.getElementById(tab + '-view').classList.add('active');
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('n-' + tab.charAt(0)).classList.add('active');
         }
 
-        // ===== ADMIN PANEL FUNCTIONS =====
+        function goHome() {
+            switchTab('home');
+        }
+
+        function openEduLevel(id) {
+            document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ===== ADMIN =====
         function openAdminPanel() {
             document.getElementById('admin-modal').classList.add('active');
         }
@@ -1087,23 +1089,42 @@
         }
 
         async function loadAdminData() {
-            // Load and display SAT words
+            const customBooks = await loadFromStorage('custom-books') || [];
+            displayAdminBooks(customBooks);
+
             const satWords = await loadFromStorage('sat-words') || [];
             displayAdminWords('sat-word-list', satWords, 'sat');
 
-            // Load and display IELTS words
             const ieltsWords = await loadFromStorage('ielts-words') || [];
             displayAdminWords('ielts-word-list', ieltsWords, 'ielts');
 
-            // Load and display podcasts
             const podcasts = await loadFromStorage('podcasts') || [];
             displayAdminPodcasts(podcasts);
+        }
+
+        function displayAdminBooks(books) {
+            const container = document.getElementById('book-list-admin');
+            if (books.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No custom books yet</p>';
+                return;
+            }
+            
+            container.innerHTML = books.map((book, idx) => `
+                <div class="book-admin-entry">
+                    <div class="book-admin-thumb" style="background-image:url('${book.i}')"></div>
+                    <div class="item-info">
+                        <div class="item-title">${book.t}</div>
+                        <div class="item-detail">by ${book.a} • ${book.pages.length} pages</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteBook(${idx})">Delete</button>
+                </div>
+            `).join('');
         }
 
         function displayAdminWords(containerId, words, type) {
             const container = document.getElementById(containerId);
             if (words.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No words added yet</p>';
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No words yet</p>';
                 return;
             }
             
@@ -1121,7 +1142,7 @@
         function displayAdminPodcasts(podcasts) {
             const container = document.getElementById('podcast-list-admin');
             if (podcasts.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No podcasts added yet</p>';
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No podcasts yet</p>';
                 return;
             }
             
@@ -1134,6 +1155,34 @@
                     <button class="btn-delete" onclick="deletePodcast(${idx})">Delete</button>
                 </div>
             `).join('');
+        }
+
+        async function addBook() {
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const cover = document.getElementById('book-cover').value.trim();
+            const content = document.getElementById('book-content').value.trim();
+            
+            if (!title || !author || !cover || !content) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const pages = content.split(/\n\n+/).filter(p => p.trim().length > 0);
+
+            const customBooks = await loadFromStorage('custom-books') || [];
+            customBooks.push({ t: title, a: author, i: cover, pages: pages });
+            await saveToStorage('custom-books', customBooks);
+
+            document.getElementById('book-title').value = '';
+            document.getElementById('book-author').value = '';
+            document.getElementById('book-cover').value = '';
+            document.getElementById('book-content').value = '';
+            
+            showSuccess('Book added!');
+            loadAdminData();
+            await loadAllBooks();
+            renderBooks(allBooks);
         }
 
         async function addSATWord() {
@@ -1152,7 +1201,7 @@
             document.getElementById('sat-word').value = '';
             document.getElementById('sat-def').value = '';
             
-            showSuccess('SAT word added successfully!');
+            showSuccess('SAT word added!');
             loadAdminData();
             await renderVocabLists();
         }
@@ -1173,7 +1222,7 @@
             document.getElementById('ielts-word').value = '';
             document.getElementById('ielts-def').value = '';
             
-            showSuccess('IELTS word added successfully!');
+            showSuccess('IELTS word added!');
             loadAdminData();
             await renderVocabLists();
         }
@@ -1187,7 +1236,6 @@
                 return;
             }
 
-            // Extract YouTube ID
             let videoId = '';
             if (url.includes('youtu.be/')) {
                 videoId = url.split('youtu.be/')[1].split('?')[0];
@@ -1206,30 +1254,36 @@
             document.getElementById('podcast-title').value = '';
             document.getElementById('podcast-url').value = '';
             
-            showSuccess('Podcast added successfully!');
+            showSuccess('Podcast added!');
             loadAdminData();
             await renderPodcasts();
         }
 
-        async function deleteWord(type, idx) {
-            if (!confirm('Are you sure you want to delete this word?')) return;
+        async function deleteBook(idx) {
+            if (!confirm('Delete this book?')) return;
+            const customBooks = await loadFromStorage('custom-books') || [];
+            customBooks.splice(idx, 1);
+            await saveToStorage('custom-books', customBooks);
+            loadAdminData();
+            await loadAllBooks();
+            renderBooks(allBooks);
+        }
 
+        async function deleteWord(type, idx) {
+            if (!confirm('Delete this word?')) return;
             const key = type === 'sat' ? 'sat-words' : 'ielts-words';
             const words = await loadFromStorage(key) || [];
             words.splice(idx, 1);
             await saveToStorage(key, words);
-            
             loadAdminData();
             await renderVocabLists();
         }
 
         async function deletePodcast(idx) {
-            if (!confirm('Are you sure you want to delete this podcast?')) return;
-
+            if (!confirm('Delete this podcast?')) return;
             const podcasts = await loadFromStorage('podcasts') || [];
             podcasts.splice(idx, 1);
-            await saveToStorage(key, podcasts);
-            
+            await saveToStorage('podcasts', podcasts);
             loadAdminData();
             await renderPodcasts();
         }
@@ -1246,13 +1300,17 @@
             setTimeout(() => msg.remove(), 3000);
         }
 
-        // ===== RENDER FUNCTIONS =====
+        // ===== LOAD & RENDER =====
+        async function loadAllBooks() {
+            const customBooks = await loadFromStorage('custom-books') || [];
+            allBooks = [...defaultBooks, ...customBooks];
+        }
+
         async function renderVocabLists() {
-            // Render SAT words
             const satWords = await loadFromStorage('sat-words') || [];
             const satContainer = document.getElementById('vocab-list-sat');
             if (satWords.length === 0) {
-                satContainer.innerHTML = '<div class="sub-card">No SAT words added yet. Ask admin to add some!</div>';
+                satContainer.innerHTML = '<div class="sub-card">No SAT words yet</div>';
             } else {
                 satContainer.innerHTML = satWords.map(w => `
                     <div class="vocab-item">
@@ -1262,11 +1320,10 @@
                 `).join('');
             }
 
-            // Render IELTS words
             const ieltsWords = await loadFromStorage('ielts-words') || [];
             const ieltsContainer = document.getElementById('vocab-list-ielts');
             if (ieltsWords.length === 0) {
-                ieltsContainer.innerHTML = '<div class="sub-card">No IELTS words added yet. Ask admin to add some!</div>';
+                ieltsContainer.innerHTML = '<div class="sub-card">No IELTS words yet</div>';
             } else {
                 ieltsContainer.innerHTML = ieltsWords.map(w => `
                     <div class="vocab-item">
@@ -1282,7 +1339,7 @@
             const container = document.getElementById('podcast-container');
             
             if (podcasts.length === 0) {
-                container.innerHTML = '<div class="sub-card">No podcasts added yet. Ask admin to add some!</div>';
+                container.innerHTML = '<div class="sub-card">No podcasts yet</div>';
             } else {
                 container.innerHTML = podcasts.map(p => `
                     <a href="${p.u}" target="_blank" class="podcast-item">
@@ -1296,30 +1353,11 @@
             }
         }
 
-        // ===== ORIGINAL FUNCTIONS =====
-        function switchTab(viewId, buttonId) {
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
-            });
-            
-            document.getElementById(viewId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            document.getElementById(buttonId).classList.add('active');
-        }
-
-        function openEduLevel(id) {
-            document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
+        // ===== BOOKS =====
         function openBook(idx) {
             currentBookIdx = idx;
             currentPageIdx = 0;
-            document.getElementById('reader-book-title').innerText = books[idx].t;
+            document.getElementById('reader-book-title').innerText = allBooks[idx].t;
             document.getElementById('reader-view').style.display = 'flex';
             renderPage();
         }
@@ -1330,7 +1368,7 @@
 
         function animatePageChange(dir) {
             if (isAnimating) return;
-            let book = books[currentBookIdx];
+            let book = allBooks[currentBookIdx];
             let newPage = currentPageIdx + dir;
 
             if (newPage < 0) {
@@ -1351,7 +1389,6 @@
             setTimeout(() => {
                 currentPageIdx = newPage;
                 renderPage();
-
                 content.classList.remove('page-enter-left', 'page-enter-right');
                 content.classList.add(dir > 0 ? 'page-enter-right' : 'page-enter-left');
 
@@ -1364,9 +1401,34 @@
         }
 
         function renderPage() {
-            document.getElementById('page-content').innerText = books[currentBookIdx].pages[currentPageIdx];
+            document.getElementById('page-content').innerText = allBooks[currentBookIdx].pages[currentPageIdx];
         }
 
+        function renderBooks(arr) {
+            document.getElementById('book-grid').innerHTML = arr.map((b, i) => `
+                <div class="book-card" style="background-image:url('${b.i}')" onclick="openBook(${i})"></div>
+            `).join('');
+        }
+
+        function handleSearch(e) {
+            const q = e.target.value.toLowerCase();
+            renderBooks(allBooks.filter(b => b.t.toLowerCase().includes(q)));
+        }
+
+        function updateHeroBanner(idx) {
+            const heroBanner = document.getElementById('hero-banner');
+            heroBanner.style.backgroundImage = `url('${allBooks[idx].i}')`;
+            document.getElementById('hero-title').innerText = allBooks[idx].t;
+            
+            if (heroClickHandler) {
+                heroBanner.removeEventListener('click', heroClickHandler);
+            }
+            
+            heroClickHandler = function() { openBook(idx); };
+            heroBanner.addEventListener('click', heroClickHandler);
+        }
+
+        // ===== THEMES =====
         function setTheme(id) {
             const t = themes.find(x => x.id === id);
             document.documentElement.style.setProperty('--bg-page', t.bg);
@@ -1387,37 +1449,14 @@
             `).join('');
         }
 
-        function renderBooks(arr) {
-            document.getElementById('book-grid').innerHTML = arr.map((b, i) => `
-                <div class="book-card" style="background-image:url('${b.i}')" onclick="openBook(${i})"></div>
-            `).join('');
-        }
-
-        function handleSearch(e) {
-            const q = e.target.value.toLowerCase();
-            renderBooks(books.filter(b => b.t.toLowerCase().includes(q)));
-        }
-
         function saveNotes() {
             localStorage.setItem('lum_notes', document.getElementById('notes-area').value);
         }
 
-        function updateHeroBanner(idx) {
-            const heroBanner = document.getElementById('hero-banner');
-            heroBanner.style.backgroundImage = `url('${books[idx].i}')`;
-            document.getElementById('hero-title').innerText = books[idx].t;
-            
-            if (heroClickHandler) {
-                heroBanner.removeEventListener('click', heroClickHandler);
-            }
-            
-            heroClickHandler = function() { openBook(idx); };
-            heroBanner.addEventListener('click', heroClickHandler);
-        }
-
-        // ===== INITIALIZATION =====
+        // ===== INIT =====
         async function init() {
-            renderBooks(books);
+            await loadAllBooks();
+            renderBooks(allBooks);
             await renderVocabLists();
             await renderPodcasts();
             renderThemeGrid();
@@ -1426,15 +1465,13 @@
             setTheme(localStorage.getItem('lum_theme') || 'beige');
             updateHeroBanner(0);
 
-            // Hero banner rotation
             let hIdx = 0;
             setInterval(() => {
-                hIdx = (hIdx + 1) % books.length;
+                hIdx = (hIdx + 1) % allBooks.length;
                 updateHeroBanner(hIdx);
             }, 5000);
         }
 
-        // Start the app
         init();
     </script>
 </body>
