@@ -565,27 +565,27 @@
 <body>
     <nav class="top-nav">
         <div class="nav-content">
-            <div class="logo" onclick="tab('home-view', 'n-h')">LUMINARY</div>
+            <div class="logo" onclick="switchTab('home-view', 'n-h')">LUMINARY</div>
             <div class="nav-links">
-                <button class="nav-item active" id="n-h" onclick="tab('home-view', 'n-h')">
+                <button class="nav-item active" id="n-h" onclick="switchTab('home-view', 'n-h')">
                     <svg viewBox="0 0 24 24">
                         <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                     </svg>
                     Дом
                 </button>
-                <button class="nav-item" id="n-e" onclick="tab('edu-view', 'n-e')">
+                <button class="nav-item" id="n-e" onclick="switchTab('edu-view', 'n-e')">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
                     </svg>
                     Обучение
                 </button>
-                <button class="nav-item" id="n-a" onclick="tab('audio-view', 'n-a')">
+                <button class="nav-item" id="n-a" onclick="switchTab('audio-view', 'n-a')">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z" />
                     </svg>
                     Аудио
                 </button>
-                <button class="nav-item" id="n-u" onclick="tab('user-view', 'n-u')">
+                <button class="nav-item" id="n-u" onclick="switchTab('user-view', 'n-u')">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
@@ -600,10 +600,10 @@
             <div class="search-bar">
                 <input type="text" placeholder="Поиск книг..." oninput="handleSearch(event)">
             </div>
-            <div id="hero-banner" class="hero" onclick="openBook(3)">
+            <div id="hero-banner" class="hero">
                 <div class="hero-overlay"></div>
                 <div class="hero-text">
-                    <h2 id="hero-title">Pride and Prejudice</h2>
+                    <h2 id="hero-title">Загрузка...</h2>
                     <p>Нажми, чтобы читать</p>
                 </div>
             </div>
@@ -701,70 +701,270 @@
     </div>
 
     <script>
+        // --- ДАННЫЕ ---
         const books = [
-    {
-        t: "Steve Jobs",
-        a: "Walter Isaacson",
-        i: "https://is1-ssl.mzstatic.com/image/thumb/Publication114/v4/59/7e/03/597e0370-4d18-cc3d-09e3-3e7c6434e168/9781451648553.jpg/600x600w.png",
-        pages: [
-            "Стив Джобс изменил мир технологий. Его видение сделало компьютеры персональными, а телефоны — умными.",
-            "Он основал Apple в гараже своего отца в 1976 году вместе со Стивом Возняком.",
-            "Джобс был известен своим стремлением к совершенству, даже в тех деталях, которые никто не видел."
-        ]
-    },
-    {
-        t: "Elon Musk",
-        a: "Walter Isaacson",
-        i: "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/d4/c7/84/d4c78414-6599-e723-71de-837a0197dbd9/9781982181307.jpg/600x630w.png",
-        pages: [
-            "Илон Маск мечтает о Марсе. Его компания SpaceX первой создала многоразовые ракеты.",
-            "Tesla перевернула автомобильный рынок, доказав, что электромобили могут быть крутыми.",
-            "Маск работает по 100 часов в неделю и считает, что риск — это путь к прогрессу."
-        ]
-    },
-    {
-        t: "Atomic Habits",
-        a: "James Clear",
-        i: "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/1f/1b/d3/1f1bd34a-aa29-25e8-b133-7e19b38a5702/9780735211308.d.jpg/600x630w.png",
-        pages: [
-            "Привычки формируют нашу личность. Маленькие изменения ведут к большим результатам.",
-            "1% прогресса каждый день делает вас в 37 раз лучше через год.",
-            "Система важнее целей. Если вы хотите успеха, сосредоточьтесь на процессах."
-        ]
-    }
-];
+            {
+                t: "Steve Jobs",
+                a: "Walter Isaacson",
+                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication114/v4/59/7e/03/597e0370-4d18-cc3d-09e3-3e7c6434e168/9781451648553.jpg/600x600w.png",
+                pages: [
+                    "Стив Джобс изменил мир технологий. Его видение сделало компьютеры персональными, а телефоны — умными.",
+                    "Он основал Apple в гараже своего отца в 1976 году вместе со Стивом Возняком.",
+                    "Джобс был известен своим стремлением к совершенству, даже в тех деталях, которые никто не видел."
+                ]
+            },
+            {
+                t: "Elon Musk",
+                a: "Walter Isaacson",
+                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/d4/c7/84/d4c78414-6599-e723-71de-837a0197dbd9/9781982181307.jpg/600x630w.png",
+                pages: [
+                    "Илон Маск мечтает о Марсе. Его компания SpaceX первой создала многоразовые ракеты.",
+                    "Tesla перевернула автомобильный рынок, доказав, что электромобили могут быть крутыми.",
+                    "Маск работает по 100 часов в неделю и считает, что риск — это путь к прогрессу."
+                ]
+            },
+            {
+                t: "Atomic Habits",
+                a: "James Clear",
+                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/1f/1b/d3/1f1bd34a-aa29-25e8-b133-7e19b38a5702/9780735211308.d.jpg/600x630w.png",
+                pages: [
+                    "Привычки формируют нашу личность. Маленькие изменения ведут к большим результатам.",
+                    "1% прогресса каждый день делает вас в 37 раз лучше через год.",
+                    "Система важнее целей. Если вы хотите успеха, сосредоточьтесь на процессах."
+                ]
+            },
+            {
+                t: "Pride and Prejudice",
+                a: "Jane Austen",
+                i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
+                pages: [
+                    "Глава 1\n\nЭто истина, не требующая доказательств: владелец крупного состояния непременно нуждается в жене.\n\nКаким бы малоизвестным ни был этот человек, когда он переезжает в новое графство, местные семьи сразу начинают видеть в нём законную собственность одной из своих дочерей.",
+                    "Глава 2\n\nМистер Беннет был одним из первых, кто навестил мистера Бингли. Он всегда делал вид, что не хочет этого, но в итоге всё равно пошёл.\n\nЕго жена и пять дочерей не могли дождаться новостей. Миссис Беннет не скрывала своего восторга: «Я так рада! Мистер Бингли такой приятный молодой человек!»",
+                    "Глава 3\n\nМистер Бингли ответил на визит мистера Беннета. Он был молод, красив, обходителен — и, что самое главное, холост. Вскоре весь Мертон только и говорил, что о нём.\n\nНа балу в Меритоне мистер Бингли произвёл фурор. Он танцевал с каждой незамужней девушкой, но особенно выделял старшую дочь Беннетов — Джейн.",
+                    "Его друг, мистер Дарси, напротив, казался гордым и надменным. Он не танцевал ни с кем, кроме мисс Бингли, и заявил, что «все местные девушки недостаточно хороши для него». Элизабет Беннет слышала это и решила, что он самый неприятный человек в мире.",
+                    "Мистер Бингли влюбился в Джейн с первого взгляда. Она была красива, добра и скромна. Но миссис Беннет уже планировала свадьбу, а мистер Беннет лишь посмеивался: «Бедный мистер Бингли! Ему не спастись». Элизабет наблюдала за сестрой и надеялась, что её сердце не разобьют.",
+                    "Мистер Дарси тоже заметил Элизабет. Он находил её лицо «милым» и глаза «умными», но его гордость не позволяла ему признаться в этом даже себе. Элизабет же считала его последним человеком, за которого она вышла бы замуж."
+                ]
+            }
+        ];
 
-// А ЭТОТ КОД ДОБАВЛЯЕМ ПОСЛЕ МАССИВА books
-async function loadPrideAndPrejudice() {
-    const chapters = [];
-    let chapterNum = 1;
-    
-    while (true) {
-        try {
-            const response = await fetch(`books/glava${chapterNum}.txt`);
-            if (!response.ok) break;
-            const text = await response.text();
-            chapters.push(text);
-            chapterNum++;
-        } catch {
-            break;
+        const podcasts = [
+            { t: "Чувство и чувствительность", u: "https://youtu.be/FJzqGLflxXA", i: "https://img.youtube.com/vi/FJzqGLflxXA/mqdefault.jpg" },
+            { t: "Бриджертоны: Часть 1", u: "https://youtu.be/2m7TkhXrCo0", i: "https://img.youtube.com/vi/2m7TkhXrCo0/mqdefault.jpg" },
+            { t: "Бриджертоны: Часть 2", u: "https://youtu.be/wNozq1sYBdY", i: "https://img.youtube.com/vi/wNozq1sYBdY/mqdefault.jpg" },
+            { t: "НИ СЫ (Мотивация)", u: "https://youtu.be/eCt8Yq6xLVM", i: "https://img.youtube.com/vi/eCt8Yq6xLVM/mqdefault.jpg" }
+        ];
+
+        const satWords = [
+            { w: "Illusory", d: "Based on illusion; not real or true; deceptive." },
+            { w: "Imposing", d: "Grand and impressive in appearance." },
+            { w: "Ingenious", d: "Clever, original, and inventive." },
+            { w: "Meticulous", d: "Showing great attention to detail; very careful." },
+            { w: "Pristine", d: "In its original condition; unspoiled or clean." }
+        ];
+
+        const themes = [
+            { id: 'beige', n: 'Beige', bg: '#FFF0DB', card: '#FFFFFF', text: '#000000', textCard: '#000000', acc: '#D9B99B' },
+            { id: 'dark', n: 'Dark', bg: '#1d1f2f', card: '#252a3d', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#0078D4' },
+            { id: 'navy', n: 'Navy', bg: '#1a2744', card: '#243b55', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#60a5fa' },
+            { id: 'slate', n: 'Slate', bg: '#334155', card: '#475569', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#94a3b8' },
+            { id: 'steel', n: 'Steel Blue', bg: '#1e3a5f', card: '#2c5282', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#0078D4' },
+            { id: 'orange', n: 'Amber', bg: '#431407', card: '#7c2d12', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#f59e0b' },
+            { id: 'black', n: 'Black', bg: '#1A1A1A', card: '#333333', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#FFFFFF' }
+        ];
+
+        let currentBookIdx = 0;
+        let currentPageIdx = 0;
+        let isAnimating = false;
+        let heroClickHandler = null;
+
+        // FIXED: Renamed to switchTab to match HTML onclick calls
+        function switchTab(viewId, buttonId) {
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            document.getElementById(viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(buttonId).classList.add('active');
         }
-    }
-    
-    if (chapters.length > 0) {
-        books.push({
-            t: "Pride and Prejudice",
-            a: "Jane Austen",
-            i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
-            pages: chapters
-        });
-        renderBooks(books);
-    }
-}
 
-// Запускаем загрузку
-loadPrideAndPrejudice();
+        function openEduLevel(id) {
+            document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function openBook(idx) {
+            currentBookIdx = idx;
+            currentPageIdx = 0;
+            document.getElementById('reader-book-title').innerText = books[idx].t;
+            document.getElementById('reader-view').style.display = 'flex';
+            renderPage();
+        }
+
+        function closeBook() {
+            document.getElementById('reader-view').style.display = 'none';
+        }
+
+        function animatePageChange(dir) {
+            if (isAnimating) return;
+            let book = books[currentBookIdx];
+            let newPage = currentPageIdx + dir;
+
+            if (newPage < 0) {
+                alert("Это начало книги");
+                return;
+            }
+            if (newPage >= book.pages.length) {
+                alert("Книга окончена");
+                return;
+            }
+
+            isAnimating = true;
+            const content = document.getElementById('page-content');
+
+            content.classList.remove('page-active');
+            content.classList.add(dir > 0 ? 'page-enter-left' : 'page-enter-right');
+
+            setTimeout(() => {
+                currentPageIdx = newPage;
+                renderPage();
+
+                content.classList.remove('page-enter-left', 'page-enter-right');
+                content.classList.add(dir > 0 ? 'page-enter-right' : 'page-enter-left');
+
+                setTimeout(() => {
+                    content.classList.add('page-active');
+                    content.classList.remove('page-enter-right', 'page-enter-left');
+                    isAnimating = false;
+                }, 50);
+            }, 400);
+        }
+
+        function renderPage() {
+            document.getElementById('page-content').innerText = books[currentBookIdx].pages[currentPageIdx];
+        }
+
+        function setTheme(id) {
+            const t = themes.find(x => x.id === id);
+            document.documentElement.style.setProperty('--bg-page', t.bg);
+            document.documentElement.style.setProperty('--bg-card', t.card);
+            document.documentElement.style.setProperty('--text-main', t.text);
+            document.documentElement.style.setProperty('--text-on-card', t.textCard);
+            document.documentElement.style.setProperty('--accent', t.acc);
+            localStorage.setItem('lum_theme', id);
+            renderThemeGrid();
+        }
+
+        function renderThemeGrid() {
+            const curr = localStorage.getItem('lum_theme') || 'beige';
+            document.getElementById('theme-grid').innerHTML = themes.map(t => `
+                <div class="theme-btn ${t.id === curr ? 'active' : ''}" onclick="setTheme('${t.id}')">
+                    <div class="color-dot" style="background:${t.bg}"></div> ${t.n}
+                </div>
+            `).join('');
+        }
+
+        function renderBooks(arr) {
+            document.getElementById('book-grid').innerHTML = arr.map((b, i) => `
+                <div class="book-card" style="background-image:url('${b.i}')" onclick="openBook(${i})"></div>
+            `).join('');
+        }
+
+        function renderContent() {
+            document.getElementById('vocab-list').innerHTML = satWords.map(w => `
+                <div class="vocab-item">
+                    <div class="v-word">${w.w}</div>
+                    <div class="v-def">${w.d}</div>
+                </div>
+            `).join('');
+            document.getElementById('podcast-container').innerHTML = podcasts.map(p => `
+                <a href="${p.u}" target="_blank" class="podcast-item">
+                    <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
+                    <div class="podcast-body">
+                        <h3>${p.t}</h3>
+                        <span>Слушать на YouTube</span>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function handleSearch(e) {
+            const q = e.target.value.toLowerCase();
+            renderBooks(books.filter(b => b.t.toLowerCase().includes(q)));
+        }
+
+        function saveNotes() {
+            localStorage.setItem('lum_notes', document.getElementById('notes-area').value);
+        }
+
+        // FIXED: Update hero banner properly
+        function updateHeroBanner(idx) {
+            const heroBanner = document.getElementById('hero-banner');
+            heroBanner.style.backgroundImage = `url('${books[idx].i}')`;
+            document.getElementById('hero-title').innerText = books[idx].t;
+            
+            // Remove old click handler
+            if (heroClickHandler) {
+                heroBanner.removeEventListener('click', heroClickHandler);
+            }
+            
+            // Add new click handler
+            heroClickHandler = function() { openBook(idx); };
+            heroBanner.addEventListener('click', heroClickHandler);
+        }
+
+        // Загрузка книги из папки books
+        async function loadPrideAndPrejudice() {
+            const chapters = [];
+            let chapterNum = 1;
+            
+            while (true) {
+                try {
+                    const response = await fetch(`books/glava${chapterNum}.txt`);
+                    if (!response.ok) break;
+                    const text = await response.text();
+                    chapters.push(text);
+                    chapterNum++;
+                } catch {
+                    break;
+                }
+            }
+            
+            if (chapters.length > 0) {
+                books.push({
+                    t: "Гордость и предубеждение",
+                    a: "Джейн Остин",
+                    i: "https://m.media-amazon.com/images/I/81Ww6H2kE6L.jpg",
+                    pages: chapters
+                });
+                renderBooks(books);
+            }
+        }
+
+        // INITIALIZATION
+        renderBooks(books);
+        renderContent();
+        renderThemeGrid();
+        document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
+        setTheme(localStorage.getItem('lum_theme') || 'beige');
+
+        // Set initial hero banner
+        updateHeroBanner(0);
+
+        // Load additional book
+        loadPrideAndPrejudice();
+
+        // Hero banner rotation
+        let hIdx = 0;
+        setInterval(() => {
+            hIdx = (hIdx + 1) % books.length;
+            updateHeroBanner(hIdx);
+        }, 5000);
     </script>
 </body>
-
 </html>
