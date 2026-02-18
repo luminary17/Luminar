@@ -788,30 +788,35 @@
                 <!-- Books Section -->
                 <div class="admin-section">
                     <h3>📚 Add Book</h3>
-                    <div class="form-group">
-                        <label>Book Title</label>
-                        <input type="text" id="book-title" placeholder="e.g., The Great Gatsby">
-                    </div>
-                    <div class="form-group">
-                        <label>Author</label>
-                        <input type="text" id="book-author" placeholder="e.g., F. Scott Fitzgerald">
-                    </div>
-                    <div class="form-group">
-                        <label>Cover Image URL</label>
-                        <input type="text" id="book-cover" placeholder="https://example.com/cover.jpg">
-                    </div>
-                    <div class="form-group">
-                        <label>Book Content (separate pages with double line breaks)</label>
-                        <textarea id="book-content" placeholder="Chapter 1
 
-The story begins...
-
-Chapter 2
-
-And continues..." style="min-height: 150px;"></textarea>
+                    <!-- Step 1: Book Info -->
+                    <div id="book-step-1">
+                        <div class="form-group">
+                            <label>Book Title</label>
+                            <input type="text" id="book-title" placeholder="e.g., The Great Gatsby">
+                        </div>
+                        <div class="form-group">
+                            <label>Author</label>
+                            <input type="text" id="book-author" placeholder="e.g., F. Scott Fitzgerald">
+                        </div>
+                        <div class="form-group">
+                            <label>Cover Image URL</label>
+                            <input type="text" id="book-cover" placeholder="https://example.com/cover.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Chapters</label>
+                            <input type="number" id="book-chapters" min="1" max="100" placeholder="e.g., 5">
+                        </div>
+                        <button class="btn-primary" onclick="setupChapters()">Next: Set Up Chapters →</button>
                     </div>
-                    <button class="btn-primary" onclick="addBook()">Add Book</button>
-                    
+
+                    <!-- Step 2: Chapter builder (hidden initially) -->
+                    <div id="book-step-2" style="display:none;">
+                        <div id="chapters-builder"></div>
+                        <button class="btn-primary" onclick="addBook()" style="margin-top:15px;">✅ Save Book</button>
+                        <button style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #D9B99B;background:none;font-family:inherit;font-weight:700;cursor:pointer;" onclick="resetBookForm()">← Start Over</button>
+                    </div>
+
                     <div class="item-list" id="book-list-admin"></div>
                 </div>
 
@@ -1160,32 +1165,119 @@ And continues..." style="min-height: 150px;"></textarea>
             `).join('');
         }
 
+        // Step 1: Admin enters book info + number of chapters → generate chapter forms
+        function setupChapters() {
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const cover = document.getElementById('book-cover').value.trim();
+            const numChapters = parseInt(document.getElementById('book-chapters').value);
+
+            if (!title || !author || !cover || !numChapters || numChapters < 1) {
+                alert('Please fill in all fields and enter a valid number of chapters');
+                return;
+            }
+
+            const builder = document.getElementById('chapters-builder');
+            builder.innerHTML = '';
+
+            for (let c = 1; c <= numChapters; c++) {
+                builder.innerHTML += `
+                    <div style="background:white;border-radius:15px;padding:20px;margin-bottom:15px;">
+                        <div style="font-weight:800;font-size:16px;margin-bottom:12px;">📖 Chapter ${c}</div>
+                        <div class="form-group">
+                            <label>Chapter Title (optional)</label>
+                            <input type="text" id="ch-title-${c}" placeholder="e.g., The Beginning">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Pages in this Chapter</label>
+                            <input type="number" id="ch-pages-${c}" min="1" max="200" placeholder="e.g., 3" onchange="setupPages(${c})">
+                        </div>
+                        <div id="ch-pages-area-${c}"></div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('book-step-1').style.display = 'none';
+            document.getElementById('book-step-2').style.display = 'block';
+        }
+
+        // Step 2: When admin sets page count for a chapter → generate text areas
+        function setupPages(chapterNum) {
+            const numPages = parseInt(document.getElementById(`ch-pages-${chapterNum}`).value);
+            if (!numPages || numPages < 1) return;
+
+            const area = document.getElementById(`ch-pages-area-${chapterNum}`);
+            area.innerHTML = '';
+
+            for (let p = 1; p <= numPages; p++) {
+                area.innerHTML += `
+                    <div class="form-group">
+                        <label>Page ${p} text</label>
+                        <textarea id="ch-${chapterNum}-pg-${p}" placeholder="Type the text for page ${p}..." style="min-height:100px;width:100%;padding:12px;border:2px solid rgba(0,0,0,0.1);border-radius:12px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+                    </div>
+                `;
+            }
+        }
+
+        // Step 3: Collect all data and save
         async function addBook() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
             const cover = document.getElementById('book-cover').value.trim();
-            const content = document.getElementById('book-content').value.trim();
-            
-            if (!title || !author || !cover || !content) {
-                alert('Please fill in all fields');
+            const numChapters = parseInt(document.getElementById('book-chapters').value);
+
+            if (!title || !author || !cover || !numChapters) {
+                alert('Missing book info');
                 return;
             }
 
-            const pages = content.split(/\n\n+/).filter(p => p.trim().length > 0);
+            const pages = []; // flat list of pages for the reader
+
+            for (let c = 1; c <= numChapters; c++) {
+                const chTitle = document.getElementById(`ch-title-${c}`)?.value.trim();
+                const numPages = parseInt(document.getElementById(`ch-pages-${c}`)?.value);
+
+                if (!numPages || numPages < 1) {
+                    alert(`Please set the number of pages for Chapter ${c}`);
+                    return;
+                }
+
+                for (let p = 1; p <= numPages; p++) {
+                    const pageText = document.getElementById(`ch-${c}-pg-${p}`)?.value.trim();
+                    if (!pageText) {
+                        alert(`Chapter ${c}, Page ${p} is empty!`);
+                        return;
+                    }
+                    // Prepend chapter title on first page of each chapter
+                    const prefix = (p === 1 && chTitle) ? `${chTitle}\n\n` : '';
+                    pages.push(prefix + pageText);
+                }
+            }
+
+            if (pages.length === 0) {
+                alert('No pages found!');
+                return;
+            }
 
             const customBooks = await loadFromStorage('custom-books') || [];
-            customBooks.push({ t: title, a: author, i: cover, pages: pages });
+            customBooks.push({ t: title, a: author, i: cover, pages });
             await saveToStorage('custom-books', customBooks);
 
-            document.getElementById('book-title').value = '';
-            document.getElementById('book-author').value = '';
-            document.getElementById('book-cover').value = '';
-            document.getElementById('book-content').value = '';
-            
-            showSuccess('Book added!');
+            showSuccess(`"${title}" added with ${pages.length} pages!`);
+            resetBookForm();
             loadAdminData();
             await loadAllBooks();
             renderBooks(allBooks);
+        }
+
+        function resetBookForm() {
+            document.getElementById('book-title').value = '';
+            document.getElementById('book-author').value = '';
+            document.getElementById('book-cover').value = '';
+            document.getElementById('book-chapters').value = '';
+            document.getElementById('chapters-builder').innerHTML = '';
+            document.getElementById('book-step-1').style.display = 'block';
+            document.getElementById('book-step-2').style.display = 'none';
         }
 
         async function addSATWord() {
