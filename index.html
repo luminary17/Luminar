@@ -345,12 +345,59 @@
         }
 
         .reader-header {
-            height: 70px;
+            min-height: 70px;
             display: flex;
-            align-items: center;
-            padding: 0 20px;
+            flex-direction: column;
+            padding: 15px 20px;
             background: #FFFFFF;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+        }
+
+        .reader-top-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .reader-info {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .reader-chapter-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #D9B99B;
+            margin-bottom: 2px;
+        }
+
+        .reader-book-name {
+            font-weight: 800;
+            font-size: 16px;
+            color: #000000;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #D9B99B, #c5a589);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            font-weight: 600;
         }
 
         .back-arrow {
@@ -961,10 +1008,19 @@
     <!-- READER VIEW -->
     <div id="reader-view" class="reader-view">
         <div class="reader-header">
-            <div class="back-arrow" onclick="closeBook()">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+            <div class="reader-top-row">
+                <div class="back-arrow" onclick="closeBook()">
+                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                </div>
+                <div class="reader-info">
+                    <div id="reader-chapter-name" class="reader-chapter-name"></div>
+                    <div id="reader-book-title" class="reader-book-name"></div>
+                </div>
             </div>
-            <div id="reader-book-title" style="font-weight:800; color: #000000;"></div>
+            <div class="progress-bar-container">
+                <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <div id="progress-text" class="progress-text">Page 1 of 1</div>
         </div>
         <div class="reader-body">
             <div class="touch-zone-left" onclick="animatePageChange(-1)"></div>
@@ -1496,7 +1552,27 @@
         }
 
         function renderPage() {
-            document.getElementById('page-content').innerText = allBooks[currentBookIdx].pages[currentPageIdx];
+            const book = allBooks[currentBookIdx];
+            const pageText = book.pages[currentPageIdx];
+            document.getElementById('page-content').innerText = pageText;
+
+            // Update progress bar
+            const totalPages = book.pages.length;
+            const currentPage = currentPageIdx + 1;
+            const progress = (currentPage / totalPages) * 100;
+            document.getElementById('progress-bar-fill').style.width = progress + '%';
+            document.getElementById('progress-text').innerText = `Page ${currentPage} of ${totalPages}`;
+
+            // Detect chapter by looking for chapter title in page text
+            const chapterMatch = pageText.match(/^(.+?)\n\n/); // First line followed by double newline
+            if (chapterMatch && chapterMatch[1].length < 50) {
+                // Likely a chapter title
+                document.getElementById('reader-chapter-name').innerText = chapterMatch[1];
+            } else {
+                // Estimate chapter based on page number (rough)
+                const estimatedChapter = Math.floor(currentPageIdx / 3) + 1; // Assuming ~3 pages per chapter
+                document.getElementById('reader-chapter-name').innerText = `Chapter ${estimatedChapter}`;
+            }
         }
 
         function renderBooks(arr) {
