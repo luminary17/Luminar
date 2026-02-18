@@ -1288,9 +1288,10 @@
             }
 
             const pages = []; // flat list of pages for the reader
+            const chapters = []; // chapter metadata
 
             for (let c = 1; c <= numChapters; c++) {
-                const chTitle = document.getElementById(`ch-title-${c}`)?.value.trim();
+                const chTitle = document.getElementById(`ch-title-${c}`)?.value.trim() || `Chapter ${c}`;
                 const numPages = parseInt(document.getElementById(`ch-pages-${c}`)?.value);
 
                 if (!numPages || numPages < 1) {
@@ -1298,16 +1299,22 @@
                     return;
                 }
 
+                const chapterStartPage = pages.length; // track where this chapter starts
+
                 for (let p = 1; p <= numPages; p++) {
                     const pageText = document.getElementById(`ch-${c}-pg-${p}`)?.value.trim();
                     if (!pageText) {
                         alert(`Chapter ${c}, Page ${p} is empty!`);
                         return;
                     }
-                    // Prepend chapter title on first page of each chapter
-                    const prefix = (p === 1 && chTitle) ? `${chTitle}\n\n` : '';
-                    pages.push(prefix + pageText);
+                    pages.push(pageText);
                 }
+
+                chapters.push({
+                    title: chTitle,
+                    startPage: chapterStartPage,
+                    endPage: pages.length - 1
+                });
             }
 
             if (pages.length === 0) {
@@ -1316,7 +1323,7 @@
             }
 
             const customBooks = await loadFromStorage('custom-books') || [];
-            customBooks.push({ t: title, a: author, i: cover, pages });
+            customBooks.push({ t: title, a: author, i: cover, pages, chapters });
             await saveToStorage('custom-books', customBooks);
 
             showSuccess(`"${title}" added with ${pages.length} pages!`);
@@ -1563,16 +1570,17 @@
             document.getElementById('progress-bar-fill').style.width = progress + '%';
             document.getElementById('progress-text').innerText = `Page ${currentPage} of ${totalPages}`;
 
-            // Detect chapter by looking for chapter title in page text
-            const chapterMatch = pageText.match(/^(.+?)\n\n/); // First line followed by double newline
-            if (chapterMatch && chapterMatch[1].length < 50) {
-                // Likely a chapter title
-                document.getElementById('reader-chapter-name').innerText = chapterMatch[1];
-            } else {
-                // Estimate chapter based on page number (rough)
-                const estimatedChapter = Math.floor(currentPageIdx / 3) + 1; // Assuming ~3 pages per chapter
-                document.getElementById('reader-chapter-name').innerText = `Chapter ${estimatedChapter}`;
+            // Find which chapter this page belongs to
+            let chapterName = 'Reading';
+            if (book.chapters && book.chapters.length > 0) {
+                for (const ch of book.chapters) {
+                    if (currentPageIdx >= ch.startPage && currentPageIdx <= ch.endPage) {
+                        chapterName = ch.title;
+                        break;
+                    }
+                }
             }
+            document.getElementById('reader-chapter-name').innerText = chapterName;
         }
 
         function renderBooks(arr) {
