@@ -367,8 +367,9 @@
         .reader-chapter-name {
             font-size: 13px;
             font-weight: 600;
-            color: #D9B99B;
+            color: var(--accent);
             margin-bottom: 2px;
+            opacity: 1;
         }
 
         .reader-book-name {
@@ -1241,8 +1242,8 @@
                     <div style="background:white;border-radius:15px;padding:20px;margin-bottom:15px;">
                         <div style="font-weight:800;font-size:16px;margin-bottom:12px;">📖 Chapter ${c}</div>
                         <div class="form-group">
-                            <label>Chapter Title (optional)</label>
-                            <input type="text" id="ch-title-${c}" placeholder="e.g., The Beginning">
+                            <label>Chapter Title (optional - will show in header)</label>
+                            <input type="text" id="ch-title-${c}" placeholder="e.g., The Beginning (don't repeat in page text!)">
                         </div>
                         <div class="form-group">
                             <label>Number of Pages in this Chapter</label>
