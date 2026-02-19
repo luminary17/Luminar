@@ -1030,7 +1030,27 @@
         </div>
     </div>
 
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script>
+        // ===== FIREBASE CONFIGURATION =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyAITKdJhi8SL-zt8y8SJUZZIdtcQdhM07c",
+            authDomain: "luminary2-fcc63.firebaseapp.com",
+            projectId: "luminary2-fcc63",
+            storageBucket: "luminary2-fcc63.firebasestorage.app",
+            messagingSenderId: "916216025268",
+            appId: "1:916216025268:web:1fa16814d45edf85e38beb0d"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        console.log('🔥 Firebase initialized successfully!');
+
         const defaultBooks = [
             {
                 t: "Steve Jobs",
@@ -1081,26 +1101,34 @@
         let heroClickHandler = null;
         const ADMIN_PASSWORD = "admin123";
 
-        // ===== STORAGE (localStorage - works on GitHub Pages) =====
+        // ===== FIREBASE STORAGE (syncs across all users) =====
         async function loadFromStorage(key) {
             try {
-                const result = localStorage.getItem('lum_' + key);
-                const parsed = result ? JSON.parse(result) : null;
-                console.log('[LOAD]', key, '->', parsed);
-                return parsed;
+                const doc = await db.collection('luminary-data').doc(key).get();
+                if (doc.exists) {
+                    const data = doc.data().value;
+                    console.log('[FIREBASE LOAD]', key, '->', data);
+                    return data;
+                } else {
+                    console.log('[FIREBASE LOAD]', key, '-> null (not found)');
+                    return null;
+                }
             } catch (error) {
-                console.error('[LOAD ERROR]', key, error);
+                console.error('[FIREBASE LOAD ERROR]', key, error);
                 return null;
             }
         }
 
         async function saveToStorage(key, data) {
             try {
-                localStorage.setItem('lum_' + key, JSON.stringify(data));
-                console.log('[SAVE]', key, '->', data);
+                await db.collection('luminary-data').doc(key).set({
+                    value: data,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('[FIREBASE SAVE]', key, '->', data);
                 return true;
             } catch (error) {
-                console.error('[SAVE ERROR]', key, error);
+                console.error('[FIREBASE SAVE ERROR]', key, error);
                 return false;
             }
         }
