@@ -833,6 +833,21 @@
             </div>
 
             <div id="admin-content" style="display: none;">
+                <!-- Firebase Test -->
+                <div class="admin-section" style="background:#d1ecf1;border:2px solid #0c5460;">
+                    <h3>🔥 Firebase Connection Test</h3>
+                    <button class="btn-primary" style="background:#17a2b8;margin-bottom:10px;" onclick="testFirebase()">Test Firebase Connection</button>
+                    <div id="firebase-test-result" style="font-size:13px;font-weight:700;margin-top:10px;"></div>
+                </div>
+
+                <!-- Migration Tool -->
+                <div class="admin-section" style="background:#fff3cd;border:2px solid #ffc107;">
+                    <h3>🔄 Migrate Old Data (One-Time)</h3>
+                    <p style="margin:0 0 15px;font-size:14px;color:#856404;">If you added words/books before Firebase, click this button to transfer them from your browser to the cloud.</p>
+                    <button class="btn-primary" style="background:#ffc107;color:#000;" onclick="migrateLocalStorageToFirebase()">🚀 Migrate Data to Firebase</button>
+                    <div id="migration-status" style="margin-top:10px;font-size:13px;font-weight:700;"></div>
+                </div>
+
                 <!-- Books Section -->
                 <div class="admin-section">
                     <h3>📚 Add Book</h3>
@@ -1133,6 +1148,88 @@
             }
         }
 
+        // ===== FIREBASE TEST =====
+        async function testFirebase() {
+            const result = document.getElementById('firebase-test-result');
+            result.innerHTML = '⏳ Testing...';
+            
+            try {
+                // Check if Firebase loaded
+                if (typeof firebase === 'undefined') {
+                    result.innerHTML = '❌ Firebase SDK not loaded! Check internet connection.';
+                    result.style.color = '#dc3545';
+                    return;
+                }
+
+                // Check if initialized
+                if (!firebase.apps.length) {
+                    result.innerHTML = '❌ Firebase not initialized!';
+                    result.style.color = '#dc3545';
+                    return;
+                }
+
+                // Try to write test data
+                await db.collection('luminary-data').doc('test').set({
+                    value: 'test123',
+                    timestamp: new Date()
+                });
+
+                // Try to read it back
+                const doc = await db.collection('luminary-data').doc('test').get();
+                
+                if (doc.exists && doc.data().value === 'test123') {
+                    result.innerHTML = '✅ Firebase working perfectly! Read & Write successful.';
+                    result.style.color = '#28a745';
+                } else {
+                    result.innerHTML = '⚠️ Can write but cannot read. Check Firestore rules!';
+                    result.style.color = '#ffc107';
+                }
+            } catch (error) {
+                result.innerHTML = '❌ Error: ' + error.message;
+                result.style.color = '#dc3545';
+                console.error('Firebase test error:', error);
+            }
+        }
+
+        // ===== MIGRATION TOOL (localStorage → Firebase) =====
+        async function migrateLocalStorageToFirebase() {
+            const status = document.getElementById('migration-status');
+            status.innerHTML = '⏳ Migrating...';
+            
+            try {
+                let migrated = 0;
+                const keys = ['sat-words', 'ielts-words', 'podcasts', 'custom-books'];
+                
+                for (const key of keys) {
+                    const localData = localStorage.getItem('lum_' + key);
+                    if (localData) {
+                        const parsed = JSON.parse(localData);
+                        if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : true)) {
+                            await saveToStorage(key, parsed);
+                            migrated++;
+                            console.log(`Migrated ${key}:`, parsed);
+                        }
+                    }
+                }
+                
+                if (migrated > 0) {
+                    status.innerHTML = `✅ Successfully migrated ${migrated} data sets to Firebase!`;
+                    status.style.color = '#28a745';
+                    await loadAllBooks();
+                    await renderVocabLists();
+                    await renderPodcasts();
+                    renderBooks(allBooks);
+                } else {
+                    status.innerHTML = '⚠️ No local data found to migrate.';
+                    status.style.color = '#856404';
+                }
+            } catch (error) {
+                console.error('Migration error:', error);
+                status.innerHTML = '❌ Migration failed: ' + error.message;
+                status.style.color = '#dc3545';
+            }
+        }
+
         // ===== NAVIGATION =====
         function switchTab(tab) {
             console.log('Switching to tab:', tab);
@@ -1373,45 +1470,67 @@
         }
 
         async function addSATWord() {
-            const word = document.getElementById('sat-word').value.trim();
-            const def = document.getElementById('sat-def').value.trim();
-            
-            if (!word || !def) {
-                alert('Please fill in all fields');
-                return;
+            try {
+                const word = document.getElementById('sat-word').value.trim();
+                const def = document.getElementById('sat-def').value.trim();
+                
+                if (!word || !def) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                console.log('Adding SAT word:', word);
+                const satWords = await loadFromStorage('sat-words') || [];
+                satWords.push({ w: word, d: def });
+                const saved = await saveToStorage('sat-words', satWords);
+
+                if (!saved) {
+                    alert('Failed to save to Firebase. Check console for errors.');
+                    return;
+                }
+
+                document.getElementById('sat-word').value = '';
+                document.getElementById('sat-def').value = '';
+                
+                showSuccess('SAT word added!');
+                loadAdminData();
+                await renderVocabLists();
+            } catch (error) {
+                console.error('Error adding SAT word:', error);
+                alert('Error: ' + error.message);
             }
-
-            const satWords = await loadFromStorage('sat-words') || [];
-            satWords.push({ w: word, d: def });
-            await saveToStorage('sat-words', satWords);
-
-            document.getElementById('sat-word').value = '';
-            document.getElementById('sat-def').value = '';
-            
-            showSuccess('SAT word added!');
-            loadAdminData();
-            await renderVocabLists();
         }
 
         async function addIELTSWord() {
-            const word = document.getElementById('ielts-word').value.trim();
-            const def = document.getElementById('ielts-def').value.trim();
-            
-            if (!word || !def) {
-                alert('Please fill in all fields');
-                return;
+            try {
+                const word = document.getElementById('ielts-word').value.trim();
+                const def = document.getElementById('ielts-def').value.trim();
+                
+                if (!word || !def) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                console.log('Adding IELTS word:', word);
+                const ieltsWords = await loadFromStorage('ielts-words') || [];
+                ieltsWords.push({ w: word, d: def });
+                const saved = await saveToStorage('ielts-words', ieltsWords);
+
+                if (!saved) {
+                    alert('Failed to save to Firebase. Check console for errors.');
+                    return;
+                }
+
+                document.getElementById('ielts-word').value = '';
+                document.getElementById('ielts-def').value = '';
+                
+                showSuccess('IELTS word added!');
+                loadAdminData();
+                await renderVocabLists();
+            } catch (error) {
+                console.error('Error adding IELTS word:', error);
+                alert('Error: ' + error.message);
             }
-
-            const ieltsWords = await loadFromStorage('ielts-words') || [];
-            ieltsWords.push({ w: word, d: def });
-            await saveToStorage('ielts-words', ieltsWords);
-
-            document.getElementById('ielts-word').value = '';
-            document.getElementById('ielts-def').value = '';
-            
-            showSuccess('IELTS word added!');
-            loadAdminData();
-            await renderVocabLists();
         }
 
         async function addPodcast() {
