@@ -10,14 +10,10 @@
             --bg-page: #FFF0DB;
             --bg-card: #FFFFFF;
             --text-main: #000000;
-            --text-on-card: #000000;
             --accent: #D9B99B;
-            --card-shadow: 0 4px 25px rgba(0,0,0,0.05);
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -26,11 +22,9 @@
             color: var(--text-main);
             min-height: 100vh;
             transition: 0.4s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
+        /* Navigation */
         .top-nav {
             position: fixed;
             top: 0;
@@ -60,8 +54,8 @@
             gap: 15px;
         }
 
-        .top-nav .logo {
-            color: #D9B99B;
+        .logo {
+            color: var(--accent);
             font-weight: 800;
             font-size: 24px;
             cursor: pointer;
@@ -69,7 +63,7 @@
         }
 
         .admin-btn {
-            background: #D9B99B;
+            background: var(--accent);
             border: none;
             padding: 8px 16px;
             border-radius: 12px;
@@ -82,7 +76,6 @@
         }
 
         .admin-btn:hover {
-            background: #c5a589;
             transform: scale(1.05);
         }
 
@@ -97,7 +90,7 @@
             font-family: inherit;
             font-size: 13px;
             font-weight: 700;
-            color: #000000;
+            color: var(--text-main);
             cursor: pointer;
             opacity: 0.5;
             transition: 0.3s;
@@ -109,7 +102,7 @@
 
         .nav-item.active {
             opacity: 1;
-            border-bottom: 3px solid #D9B99B;
+            border-bottom: 3px solid var(--accent);
         }
 
         .nav-item svg {
@@ -118,28 +111,27 @@
             fill: currentColor;
         }
 
+        /* Container */
         .container {
             width: 94%;
             max-width: 1000px;
+            margin: 0 auto;
             padding-top: 100px;
         }
 
         .view {
             display: none;
-            width: 100%;
             animation: fadeIn 0.4s ease;
         }
 
-        .view.active {
-            display: block;
-        }
+        .view.active { display: block; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Admin Modal */
+        /* Modal */
         .modal {
             position: fixed;
             top: 0;
@@ -153,9 +145,7 @@
             z-index: 3000;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: white;
@@ -178,7 +168,6 @@
         .modal-title {
             font-size: 28px;
             font-weight: 800;
-            color: #000000;
         }
 
         .close-modal {
@@ -189,7 +178,6 @@
             border-radius: 50%;
             cursor: pointer;
             font-size: 24px;
-            color: #000000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -198,7 +186,7 @@
         .admin-section {
             margin-bottom: 30px;
             padding: 25px;
-            background: #FFF0DB;
+            background: var(--bg-page);
             border-radius: 20px;
         }
 
@@ -206,7 +194,6 @@
             margin: 0 0 15px 0;
             font-size: 20px;
             font-weight: 800;
-            color: #000000;
         }
 
         .form-group {
@@ -237,7 +224,7 @@
         }
 
         .btn-primary {
-            background: #D9B99B;
+            background: var(--accent);
             border: none;
             padding: 12px 24px;
             border-radius: 12px;
@@ -251,13 +238,10 @@
         }
 
         .btn-primary:hover {
-            background: #c5a589;
             transform: translateY(-2px);
         }
 
-        .item-list {
-            margin-top: 20px;
-        }
+        .item-list { margin-top: 20px; }
 
         .item-entry {
             background: white;
@@ -289,9 +273,7 @@
             flex-shrink: 0;
         }
 
-        .item-info {
-            flex: 1;
-        }
+        .item-info { flex: 1; }
 
         .item-title {
             font-weight: 700;
@@ -326,6 +308,7 @@
             font-weight: 700;
         }
 
+        /* Reader */
         .reader-view {
             position: fixed;
             top: 0;
@@ -336,12 +319,6 @@
             z-index: 2000;
             display: none;
             flex-direction: column;
-            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
         }
 
         .reader-header {
@@ -349,7 +326,7 @@
             display: flex;
             flex-direction: column;
             padding: 15px 20px;
-            background: #FFFFFF;
+            background: white;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
         }
 
@@ -357,48 +334,6 @@
             display: flex;
             align-items: center;
             margin-bottom: 12px;
-        }
-
-        .reader-info {
-            flex: 1;
-            margin-left: 10px;
-        }
-
-        .reader-chapter-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 2px;
-            opacity: 1;
-        }
-
-        .reader-book-name {
-            font-weight: 800;
-            font-size: 16px;
-            color: #000000;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: rgba(0,0,0,0.05);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #D9B99B, #c5a589);
-            border-radius: 10px;
-            transition: width 0.4s ease;
-        }
-
-        .progress-text {
-            text-align: center;
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-            font-weight: 600;
         }
 
         .back-arrow {
@@ -416,7 +351,46 @@
         .back-arrow svg {
             width: 24px;
             height: 24px;
-            fill: #000000;
+            fill: currentColor;
+        }
+
+        .reader-info {
+            flex: 1;
+        }
+
+        .reader-chapter-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 2px;
+        }
+
+        .reader-book-name {
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #c5a589);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            font-weight: 600;
         }
 
         .reader-body {
@@ -425,8 +399,8 @@
             padding: 40px 20px;
             position: relative;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            align-items: flex-start;
         }
 
         .page-content {
@@ -434,7 +408,6 @@
             width: 100%;
             font-size: 19px;
             line-height: 1.8;
-            color: var(--text-main);
             text-align: justify;
             transition: transform 0.4s ease, opacity 0.4s ease;
         }
@@ -455,8 +428,9 @@
         .touch-zone-left { left: 0; }
         .touch-zone-right { right: 0; }
 
+        /* Home */
         .search-bar {
-            background: #FFFFFF;
+            background: white;
             border-radius: 18px;
             height: 55px;
             display: flex;
@@ -473,12 +447,7 @@
             width: 100%;
             outline: none;
             font-size: 16px;
-            color: #000000;
             font-family: inherit;
-        }
-
-        .search-bar input::placeholder {
-            color: #666666;
         }
 
         .hero {
@@ -497,7 +466,6 @@
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: 0.5s;
         }
 
         .hero-overlay {
@@ -518,18 +486,12 @@
             margin: 0;
             font-size: 36px;
             font-weight: 800;
-            color: white;
-        }
-
-        .hero-text p {
-            color: white;
         }
 
         .label {
             font-size: 26px;
             font-weight: 800;
             margin: 35px 0 20px 5px;
-            color: var(--text-main);
         }
 
         .book-grid {
@@ -549,20 +511,17 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .book-card:hover {
-            transform: translateY(-8px);
-        }
+        .book-card:hover { transform: translateY(-8px); }
 
+        /* Education */
         .edu-section {
             display: none;
         }
 
-        .edu-section.active {
-            display: block;
-        }
+        .edu-section.active { display: block; }
 
         .edu-card {
-            background: #FFFFFF;
+            background: white;
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
@@ -575,14 +534,11 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .edu-card:hover {
-            transform: scale(1.02);
-        }
+        .edu-card:hover { transform: scale(1.02); }
 
         .edu-title {
             font-size: 24px;
             font-weight: 800;
-            color: #000000;
         }
 
         .edu-icon {
@@ -590,40 +546,11 @@
             opacity: 0.5;
         }
 
-        .vocab-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .vocab-item {
-            background: #FFFFFF;
-            padding: 15px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .v-word {
-            font-weight: 800;
-            font-size: 18px;
-            color: #000000;
-            margin-bottom: 4px;
-        }
-
-        .v-def {
-            font-size: 14px;
-            color: #333333;
-            line-height: 1.4;
-        }
-
         .back-btn-edu {
             background: none;
             border: none;
             font-size: 16px;
             font-weight: 700;
-            color: #000000;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -632,6 +559,32 @@
             opacity: 0.8;
         }
 
+        .vocab-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .vocab-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .v-word {
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .v-def {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* Audio */
         .podcast-list {
             display: grid;
             gap: 20px;
@@ -639,11 +592,11 @@
 
         .podcast-item {
             display: flex;
-            background: #FFFFFF;
+            background: white;
             border-radius: 25px;
             overflow: hidden;
             text-decoration: none;
-            color: #000000;
+            color: var(--text-main);
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
             transition: 0.3s;
             border: 1px solid rgba(0,0,0,0.05);
@@ -665,19 +618,71 @@
 
         .podcast-body h3 {
             margin: 0 0 8px 0;
-            color: #000000;
         }
 
         .podcast-body span {
-            color: #333333;
+            color: #333;
         }
 
+        /* User */
+        .sub-card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .theme-btn {
+            padding: 15px;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent);
+            border-width: 2.5px;
+        }
+
+        .color-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 16px;
+            resize: none;
+        }
+
+        /* Footer */
         .home-footer {
             margin-top: 120px;
             margin-bottom: 40px;
             padding: 25px;
             text-align: center;
-            background: #FFFFFF;
+            background: white;
             border-radius: 25px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.02);
             max-width: 320px;
@@ -686,10 +691,10 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .home-footer .soc-title {
+        .soc-title {
             font-weight: 800;
             font-size: 14px;
-            color: #333333;
+            color: #333;
             margin-bottom: 15px;
         }
 
@@ -721,67 +726,7 @@
         .ig-c { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
         .yt-c { background: #FF0000; }
 
-        .sub-card {
-            background: #FFFFFF;
-            border-radius: 25px;
-            padding: 25px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
-            margin-bottom: 20px;
-            color: #000000;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .theme-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-        }
-
-        .theme-btn {
-            padding: 15px;
-            border-radius: 15px;
-            background: #FFFFFF;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            color: #000000;
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: 0.3s;
-        }
-
-        .theme-btn.active {
-            border-color: #D9B99B;
-            border-width: 2.5px;
-        }
-
-        .color-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 16px;
-            color: #000000;
-            resize: none;
-        }
-
-        textarea::placeholder {
-            color: #666666;
-        }
-
-        .spacer {
-            height: 100px;
-        }
+        .spacer { height: 100px; }
     </style>
 </head>
 
@@ -789,23 +734,23 @@
     <nav class="top-nav">
         <div class="nav-content">
             <div class="logo-section">
-                <div class="logo" onclick="goHome()">LUMINARY</div>
+                <div class="logo" onclick="switchTab('home')">LUMINARY</div>
                 <button class="admin-btn" onclick="openAdminPanel()">🔐 Admin</button>
             </div>
             <div class="nav-links">
-                <button class="nav-item active" id="n-h" onclick="switchTab('home')">
+                <button class="nav-item active" id="n-home" onclick="switchTab('home')">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
                     Дом
                 </button>
-                <button class="nav-item" id="n-e" onclick="switchTab('edu')">
+                <button class="nav-item" id="n-edu" onclick="switchTab('edu')">
                     <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" /></svg>
                     Обучение
                 </button>
-                <button class="nav-item" id="n-a" onclick="switchTab('audio')">
+                <button class="nav-item" id="n-audio" onclick="switchTab('audio')">
                     <svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z" /></svg>
                     Аудио
                 </button>
-                <button class="nav-item" id="n-u" onclick="switchTab('user')">
+                <button class="nav-item" id="n-user" onclick="switchTab('user')">
                     <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
                     Профиль
                 </button>
@@ -833,26 +778,9 @@
             </div>
 
             <div id="admin-content" style="display: none;">
-                <!-- Firebase Test -->
-                <div class="admin-section" style="background:#d1ecf1;border:2px solid #0c5460;">
-                    <h3>🔥 Firebase Connection Test</h3>
-                    <button class="btn-primary" style="background:#17a2b8;margin-bottom:10px;" onclick="testFirebase()">Test Firebase Connection</button>
-                    <div id="firebase-test-result" style="font-size:13px;font-weight:700;margin-top:10px;"></div>
-                </div>
-
-                <!-- Migration Tool -->
-                <div class="admin-section" style="background:#fff3cd;border:2px solid #ffc107;">
-                    <h3>🔄 Migrate Old Data (One-Time)</h3>
-                    <p style="margin:0 0 15px;font-size:14px;color:#856404;">If you added words/books before Firebase, click this button to transfer them from your browser to the cloud.</p>
-                    <button class="btn-primary" style="background:#ffc107;color:#000;" onclick="migrateLocalStorageToFirebase()">🚀 Migrate Data to Firebase</button>
-                    <div id="migration-status" style="margin-top:10px;font-size:13px;font-weight:700;"></div>
-                </div>
-
-                <!-- Books Section -->
+                <!-- Books -->
                 <div class="admin-section">
                     <h3>📚 Add Book</h3>
-
-                    <!-- Step 1: Book Info -->
                     <div id="book-step-1">
                         <div class="form-group">
                             <label>Book Title</label>
@@ -873,7 +801,6 @@
                         <button class="btn-primary" onclick="setupChapters()">Next: Set Up Chapters →</button>
                     </div>
 
-                    <!-- Step 2: Chapter builder (hidden initially) -->
                     <div id="book-step-2" style="display:none;">
                         <div id="chapters-builder"></div>
                         <button class="btn-primary" onclick="addBook()" style="margin-top:15px;">✅ Save Book</button>
@@ -883,7 +810,7 @@
                     <div class="item-list" id="book-list-admin"></div>
                 </div>
 
-                <!-- SAT Vocabulary -->
+                <!-- SAT Words -->
                 <div class="admin-section">
                     <h3>📖 Add SAT Vocabulary</h3>
                     <div class="form-group">
@@ -898,7 +825,7 @@
                     <div class="item-list" id="sat-word-list"></div>
                 </div>
 
-                <!-- IELTS Vocabulary -->
+                <!-- IELTS Words -->
                 <div class="admin-section">
                     <h3>🎓 Add IELTS Vocabulary</h3>
                     <div class="form-group">
@@ -913,7 +840,7 @@
                     <div class="item-list" id="ielts-word-list"></div>
                 </div>
 
-                <!-- Podcast/Audio -->
+                <!-- Podcasts -->
                 <div class="admin-section">
                     <h3>🎧 Add Podcast/Audio</h3>
                     <div class="form-group">
@@ -932,7 +859,7 @@
     </div>
 
     <div class="container">
-        <!-- HOME VIEW -->
+        <!-- HOME -->
         <div id="home-view" class="view active">
             <div class="search-bar">
                 <input type="text" placeholder="Поиск книг..." oninput="handleSearch(event)">
@@ -958,7 +885,7 @@
             <div class="spacer"></div>
         </div>
 
-        <!-- EDUCATION VIEW -->
+        <!-- EDUCATION -->
         <div id="edu-view" class="view">
             <div id="edu-main" class="edu-section active">
                 <div class="label">Направления</div>
@@ -1002,14 +929,14 @@
             <div class="spacer"></div>
         </div>
 
-        <!-- AUDIO VIEW -->
+        <!-- AUDIO -->
         <div id="audio-view" class="view">
             <div class="label">Подкасты</div>
             <div class="podcast-list" id="podcast-container"></div>
             <div class="spacer"></div>
         </div>
 
-        <!-- USER VIEW -->
+        <!-- USER -->
         <div id="user-view" class="view">
             <div class="label">Мои заметки</div>
             <div class="sub-card">
@@ -1021,7 +948,7 @@
         </div>
     </div>
 
-    <!-- READER VIEW -->
+    <!-- READER -->
     <div id="reader-view" class="reader-view">
         <div class="reader-header">
             <div class="reader-top-row">
@@ -1045,27 +972,8 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <script>
-        // ===== FIREBASE CONFIGURATION =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyAITKdJhi8SL-zt8y8SJUZZIdtcQdhM07c",
-            authDomain: "luminary2-fcc63.firebaseapp.com",
-            projectId: "luminary2-fcc63",
-            storageBucket: "luminary2-fcc63.firebasestorage.app",
-            messagingSenderId: "916216025268",
-            appId: "1:916216025268:web:1fa16814d45edf85e38beb0d"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        console.log('🔥 Firebase initialized successfully!');
-
+        // ===== DEFAULT DATA =====
         const defaultBooks = [
             {
                 t: "Steve Jobs",
@@ -1100,13 +1008,13 @@
         ];
 
         const themes = [
-            { id: 'beige', n: 'Beige', bg: '#FFF0DB', card: '#FFFFFF', text: '#000000', textCard: '#000000', acc: '#D9B99B' },
-            { id: 'dark', n: 'Dark', bg: '#1d1f2f', card: '#252a3d', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#0078D4' },
-            { id: 'navy', n: 'Navy', bg: '#1a2744', card: '#243b55', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#60a5fa' },
-            { id: 'slate', n: 'Slate', bg: '#334155', card: '#475569', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#94a3b8' },
-            { id: 'steel', n: 'Steel Blue', bg: '#1e3a5f', card: '#2c5282', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#0078D4' },
-            { id: 'orange', n: 'Amber', bg: '#431407', card: '#7c2d12', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#f59e0b' },
-            { id: 'black', n: 'Black', bg: '#1A1A1A', card: '#333333', text: '#FFFFFF', textCard: '#FFFFFF', acc: '#FFFFFF' }
+            { id: 'beige', n: 'Beige', bg: '#FFF0DB', card: '#FFFFFF', text: '#000000', acc: '#D9B99B' },
+            { id: 'dark', n: 'Dark', bg: '#1d1f2f', card: '#252a3d', text: '#FFFFFF', acc: '#0078D4' },
+            { id: 'navy', n: 'Navy', bg: '#1a2744', card: '#243b55', text: '#FFFFFF', acc: '#60a5fa' },
+            { id: 'slate', n: 'Slate', bg: '#334155', card: '#475569', text: '#FFFFFF', acc: '#94a3b8' },
+            { id: 'steel', n: 'Steel Blue', bg: '#1e3a5f', card: '#2c5282', text: '#FFFFFF', acc: '#0078D4' },
+            { id: 'orange', n: 'Amber', bg: '#431407', card: '#7c2d12', text: '#FFFFFF', acc: '#f59e0b' },
+            { id: 'black', n: 'Black', bg: '#1A1A1A', card: '#333333', text: '#FFFFFF', acc: '#FFFFFF' }
         ];
 
         let allBooks = [];
@@ -1116,141 +1024,41 @@
         let heroClickHandler = null;
         const ADMIN_PASSWORD = "admin123";
 
-        // ===== FIREBASE STORAGE (syncs across all users) =====
-        async function loadFromStorage(key) {
+        // ===== STORAGE (localStorage - works everywhere) =====
+        function loadFromStorage(key) {
             try {
-                const doc = await db.collection('luminary-data').doc(key).get();
-                if (doc.exists) {
-                    const data = doc.data().value;
-                    console.log('[FIREBASE LOAD]', key, '->', data);
-                    return data;
-                } else {
-                    console.log('[FIREBASE LOAD]', key, '-> null (not found)');
-                    return null;
-                }
+                const result = localStorage.getItem('lum_' + key);
+                return result ? JSON.parse(result) : null;
             } catch (error) {
-                console.error('[FIREBASE LOAD ERROR]', key, error);
+                console.error('[LOAD ERROR]', key, error);
                 return null;
             }
         }
 
-        async function saveToStorage(key, data) {
+        function saveToStorage(key, data) {
             try {
-                await db.collection('luminary-data').doc(key).set({
-                    value: data,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log('[FIREBASE SAVE]', key, '->', data);
+                localStorage.setItem('lum_' + key, JSON.stringify(data));
+                console.log('[SAVE]', key, '→', data.length, 'items');
                 return true;
             } catch (error) {
-                console.error('[FIREBASE SAVE ERROR]', key, error);
+                console.error('[SAVE ERROR]', key, error);
                 return false;
-            }
-        }
-
-        // ===== FIREBASE TEST =====
-        async function testFirebase() {
-            const result = document.getElementById('firebase-test-result');
-            result.innerHTML = '⏳ Testing...';
-            
-            try {
-                // Check if Firebase loaded
-                if (typeof firebase === 'undefined') {
-                    result.innerHTML = '❌ Firebase SDK not loaded! Check internet connection.';
-                    result.style.color = '#dc3545';
-                    return;
-                }
-
-                // Check if initialized
-                if (!firebase.apps.length) {
-                    result.innerHTML = '❌ Firebase not initialized!';
-                    result.style.color = '#dc3545';
-                    return;
-                }
-
-                // Try to write test data
-                await db.collection('luminary-data').doc('test').set({
-                    value: 'test123',
-                    timestamp: new Date()
-                });
-
-                // Try to read it back
-                const doc = await db.collection('luminary-data').doc('test').get();
-                
-                if (doc.exists && doc.data().value === 'test123') {
-                    result.innerHTML = '✅ Firebase working perfectly! Read & Write successful.';
-                    result.style.color = '#28a745';
-                } else {
-                    result.innerHTML = '⚠️ Can write but cannot read. Check Firestore rules!';
-                    result.style.color = '#ffc107';
-                }
-            } catch (error) {
-                result.innerHTML = '❌ Error: ' + error.message;
-                result.style.color = '#dc3545';
-                console.error('Firebase test error:', error);
-            }
-        }
-
-        // ===== MIGRATION TOOL (localStorage → Firebase) =====
-        async function migrateLocalStorageToFirebase() {
-            const status = document.getElementById('migration-status');
-            status.innerHTML = '⏳ Migrating...';
-            
-            try {
-                let migrated = 0;
-                const keys = ['sat-words', 'ielts-words', 'podcasts', 'custom-books'];
-                
-                for (const key of keys) {
-                    const localData = localStorage.getItem('lum_' + key);
-                    if (localData) {
-                        const parsed = JSON.parse(localData);
-                        if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : true)) {
-                            await saveToStorage(key, parsed);
-                            migrated++;
-                            console.log(`Migrated ${key}:`, parsed);
-                        }
-                    }
-                }
-                
-                if (migrated > 0) {
-                    status.innerHTML = `✅ Successfully migrated ${migrated} data sets to Firebase!`;
-                    status.style.color = '#28a745';
-                    await loadAllBooks();
-                    await renderVocabLists();
-                    await renderPodcasts();
-                    renderBooks(allBooks);
-                } else {
-                    status.innerHTML = '⚠️ No local data found to migrate.';
-                    status.style.color = '#856404';
-                }
-            } catch (error) {
-                console.error('Migration error:', error);
-                status.innerHTML = '❌ Migration failed: ' + error.message;
-                status.style.color = '#dc3545';
             }
         }
 
         // ===== NAVIGATION =====
         function switchTab(tab) {
-            console.log('Switching to tab:', tab);
-            
-            // Reset education view to main ALWAYS when switching tabs
+            // Reset education to main when switching tabs
             document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
             document.getElementById('edu-main').classList.add('active');
             
-            // Hide all views
+            // Switch view
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            
-            // Show selected view
             document.getElementById(tab + '-view').classList.add('active');
             
             // Update nav buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById('n-' + tab.charAt(0)).classList.add('active');
-        }
-
-        function goHome() {
-            switchTab('home');
+            document.getElementById('n-' + tab).classList.add('active');
         }
 
         function openEduLevel(id) {
@@ -1279,16 +1087,16 @@
         }
 
         async function loadAdminData() {
-            const customBooks = await loadFromStorage('custom-books') || [];
+            const customBooks = loadFromStorage('custom-books') || [];
             displayAdminBooks(customBooks);
 
-            const satWords = await loadFromStorage('sat-words') || [];
+            const satWords = loadFromStorage('sat-words') || [];
             displayAdminWords('sat-word-list', satWords, 'sat');
 
-            const ieltsWords = await loadFromStorage('ielts-words') || [];
+            const ieltsWords = loadFromStorage('ielts-words') || [];
             displayAdminWords('ielts-word-list', ieltsWords, 'ielts');
 
-            const podcasts = await loadFromStorage('podcasts') || [];
+            const podcasts = loadFromStorage('podcasts') || [];
             displayAdminPodcasts(podcasts);
         }
 
@@ -1347,7 +1155,7 @@
             `).join('');
         }
 
-        // Step 1: Admin enters book info + number of chapters → generate chapter forms
+        // ===== BOOK BUILDER =====
         function setupChapters() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
@@ -1355,7 +1163,7 @@
             const numChapters = parseInt(document.getElementById('book-chapters').value);
 
             if (!title || !author || !cover || !numChapters || numChapters < 1) {
-                alert('Please fill in all fields and enter a valid number of chapters');
+                alert('Please fill in all fields');
                 return;
             }
 
@@ -1367,11 +1175,11 @@
                     <div style="background:white;border-radius:15px;padding:20px;margin-bottom:15px;">
                         <div style="font-weight:800;font-size:16px;margin-bottom:12px;">📖 Chapter ${c}</div>
                         <div class="form-group">
-                            <label>Chapter Title (optional - will show in header)</label>
-                            <input type="text" id="ch-title-${c}" placeholder="e.g., The Beginning (don't repeat in page text!)">
+                            <label>Chapter Title</label>
+                            <input type="text" id="ch-title-${c}" placeholder="e.g., The Beginning">
                         </div>
                         <div class="form-group">
-                            <label>Number of Pages in this Chapter</label>
+                            <label>Number of Pages</label>
                             <input type="number" id="ch-pages-${c}" min="1" max="200" placeholder="e.g., 3" onchange="setupPages(${c})">
                         </div>
                         <div id="ch-pages-area-${c}"></div>
@@ -1383,7 +1191,6 @@
             document.getElementById('book-step-2').style.display = 'block';
         }
 
-        // Step 2: When admin sets page count for a chapter → generate text areas
         function setupPages(chapterNum) {
             const numPages = parseInt(document.getElementById(`ch-pages-${chapterNum}`).value);
             if (!numPages || numPages < 1) return;
@@ -1394,14 +1201,13 @@
             for (let p = 1; p <= numPages; p++) {
                 area.innerHTML += `
                     <div class="form-group">
-                        <label>Page ${p} text</label>
-                        <textarea id="ch-${chapterNum}-pg-${p}" placeholder="Type the text for page ${p}..." style="min-height:100px;width:100%;padding:12px;border:2px solid rgba(0,0,0,0.1);border-radius:12px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+                        <label>Page ${p}</label>
+                        <textarea id="ch-${chapterNum}-pg-${p}" placeholder="Type text for page ${p}..." style="min-height:100px;width:100%;padding:12px;border:2px solid rgba(0,0,0,0.1);border-radius:12px;font-family:inherit;font-size:14px;"></textarea>
                     </div>
                 `;
             }
         }
 
-        // Step 3: Collect all data and save
         async function addBook() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
@@ -1413,19 +1219,19 @@
                 return;
             }
 
-            const pages = []; // flat list of pages for the reader
-            const chapters = []; // chapter metadata
+            const pages = [];
+            const chapters = [];
 
             for (let c = 1; c <= numChapters; c++) {
                 const chTitle = document.getElementById(`ch-title-${c}`)?.value.trim() || `Chapter ${c}`;
                 const numPages = parseInt(document.getElementById(`ch-pages-${c}`)?.value);
 
                 if (!numPages || numPages < 1) {
-                    alert(`Please set the number of pages for Chapter ${c}`);
+                    alert(`Please set pages for Chapter ${c}`);
                     return;
                 }
 
-                const chapterStartPage = pages.length; // track where this chapter starts
+                const chapterStartPage = pages.length;
 
                 for (let p = 1; p <= numPages; p++) {
                     const pageText = document.getElementById(`ch-${c}-pg-${p}`)?.value.trim();
@@ -1443,19 +1249,14 @@
                 });
             }
 
-            if (pages.length === 0) {
-                alert('No pages found!');
-                return;
-            }
-
-            const customBooks = await loadFromStorage('custom-books') || [];
+            const customBooks = loadFromStorage('custom-books') || [];
             customBooks.push({ t: title, a: author, i: cover, pages, chapters });
-            await saveToStorage('custom-books', customBooks);
+            saveToStorage('custom-books', customBooks);
 
-            showSuccess(`"${title}" added with ${pages.length} pages!`);
+            showSuccess(`"${title}" added!`);
             resetBookForm();
             loadAdminData();
-            await loadAllBooks();
+            loadAllBooks();
             renderBooks(allBooks);
         }
 
@@ -1470,67 +1271,45 @@
         }
 
         async function addSATWord() {
-            try {
-                const word = document.getElementById('sat-word').value.trim();
-                const def = document.getElementById('sat-def').value.trim();
-                
-                if (!word || !def) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-
-                console.log('Adding SAT word:', word);
-                const satWords = await loadFromStorage('sat-words') || [];
-                satWords.push({ w: word, d: def });
-                const saved = await saveToStorage('sat-words', satWords);
-
-                if (!saved) {
-                    alert('Failed to save to Firebase. Check console for errors.');
-                    return;
-                }
-
-                document.getElementById('sat-word').value = '';
-                document.getElementById('sat-def').value = '';
-                
-                showSuccess('SAT word added!');
-                loadAdminData();
-                await renderVocabLists();
-            } catch (error) {
-                console.error('Error adding SAT word:', error);
-                alert('Error: ' + error.message);
+            const word = document.getElementById('sat-word').value.trim();
+            const def = document.getElementById('sat-def').value.trim();
+            
+            if (!word || !def) {
+                alert('Please fill in all fields');
+                return;
             }
+
+            const satWords = loadFromStorage('sat-words') || [];
+            satWords.push({ w: word, d: def });
+            saveToStorage('sat-words', satWords);
+
+            document.getElementById('sat-word').value = '';
+            document.getElementById('sat-def').value = '';
+            
+            showSuccess('SAT word added!');
+            loadAdminData();
+            renderVocabLists();
         }
 
         async function addIELTSWord() {
-            try {
-                const word = document.getElementById('ielts-word').value.trim();
-                const def = document.getElementById('ielts-def').value.trim();
-                
-                if (!word || !def) {
-                    alert('Please fill in all fields');
-                    return;
-                }
-
-                console.log('Adding IELTS word:', word);
-                const ieltsWords = await loadFromStorage('ielts-words') || [];
-                ieltsWords.push({ w: word, d: def });
-                const saved = await saveToStorage('ielts-words', ieltsWords);
-
-                if (!saved) {
-                    alert('Failed to save to Firebase. Check console for errors.');
-                    return;
-                }
-
-                document.getElementById('ielts-word').value = '';
-                document.getElementById('ielts-def').value = '';
-                
-                showSuccess('IELTS word added!');
-                loadAdminData();
-                await renderVocabLists();
-            } catch (error) {
-                console.error('Error adding IELTS word:', error);
-                alert('Error: ' + error.message);
+            const word = document.getElementById('ielts-word').value.trim();
+            const def = document.getElementById('ielts-def').value.trim();
+            
+            if (!word || !def) {
+                alert('Please fill in all fields');
+                return;
             }
+
+            const ieltsWords = loadFromStorage('ielts-words') || [];
+            ieltsWords.push({ w: word, d: def });
+            saveToStorage('ielts-words', ieltsWords);
+
+            document.getElementById('ielts-word').value = '';
+            document.getElementById('ielts-def').value = '';
+            
+            showSuccess('IELTS word added!');
+            loadAdminData();
+            renderVocabLists();
         }
 
         async function addPodcast() {
@@ -1549,49 +1328,49 @@
                 videoId = url.split('v=')[1].split('&')[0];
             }
 
-            const podcasts = await loadFromStorage('podcasts') || [];
+            const podcasts = loadFromStorage('podcasts') || [];
             podcasts.push({
                 t: title,
                 u: url,
                 i: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
             });
-            await saveToStorage('podcasts', podcasts);
+            saveToStorage('podcasts', podcasts);
 
             document.getElementById('podcast-title').value = '';
             document.getElementById('podcast-url').value = '';
             
             showSuccess('Podcast added!');
             loadAdminData();
-            await renderPodcasts();
+            renderPodcasts();
         }
 
         async function deleteBook(idx) {
             if (!confirm('Delete this book?')) return;
-            const customBooks = await loadFromStorage('custom-books') || [];
+            const customBooks = loadFromStorage('custom-books') || [];
             customBooks.splice(idx, 1);
-            await saveToStorage('custom-books', customBooks);
+            saveToStorage('custom-books', customBooks);
             loadAdminData();
-            await loadAllBooks();
+            loadAllBooks();
             renderBooks(allBooks);
         }
 
         async function deleteWord(type, idx) {
             if (!confirm('Delete this word?')) return;
             const key = type === 'sat' ? 'sat-words' : 'ielts-words';
-            const words = await loadFromStorage(key) || [];
+            const words = loadFromStorage(key) || [];
             words.splice(idx, 1);
-            await saveToStorage(key, words);
+            saveToStorage(key, words);
             loadAdminData();
-            await renderVocabLists();
+            renderVocabLists();
         }
 
         async function deletePodcast(idx) {
             if (!confirm('Delete this podcast?')) return;
-            const podcasts = await loadFromStorage('podcasts') || [];
+            const podcasts = loadFromStorage('podcasts') || [];
             podcasts.splice(idx, 1);
-            await saveToStorage('podcasts', podcasts);
+            saveToStorage('podcasts', podcasts);
             loadAdminData();
-            await renderPodcasts();
+            renderPodcasts();
         }
 
         function showSuccess(message) {
@@ -1606,48 +1385,33 @@
             setTimeout(() => msg.remove(), 3000);
         }
 
-        // ===== LOAD & RENDER =====
-        async function loadAllBooks() {
-            const customBooks = await loadFromStorage('custom-books') || [];
+        // ===== RENDER =====
+        function loadAllBooks() {
+            const customBooks = loadFromStorage('custom-books') || [];
             allBooks = [...defaultBooks, ...customBooks];
         }
 
-        async function renderVocabLists() {
-            const satWords = await loadFromStorage('sat-words') || [];
+        function renderVocabLists() {
+            const satWords = loadFromStorage('sat-words') || [];
             const satContainer = document.getElementById('vocab-list-sat');
-            if (satWords.length === 0) {
-                satContainer.innerHTML = '<div class="sub-card">No SAT words yet</div>';
-            } else {
-                satContainer.innerHTML = satWords.map(w => `
-                    <div class="vocab-item">
-                        <div class="v-word">${w.w}</div>
-                        <div class="v-def">${w.d}</div>
-                    </div>
-                `).join('');
-            }
+            satContainer.innerHTML = satWords.length === 0 
+                ? '<div class="sub-card">No SAT words yet</div>'
+                : satWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('');
 
-            const ieltsWords = await loadFromStorage('ielts-words') || [];
+            const ieltsWords = loadFromStorage('ielts-words') || [];
             const ieltsContainer = document.getElementById('vocab-list-ielts');
-            if (ieltsWords.length === 0) {
-                ieltsContainer.innerHTML = '<div class="sub-card">No IELTS words yet</div>';
-            } else {
-                ieltsContainer.innerHTML = ieltsWords.map(w => `
-                    <div class="vocab-item">
-                        <div class="v-word">${w.w}</div>
-                        <div class="v-def">${w.d}</div>
-                    </div>
-                `).join('');
-            }
+            ieltsContainer.innerHTML = ieltsWords.length === 0 
+                ? '<div class="sub-card">No IELTS words yet</div>'
+                : ieltsWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('');
         }
 
-        async function renderPodcasts() {
-            const podcasts = await loadFromStorage('podcasts') || [];
+        function renderPodcasts() {
+            const podcasts = loadFromStorage('podcasts') || [];
             const container = document.getElementById('podcast-container');
             
-            if (podcasts.length === 0) {
-                container.innerHTML = '<div class="sub-card">No podcasts yet</div>';
-            } else {
-                container.innerHTML = podcasts.map(p => `
+            container.innerHTML = podcasts.length === 0 
+                ? '<div class="sub-card">No podcasts yet</div>'
+                : podcasts.map(p => `
                     <a href="${p.u}" target="_blank" class="podcast-item">
                         <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
                         <div class="podcast-body">
@@ -1656,10 +1420,9 @@
                         </div>
                     </a>
                 `).join('');
-            }
         }
 
-        // ===== BOOKS =====
+        // ===== BOOK READER =====
         function openBook(idx) {
             currentBookIdx = idx;
             currentPageIdx = 0;
@@ -1674,8 +1437,8 @@
 
         function animatePageChange(dir) {
             if (isAnimating) return;
-            let book = allBooks[currentBookIdx];
-            let newPage = currentPageIdx + dir;
+            const book = allBooks[currentBookIdx];
+            const newPage = currentPageIdx + dir;
 
             if (newPage < 0) {
                 alert("Это начало книги");
@@ -1711,14 +1474,14 @@
             const pageText = book.pages[currentPageIdx];
             document.getElementById('page-content').innerText = pageText;
 
-            // Update progress bar
+            // Progress
             const totalPages = book.pages.length;
             const currentPage = currentPageIdx + 1;
             const progress = (currentPage / totalPages) * 100;
             document.getElementById('progress-bar-fill').style.width = progress + '%';
             document.getElementById('progress-text').innerText = `Page ${currentPage} of ${totalPages}`;
 
-            // Find which chapter this page belongs to
+            // Chapter
             let chapterName = 'Reading';
             if (book.chapters && book.chapters.length > 0) {
                 for (const ch of book.chapters) {
@@ -1732,9 +1495,9 @@
         }
 
         function renderBooks(arr) {
-            document.getElementById('book-grid').innerHTML = arr.map((b, i) => `
-                <div class="book-card" style="background-image:url('${b.i}')" onclick="openBook(${i})"></div>
-            `).join('');
+            document.getElementById('book-grid').innerHTML = arr.map((b, i) => 
+                `<div class="book-card" style="background-image:url('${b.i}')" onclick="openBook(${i})"></div>`
+            ).join('');
         }
 
         function handleSearch(e) {
@@ -1761,7 +1524,6 @@
             document.documentElement.style.setProperty('--bg-page', t.bg);
             document.documentElement.style.setProperty('--bg-card', t.card);
             document.documentElement.style.setProperty('--text-main', t.text);
-            document.documentElement.style.setProperty('--text-on-card', t.textCard);
             document.documentElement.style.setProperty('--accent', t.acc);
             localStorage.setItem('lum_theme', id);
             renderThemeGrid();
@@ -1782,10 +1544,10 @@
 
         // ===== INIT =====
         async function init() {
-            await loadAllBooks();
+            loadAllBooks();
             renderBooks(allBooks);
-            await renderVocabLists();
-            await renderPodcasts();
+            renderVocabLists();
+            renderPodcasts();
             renderThemeGrid();
             
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
