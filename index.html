@@ -1047,39 +1047,6 @@
 
     <script>
         // ===== DEFAULT DATA =====
-        const defaultBooks = [
-            {
-                t: "Steve Jobs",
-                a: "Walter Isaacson",
-                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication114/v4/59/7e/03/597e0370-4d18-cc3d-09e3-3e7c6434e168/9781451648553.jpg/600x600w.png",
-                pages: [
-                    "Стив Джобс изменил мир технологий. Его видение сделало компьютеры персональными, а телефоны — умными.",
-                    "Он основал Apple в гараже своего отца в 1976 году вместе со Стивом Возняком.",
-                    "Джобс был известен своим стремлением к совершенству, даже в тех деталях, которые никто не видел."
-                ]
-            },
-            {
-                t: "Elon Musk",
-                a: "Walter Isaacson",
-                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/d4/c7/84/d4c78414-6599-e723-71de-837a0197dbd9/9781982181307.jpg/600x630w.png",
-                pages: [
-                    "Илон Маск мечтает о Марсе. Его компания SpaceX первой создала многоразовые ракеты.",
-                    "Tesla перевернула автомобильный рынок, доказав, что электромобили могут быть крутыми.",
-                    "Маск работает по 100 часов в неделю и считает, что риск — это путь к прогрессу."
-                ]
-            },
-            {
-                t: "Atomic Habits",
-                a: "James Clear",
-                i: "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/1f/1b/d3/1f1bd34a-aa29-25e8-b133-7e19b38a5702/9780735211308.d.jpg/600x630w.png",
-                pages: [
-                    "Привычки формируют нашу личность. Маленькие изменения ведут к большим результатам.",
-                    "1% прогресса каждый день делает вас в 37 раз лучше через год.",
-                    "Система важнее целей. Если вы хотите успеха, сосредоточьтесь на процессах."
-                ]
-            }
-        ];
-
         const themes = [
             { id: 'beige', n: 'Beige', bg: '#FFF0DB', card: '#FFFFFF', text: '#000000', acc: '#D9B99B' },
             { id: 'dark', n: 'Dark', bg: '#1d1f2f', card: '#252a3d', text: '#FFFFFF', acc: '#0078D4' },
@@ -1095,6 +1062,7 @@
         let currentPageIdx = 0;
         let isAnimating = false;
         let heroClickHandler = null;
+        let heroIntervalId = null; // FIX: track interval so it's only created once
         const ADMIN_PASSWORD = "admin123";
 
         // ===== NAVIGATION =====
@@ -1213,7 +1181,7 @@
                                 <div class="item-detail">${word.d}</div>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn-delete" onclick="editWord('${type}', '${word.id}', '${word.w.replace(/'/g, "\'")}', '${word.d.replace(/'/g, "\'")}', '${word.folder}')" style="background: #0078D4;">✏️ Edit</button>
+                                <button class="btn-delete" onclick="editWord('${type}', '${word.id}', '${word.w.replace(/'/g, "\\'")}', '${word.d.replace(/'/g, "\\'")}', '${word.folder}')" style="background: #0078D4;">✏️ Edit</button>
                                 <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
                             </div>
                         </div>
@@ -1376,7 +1344,6 @@
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
 
             if (editingWordId && editingWordType === 'sat') {
-                // UPDATE existing word
                 await set(ref(db, `sat-words/${editingWordId}`), { 
                     w: word, 
                     d: def,
@@ -1386,7 +1353,6 @@
                 showSuccess(`Word updated in "${folderName}"! ✏️`);
                 cancelEdit('sat');
             } else {
-                // ADD new word
                 const newWordRef = push(ref(db, 'sat-words'));
                 await set(newWordRef, { 
                     w: word, 
@@ -1402,7 +1368,6 @@
             loadAdminData();
         }
 
-            // Get folder name
         async function addIELTSWord() {
             const word = document.getElementById('ielts-word').value.trim();
             const def = document.getElementById('ielts-def').value.trim();
@@ -1420,7 +1385,6 @@
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
 
             if (editingWordId && editingWordType === 'ielts') {
-                // UPDATE existing word
                 await set(ref(db, `ielts-words/${editingWordId}`), { 
                     w: word, 
                     d: def,
@@ -1430,7 +1394,6 @@
                 showSuccess(`Word updated in "${folderName}"! ✏️`);
                 cancelEdit('ielts');
             } else {
-                // ADD new word
                 const newWordRef = push(ref(db, 'ielts-words'));
                 await set(newWordRef, { 
                     w: word, 
@@ -1514,43 +1477,6 @@
             setTimeout(() => msg.remove(), 3000);
         }
 
-        // ===== RENDER =====
-        function loadAllBooks() {
-            const customBooks = loadFromStorage('custom-books') || [];
-            allBooks = [...defaultBooks, ...customBooks];
-        }
-
-        function renderVocabLists() {
-            const satWords = loadFromStorage('sat-words') || [];
-            const satContainer = document.getElementById('vocab-list-sat');
-            satContainer.innerHTML = satWords.length === 0 
-                ? '<div class="sub-card">No SAT words yet</div>'
-                : satWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('');
-
-            const ieltsWords = loadFromStorage('ielts-words') || [];
-            const ieltsContainer = document.getElementById('vocab-list-ielts');
-            ieltsContainer.innerHTML = ieltsWords.length === 0 
-                ? '<div class="sub-card">No IELTS words yet</div>'
-                : ieltsWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('');
-        }
-
-        function renderPodcasts() {
-            const podcasts = loadFromStorage('podcasts') || [];
-            const container = document.getElementById('podcast-container');
-            
-            container.innerHTML = podcasts.length === 0 
-                ? '<div class="sub-card">No podcasts yet</div>'
-                : podcasts.map(p => `
-                    <a href="${p.u}" target="_blank" class="podcast-item">
-                        <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
-                        <div class="podcast-body">
-                            <h3>${p.t}</h3>
-                            <span>Слушать на YouTube</span>
-                        </div>
-                    </a>
-                `).join('');
-        }
-
         // ===== BOOK READER =====
         function openBook(idx) {
             currentBookIdx = idx;
@@ -1603,14 +1529,12 @@
             const pageText = book.pages[currentPageIdx];
             document.getElementById('page-content').innerText = pageText;
 
-            // Progress
             const totalPages = book.pages.length;
             const currentPage = currentPageIdx + 1;
             const progress = (currentPage / totalPages) * 100;
             document.getElementById('progress-bar-fill').style.width = progress + '%';
             document.getElementById('progress-text').innerText = `Page ${currentPage} of ${totalPages}`;
 
-            // Chapter
             let chapterName = 'Reading';
             if (book.chapters && book.chapters.length > 0) {
                 for (const ch of book.chapters) {
@@ -1671,43 +1595,23 @@
             localStorage.setItem('lum_notes', document.getElementById('notes-area').value);
         }
 
-        // ===== INIT =====
-        // Wait for Firebase
-        window.addEventListener('firebaseReady', () => {
-            console.log('✅ App initializing with Firebase...');
-            initApp();
-        });
-
-        async function initApp() {
-            loadAllBooksRealtime();
-            loadVocabRealtime();
-            
-            // Auto-migrate existing words to default folders
-            setTimeout(async () => {
-                await migrateExistingSATWords();
-                await migrateExistingIELTSWords();
-            }, 2000);
-            loadPodcastsRealtime();
-            renderThemeGrid();
-            
-            document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
-            setTheme(localStorage.getItem('lum_theme') || 'beige');
-        }
-
         // ===== FIREBASE REAL-TIME LOADERS =====
         function loadAllBooksRealtime() {
             const { db, ref, onValue } = window.firebase;
+            // FIX: only create the hero rotation interval once
             onValue(ref(db, 'books'), (snapshot) => {
                 const data = snapshot.val();
                 allBooks = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
                 renderBooks(allBooks);
                 if (allBooks.length > 0) {
                     updateHeroBanner(0);
-                    let hIdx = 0;
-                    setInterval(() => {
-                        hIdx = (hIdx + 1) % allBooks.length;
-                        updateHeroBanner(hIdx);
-                    }, 5000);
+                    if (!heroIntervalId) {
+                        let hIdx = 0;
+                        heroIntervalId = setInterval(() => {
+                            hIdx = (hIdx + 1) % allBooks.length;
+                            updateHeroBanner(hIdx);
+                        }, 5000);
+                    }
                 }
             });
         }
@@ -1751,15 +1655,16 @@
             loadIELTSFolders();
         }
 
-        async async function loadSATFolders() {
-            const { db, ref, get } = window.firebase;
+        // FIX: removed duplicate `async` keyword from both folder loaders
+        async function loadSATFolders() {
+            const { db, ref, get, push, set } = window.firebase; // FIX: include push & set
             const snapshot = await get(ref(db, 'sat-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
             
             // Auto-create default folder if no folders exist
             if (folders.length === 0) {
-                const defaultFolderRef = push(ref(db, 'sat-folders'));
-                await set(defaultFolderRef, {
+                const newFolderRef = push(ref(db, 'sat-folders')); // FIX: was calling undefined push
+                await set(newFolderRef, {
                     name: '650 must known words | Dsat',
                     createdAt: Date.now()
                 });
@@ -1769,15 +1674,15 @@
             renderSATFolders(folders);
         }
 
-        async async function loadIELTSFolders() {
-            const { db, ref, get } = window.firebase;
+        async function loadIELTSFolders() {
+            const { db, ref, get, push, set } = window.firebase; // FIX: include push & set
             const snapshot = await get(ref(db, 'ielts-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
             
             // Auto-create default folder if no folders exist
             if (folders.length === 0) {
-                const defaultFolderRef = push(ref(db, 'ielts-folders'));
-                await set(defaultFolderRef, {
+                const newFolderRef = push(ref(db, 'ielts-folders')); // FIX: was calling undefined push
+                await set(newFolderRef, {
                     name: 'Essential IELTS Vocabulary',
                     createdAt: Date.now()
                 });
@@ -1788,11 +1693,9 @@
         }
 
         function renderSATFolders(folders) {
-            // Update folder select dropdown
             const select = document.getElementById('sat-folder-select');
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             
-            // Display folders list
             const foldersList = document.getElementById('sat-folders-list');
             foldersList.innerHTML = `
                 <div style="background: white; padding: 15px; border-radius: 12px;">
@@ -1810,11 +1713,9 @@
         }
 
         function renderIELTSFolders(folders) {
-            // Update folder select dropdown
             const select = document.getElementById('ielts-folder-select');
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             
-            // Display folders list
             const foldersList = document.getElementById('ielts-folders-list');
             foldersList.innerHTML = `
                 <div style="background: white; padding: 15px; border-radius: 12px;">
@@ -1847,7 +1748,6 @@
             loadIELTSFolders();
         }
 
-        
         // ===== EDIT WORD FUNCTIONS =====
         let editingWordId = null;
         let editingWordType = null;
@@ -1870,7 +1770,6 @@
                 document.getElementById('ielts-cancel-edit').style.display = 'inline-block';
             }
             
-            // Scroll to form
             document.querySelector(`#${type}-folder-select`).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -1891,17 +1790,15 @@
             }
         }
 
-async function migrateExistingSATWords() {
+        async function migrateExistingSATWords() {
             const { db, ref, get, set } = window.firebase;
             
-            // Get default folder
             const foldersSnap = await get(ref(db, 'sat-folders'));
             const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
             const defaultFolder = folders.find(f => f.name === '650 must known words | Dsat');
             
             if (!defaultFolder) return;
             
-            // Get all words without folder
             const wordsSnap = await get(ref(db, 'sat-words'));
             if (!wordsSnap.val()) return;
             
@@ -1925,14 +1822,12 @@ async function migrateExistingSATWords() {
         async function migrateExistingIELTSWords() {
             const { db, ref, get, set } = window.firebase;
             
-            // Get default folder
             const foldersSnap = await get(ref(db, 'ielts-folders'));
             const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
             const defaultFolder = folders.find(f => f.name === 'Essential IELTS Vocabulary');
             
             if (!defaultFolder) return;
             
-            // Get all words without folder
             const wordsSnap = await get(ref(db, 'ielts-words'));
             if (!wordsSnap.val()) return;
             
@@ -1953,7 +1848,7 @@ async function migrateExistingSATWords() {
             }
         }
 
-                function loadVocabRealtime() {
+        function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
             
             onValue(ref(db, 'sat-words'), (snapshot) => {
@@ -1985,7 +1880,6 @@ async function migrateExistingSATWords() {
                 return;
             }
             
-            // Group words by folder
             const grouped = {};
             words.forEach(word => {
                 const folderName = word.folderName || 'Uncategorized';
@@ -2045,10 +1939,28 @@ async function migrateExistingSATWords() {
             }
         }
 
+        // ===== INIT =====
+        // FIX: removed the stray `init()` call — initialization is handled by the firebaseReady event
+        window.addEventListener('firebaseReady', () => {
+            console.log('✅ App initializing with Firebase...');
+            initApp();
+        });
 
+        async function initApp() {
+            loadAllBooksRealtime();
+            loadVocabRealtime();
+            
+            setTimeout(async () => {
+                await migrateExistingSATWords();
+                await migrateExistingIELTSWords();
+            }, 2000);
 
-
-        init();
+            loadPodcastsRealtime();
+            renderThemeGrid();
+            
+            document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
+            setTheme(localStorage.getItem('lum_theme') || 'beige');
+        }
     </script>
 </body>
 </html>
