@@ -1694,7 +1694,9 @@
 
         function renderSATFolders(folders) {
             const select = document.getElementById('sat-folder-select');
+            const prevValue = select.value; // FIX: save current selection before re-render
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            if (prevValue && folders.some(f => f.id === prevValue)) select.value = prevValue; // FIX: restore it
             
             const foldersList = document.getElementById('sat-folders-list');
             foldersList.innerHTML = `
@@ -1714,7 +1716,9 @@
 
         function renderIELTSFolders(folders) {
             const select = document.getElementById('ielts-folder-select');
+            const prevValue = select.value; // FIX: save current selection before re-render
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            if (prevValue && folders.some(f => f.id === prevValue)) select.value = prevValue; // FIX: restore it
             
             const foldersList = document.getElementById('ielts-folders-list');
             foldersList.innerHTML = `
