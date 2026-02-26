@@ -841,7 +841,8 @@
                             <label>Definition</label>
                             <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
                         </div>
-                        <button class="btn-primary" onclick="addSATWord()">Add SAT Word</button>
+                        <button class="btn-primary" id="sat-add-btn" onclick="addSATWord()">Add SAT Word</button>
+                        <button id="sat-cancel-edit" onclick="cancelEdit('sat')" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;display:none;">Cancel Edit</button>
                     </div>
                     
                     <div class="item-list" id="sat-word-list"></div>
@@ -878,7 +879,8 @@
                             <label>Definition</label>
                             <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
                         </div>
-                        <button class="btn-primary" onclick="addIELTSWord()">Add IELTS Word</button>
+                        <button class="btn-primary" id="ielts-add-btn" onclick="addIELTSWord()">Add IELTS Word</button>
+                        <button id="ielts-cancel-edit" onclick="cancelEdit('ielts')" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;display:none;">Cancel Edit</button>
                     </div>
                     
                     <div class="item-list" id="ielts-word-list"></div>
@@ -1192,7 +1194,7 @@
             // Group words by folder
             const grouped = {};
             words.forEach(word => {
-                const folderName = word.folderName || '650 must known words | Dsat';
+                const folderName = word.folderName || 'Uncategorized';
                 if (!grouped[folderName]) {
                     grouped[folderName] = [];
                 }
@@ -1210,7 +1212,10 @@
                                 <div class="item-title">${word.w}</div>
                                 <div class="item-detail">${word.d}</div>
                             </div>
-                            <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-delete" onclick="editWord('${type}', '${word.id}', '${word.w.replace(/'/g, "\'")}', '${word.d.replace(/'/g, "\'")}', '${word.folder}')" style="background: #0078D4;">✏️ Edit</button>
+                                <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -1364,6 +1369,39 @@
                 return;
             }
 
+            const { db, ref, push, set, get } = window.firebase;
+            
+            // Get folder name
+            const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
+            if (editingWordId && editingWordType === 'sat') {
+                // UPDATE existing word
+                await set(ref(db, `sat-words/${editingWordId}`), { 
+                    w: word, 
+                    d: def,
+                    folder: folderId,
+                    folderName: folderName
+                });
+                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                cancelEdit('sat');
+            } else {
+                // ADD new word
+                const newWordRef = push(ref(db, 'sat-words'));
+                await set(newWordRef, { 
+                    w: word, 
+                    d: def,
+                    folder: folderId,
+                    folderName: folderName
+                });
+                showSuccess(`Word added to "${folderName}"! ☁️`);
+            }
+
+            document.getElementById('sat-word').value = '';
+            document.getElementById('sat-def').value = '';
+            loadAdminData();
+        }
+
             // Get folder name
             const { db, ref, push, set, get } = window.firebase;
             const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
@@ -1393,6 +1431,39 @@
                 alert('Please fill in all fields and select a folder');
                 return;
             }
+
+            const { db, ref, push, set, get } = window.firebase;
+            
+            // Get folder name
+            const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
+            if (editingWordId && editingWordType === 'ielts') {
+                // UPDATE existing word
+                await set(ref(db, `ielts-words/${editingWordId}`), { 
+                    w: word, 
+                    d: def,
+                    folder: folderId,
+                    folderName: folderName
+                });
+                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                cancelEdit('ielts');
+            } else {
+                // ADD new word
+                const newWordRef = push(ref(db, 'ielts-words'));
+                await set(newWordRef, { 
+                    w: word, 
+                    d: def,
+                    folder: folderId,
+                    folderName: folderName
+                });
+                showSuccess(`Word added to "${folderName}"! ☁️`);
+            }
+
+            document.getElementById('ielts-word').value = '';
+            document.getElementById('ielts-def').value = '';
+            loadAdminData();
+        }
 
             // Get folder name
             const { db, ref, push, set, get } = window.firebase;
@@ -1728,7 +1799,7 @@
             if (folders.length === 0) {
                 const defaultFolderRef = push(ref(db, 'sat-folders'));
                 await set(defaultFolderRef, {
-                    name: '650 must known words (Dsat)',
+                    name: '650 must known words | Dsat',
                     createdAt: Date.now()
                 });
                 return loadSATFolders();
@@ -1815,13 +1886,57 @@
             loadIELTSFolders();
         }
 
-        async function migrateExistingSATWords() {
+        
+        // ===== EDIT WORD FUNCTIONS =====
+        let editingWordId = null;
+        let editingWordType = null;
+
+        function editWord(type, id, word, definition, folderId) {
+            editingWordId = id;
+            editingWordType = type;
+            
+            if (type === 'sat') {
+                document.getElementById('sat-word').value = word;
+                document.getElementById('sat-def').value = definition;
+                document.getElementById('sat-folder-select').value = folderId;
+                document.getElementById('sat-add-btn').textContent = '✏️ Update Word';
+                document.getElementById('sat-cancel-edit').style.display = 'inline-block';
+            } else {
+                document.getElementById('ielts-word').value = word;
+                document.getElementById('ielts-def').value = definition;
+                document.getElementById('ielts-folder-select').value = folderId;
+                document.getElementById('ielts-add-btn').textContent = '✏️ Update Word';
+                document.getElementById('ielts-cancel-edit').style.display = 'inline-block';
+            }
+            
+            // Scroll to form
+            document.querySelector(`#${type}-folder-select`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelEdit(type) {
+            editingWordId = null;
+            editingWordType = null;
+            
+            if (type === 'sat') {
+                document.getElementById('sat-word').value = '';
+                document.getElementById('sat-def').value = '';
+                document.getElementById('sat-add-btn').textContent = 'Add SAT Word';
+                document.getElementById('sat-cancel-edit').style.display = 'none';
+            } else {
+                document.getElementById('ielts-word').value = '';
+                document.getElementById('ielts-def').value = '';
+                document.getElementById('ielts-add-btn').textContent = 'Add IELTS Word';
+                document.getElementById('ielts-cancel-edit').style.display = 'none';
+            }
+        }
+
+async function migrateExistingSATWords() {
             const { db, ref, get, set } = window.firebase;
             
             // Get default folder
             const foldersSnap = await get(ref(db, 'sat-folders'));
             const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
-            const defaultFolder = folders.find(f => f.name === '650 must known words (Dsat)');
+            const defaultFolder = folders.find(f => f.name === '650 must known words | Dsat');
             
             if (!defaultFolder) return;
             
@@ -1912,7 +2027,7 @@
             // Group words by folder
             const grouped = {};
             words.forEach(word => {
-                const folderName = word.folderName || '650 must known words | Dsat';
+                const folderName = word.folderName || 'Uncategorized';
                 if (!grouped[folderName]) {
                     grouped[folderName] = [];
                 }
