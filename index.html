@@ -810,33 +810,77 @@
                     <div class="item-list" id="book-list-admin"></div>
                 </div>
 
-                <!-- SAT Words -->
+                <!-- SAT Words with Folders -->
                 <div class="admin-section">
-                    <h3>📖 Add SAT Vocabulary</h3>
+                    <h3>📖 SAT Vocabulary - Manage Folders</h3>
+                    
+                    <!-- Create New Folder -->
                     <div class="form-group">
-                        <label>Word</label>
-                        <input type="text" id="sat-word" placeholder="e.g., Benevolent">
+                        <label>Create New Folder</label>
+                        <input type="text" id="sat-folder-name" placeholder="e.g., Essential 500 Words">
                     </div>
-                    <div class="form-group">
-                        <label>Definition</label>
-                        <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
+                    <button class="btn-primary" onclick="createSATFolder()" style="margin-bottom: 20px;">➕ Create Folder</button>
+                    
+                    <!-- Existing Folders List -->
+                    <div id="sat-folders-list" style="margin-bottom: 20px;"></div>
+                    
+                    <!-- Add Word to Folder -->
+                    <div style="background: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                        <h4 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 800;">Add New Word</h4>
+                        <div class="form-group">
+                            <label>Select Folder</label>
+                            <select id="sat-folder-select" style="width: 100%; padding: 12px; border: 2px solid rgba(0,0,0,0.1); border-radius: 12px; font-family: inherit; font-size: 14px; background: white;">
+                                <option value="">Loading folders...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Word</label>
+                            <input type="text" id="sat-word" placeholder="e.g., Benevolent">
+                        </div>
+                        <div class="form-group">
+                            <label>Definition</label>
+                            <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
+                        </div>
+                        <button class="btn-primary" onclick="addSATWord()">Add SAT Word</button>
                     </div>
-                    <button class="btn-primary" onclick="addSATWord()">Add SAT Word</button>
+                    
                     <div class="item-list" id="sat-word-list"></div>
                 </div>
 
-                <!-- IELTS Words -->
+                <!-- IELTS Words with Folders -->
                 <div class="admin-section">
-                    <h3>🎓 Add IELTS Vocabulary</h3>
+                    <h3>🎓 IELTS Vocabulary - Manage Folders</h3>
+                    
+                    <!-- Create New Folder -->
                     <div class="form-group">
-                        <label>Word</label>
-                        <input type="text" id="ielts-word" placeholder="e.g., Coherent">
+                        <label>Create New Folder</label>
+                        <input type="text" id="ielts-folder-name" placeholder="e.g., Academic Writing Words">
                     </div>
-                    <div class="form-group">
-                        <label>Definition</label>
-                        <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
+                    <button class="btn-primary" onclick="createIELTSFolder()" style="margin-bottom: 20px;">➕ Create Folder</button>
+                    
+                    <!-- Existing Folders List -->
+                    <div id="ielts-folders-list" style="margin-bottom: 20px;"></div>
+                    
+                    <!-- Add Word to Folder -->
+                    <div style="background: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
+                        <h4 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 800;">Add New Word</h4>
+                        <div class="form-group">
+                            <label>Select Folder</label>
+                            <select id="ielts-folder-select" style="width: 100%; padding: 12px; border: 2px solid rgba(0,0,0,0.1); border-radius: 12px; font-family: inherit; font-size: 14px; background: white;">
+                                <option value="">Loading folders...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Word</label>
+                            <input type="text" id="ielts-word" placeholder="e.g., Coherent">
+                        </div>
+                        <div class="form-group">
+                            <label>Definition</label>
+                            <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
+                        </div>
+                        <button class="btn-primary" onclick="addIELTSWord()">Add IELTS Word</button>
                     </div>
-                    <button class="btn-primary" onclick="addIELTSWord()">Add IELTS Word</button>
+                    
                     <div class="item-list" id="ielts-word-list"></div>
                 </div>
 
@@ -1098,6 +1142,14 @@
             const books = booksSnap.val() ? Object.keys(booksSnap.val()).map(k => ({id: k, ...booksSnap.val()[k]})) : [];
             displayAdminBooks(books);
 
+            // Load folders first
+            await loadSATFolders();
+            await loadIELTSFolders();
+            
+            // Then migrate and load words
+            await migrateExistingSATWords();
+            await migrateExistingIELTSWords();
+
             const satSnap = await get(ref(db, 'sat-words'));
             const satWords = satSnap.val() ? Object.keys(satSnap.val()).map(k => ({id: k, ...satSnap.val()[k]})) : [];
             displayAdminWords('sat-word-list', satWords, 'sat');
@@ -1137,13 +1189,30 @@
                 return;
             }
             
-            container.innerHTML = words.map((word) => `
-                <div class="item-entry">
-                    <div class="item-info">
-                        <div class="item-title">${word.w}</div>
-                        <div class="item-detail">${word.d}</div>
+            // Group words by folder
+            const grouped = {};
+            words.forEach(word => {
+                const folderName = word.folderName || 'Uncategorized';
+                if (!grouped[folderName]) {
+                    grouped[folderName] = [];
+                }
+                grouped[folderName].push(word);
+            });
+            
+            container.innerHTML = Object.keys(grouped).map(folderName => `
+                <div style="margin-bottom: 20px;">
+                    <div style="background: var(--accent); color: white; padding: 10px 15px; border-radius: 10px; font-weight: 800; margin-bottom: 10px;">
+                        📁 ${folderName} (${grouped[folderName].length} words)
                     </div>
-                    <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
+                    ${grouped[folderName].map(word => `
+                        <div class="item-entry">
+                            <div class="item-info">
+                                <div class="item-title">${word.w}</div>
+                                <div class="item-detail">${word.d}</div>
+                            </div>
+                            <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
+                        </div>
+                    `).join('')}
                 </div>
             `).join('');
         }
@@ -1288,40 +1357,60 @@
         async function addSATWord() {
             const word = document.getElementById('sat-word').value.trim();
             const def = document.getElementById('sat-def').value.trim();
+            const folderId = document.getElementById('sat-folder-select').value;
             
-            if (!word || !def) {
-                alert('Please fill in all fields');
+            if (!word || !def || !folderId) {
+                alert('Please fill in all fields and select a folder');
                 return;
             }
 
-            const { db, ref, push, set } = window.firebase;
+            // Get folder name
+            const { db, ref, push, set, get } = window.firebase;
+            const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
             const newWordRef = push(ref(db, 'sat-words'));
-            await set(newWordRef, { w: word, d: def });
+            await set(newWordRef, { 
+                w: word, 
+                d: def,
+                folder: folderId,
+                folderName: folderName
+            });
 
             document.getElementById('sat-word').value = '';
             document.getElementById('sat-def').value = '';
             
-            showSuccess('SAT word added to cloud! ☁️');
+            showSuccess(`Word added to "${folderName}"! ☁️`);
             loadAdminData();
         }
 
         async function addIELTSWord() {
             const word = document.getElementById('ielts-word').value.trim();
             const def = document.getElementById('ielts-def').value.trim();
+            const folderId = document.getElementById('ielts-folder-select').value;
             
-            if (!word || !def) {
-                alert('Please fill in all fields');
+            if (!word || !def || !folderId) {
+                alert('Please fill in all fields and select a folder');
                 return;
             }
 
-            const { db, ref, push, set } = window.firebase;
+            // Get folder name
+            const { db, ref, push, set, get } = window.firebase;
+            const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
             const newWordRef = push(ref(db, 'ielts-words'));
-            await set(newWordRef, { w: word, d: def });
+            await set(newWordRef, { 
+                w: word, 
+                d: def,
+                folder: folderId,
+                folderName: folderName
+            });
 
             document.getElementById('ielts-word').value = '';
             document.getElementById('ielts-def').value = '';
             
-            showSuccess('IELTS word added to cloud! ☁️');
+            showSuccess(`Word added to "${folderName}"! ☁️`);
             loadAdminData();
         }
 
@@ -1560,6 +1649,12 @@
         function initApp() {
             loadAllBooksRealtime();
             loadVocabRealtime();
+            
+            // Auto-migrate existing words to default folders
+            setTimeout(async () => {
+                await migrateExistingSATWords();
+                await migrateExistingIELTSWords();
+            }, 2000);
             loadPodcastsRealtime();
             renderThemeGrid();
             
@@ -1585,7 +1680,204 @@
             });
         }
 
-        function loadVocabRealtime() {
+        // ===== FOLDER MANAGEMENT =====
+        async function createSATFolder() {
+            const folderName = document.getElementById('sat-folder-name').value.trim();
+            if (!folderName) {
+                alert('Please enter a folder name');
+                return;
+            }
+
+            const { db, ref, push, set } = window.firebase;
+            const newFolderRef = push(ref(db, 'sat-folders'));
+            await set(newFolderRef, {
+                name: folderName,
+                createdAt: Date.now()
+            });
+
+            document.getElementById('sat-folder-name').value = '';
+            showSuccess(`Folder "${folderName}" created!`);
+            loadSATFolders();
+        }
+
+        async function createIELTSFolder() {
+            const folderName = document.getElementById('ielts-folder-name').value.trim();
+            if (!folderName) {
+                alert('Please enter a folder name');
+                return;
+            }
+
+            const { db, ref, push, set } = window.firebase;
+            const newFolderRef = push(ref(db, 'ielts-folders'));
+            await set(newFolderRef, {
+                name: folderName,
+                createdAt: Date.now()
+            });
+
+            document.getElementById('ielts-folder-name').value = '';
+            showSuccess(`Folder "${folderName}" created!`);
+            loadIELTSFolders();
+        }
+
+        async function loadSATFolders() {
+            const { db, ref, get } = window.firebase;
+            const snapshot = await get(ref(db, 'sat-folders'));
+            const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
+            
+            // Auto-create default folder if no folders exist
+            if (folders.length === 0) {
+                const defaultFolderRef = push(ref(db, 'sat-folders'));
+                await set(defaultFolderRef, {
+                    name: '650 must known words (Dsat)',
+                    createdAt: Date.now()
+                });
+                return loadSATFolders();
+            }
+            
+            renderSATFolders(folders);
+        }
+
+        async function loadIELTSFolders() {
+            const { db, ref, get } = window.firebase;
+            const snapshot = await get(ref(db, 'ielts-folders'));
+            const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
+            
+            // Auto-create default folder if no folders exist
+            if (folders.length === 0) {
+                const defaultFolderRef = push(ref(db, 'ielts-folders'));
+                await set(defaultFolderRef, {
+                    name: 'Essential IELTS Vocabulary',
+                    createdAt: Date.now()
+                });
+                return loadIELTSFolders();
+            }
+            
+            renderIELTSFolders(folders);
+        }
+
+        function renderSATFolders(folders) {
+            // Update folder select dropdown
+            const select = document.getElementById('sat-folder-select');
+            select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            
+            // Display folders list
+            const foldersList = document.getElementById('sat-folders-list');
+            foldersList.innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 12px;">
+                    <strong>Existing Folders:</strong>
+                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${folders.map(f => `
+                            <div style="background: var(--accent); color: white; padding: 8px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                📁 ${f.name}
+                                <button onclick="deleteSATFolder('${f.id}')" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIELTSFolders(folders) {
+            // Update folder select dropdown
+            const select = document.getElementById('ielts-folder-select');
+            select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            
+            // Display folders list
+            const foldersList = document.getElementById('ielts-folders-list');
+            foldersList.innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 12px;">
+                    <strong>Existing Folders:</strong>
+                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${folders.map(f => `
+                            <div style="background: var(--accent); color: white; padding: 8px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                📁 ${f.name}
+                                <button onclick="deleteIELTSFolder('${f.id}')" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function deleteSATFolder(folderId) {
+            if (!confirm('Delete this folder? Words inside will NOT be deleted.')) return;
+            const { db, ref, remove } = window.firebase;
+            await remove(ref(db, `sat-folders/${folderId}`));
+            showSuccess('Folder deleted!');
+            loadSATFolders();
+        }
+
+        async function deleteIELTSFolder(folderId) {
+            if (!confirm('Delete this folder? Words inside will NOT be deleted.')) return;
+            const { db, ref, remove } = window.firebase;
+            await remove(ref(db, `ielts-folders/${folderId}`));
+            showSuccess('Folder deleted!');
+            loadIELTSFolders();
+        }
+
+        async function migrateExistingSATWords() {
+            const { db, ref, get, set } = window.firebase;
+            
+            // Get default folder
+            const foldersSnap = await get(ref(db, 'sat-folders'));
+            const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
+            const defaultFolder = folders.find(f => f.name === '650 must known words (Dsat)');
+            
+            if (!defaultFolder) return;
+            
+            // Get all words without folder
+            const wordsSnap = await get(ref(db, 'sat-words'));
+            if (!wordsSnap.val()) return;
+            
+            const words = Object.keys(wordsSnap.val());
+            let migrated = 0;
+            
+            for (const wordId of words) {
+                const word = wordsSnap.val()[wordId];
+                if (!word.folder) {
+                    await set(ref(db, `sat-words/${wordId}/folder`), defaultFolder.id);
+                    await set(ref(db, `sat-words/${wordId}/folderName`), defaultFolder.name);
+                    migrated++;
+                }
+            }
+            
+            if (migrated > 0) {
+                console.log(`✅ Migrated ${migrated} SAT words to default folder`);
+            }
+        }
+
+        async function migrateExistingIELTSWords() {
+            const { db, ref, get, set } = window.firebase;
+            
+            // Get default folder
+            const foldersSnap = await get(ref(db, 'ielts-folders'));
+            const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
+            const defaultFolder = folders.find(f => f.name === 'Essential IELTS Vocabulary');
+            
+            if (!defaultFolder) return;
+            
+            // Get all words without folder
+            const wordsSnap = await get(ref(db, 'ielts-words'));
+            if (!wordsSnap.val()) return;
+            
+            const words = Object.keys(wordsSnap.val());
+            let migrated = 0;
+            
+            for (const wordId of words) {
+                const word = wordsSnap.val()[wordId];
+                if (!word.folder) {
+                    await set(ref(db, `ielts-words/${wordId}/folder`), defaultFolder.id);
+                    await set(ref(db, `ielts-words/${wordId}/folderName`), defaultFolder.name);
+                    migrated++;
+                }
+            }
+            
+            if (migrated > 0) {
+                console.log(`✅ Migrated ${migrated} IELTS words to default folder`);
+            }
+        }
+
+                function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
             
             onValue(ref(db, 'sat-words'), (snapshot) => {
@@ -1614,13 +1906,49 @@
             const container = document.getElementById(containerId);
             if (words.length === 0) {
                 container.innerHTML = '<div class="sub-card">No words yet. Add some in admin!</div>';
-            } else {
-                container.innerHTML = words.map(w => `
-                    <div class="vocab-item">
-                        <div class="v-word">${w.w}</div>
-                        <div class="v-def">${w.d}</div>
+                return;
+            }
+            
+            // Group words by folder
+            const grouped = {};
+            words.forEach(word => {
+                const folderName = word.folderName || 'Uncategorized';
+                if (!grouped[folderName]) {
+                    grouped[folderName] = [];
+                }
+                grouped[folderName].push(word);
+            });
+            
+            container.innerHTML = Object.keys(grouped).map((folderName, folderIdx) => {
+                const folderId = `folder-${containerId}-${folderIdx}`;
+                return `
+                    <div style="margin-bottom: 20px;">
+                        <div class="vocab-folder-header" onclick="toggleFolder('${folderId}')" style="background: var(--accent); color: white; padding: 15px 20px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <div style="font-weight: 800; font-size: 16px;">📁 ${folderName}</div>
+                            <div style="font-size: 13px; font-weight: 600;">${grouped[folderName].length} words <span id="${folderId}-arrow" style="margin-left: 8px;">▼</span></div>
+                        </div>
+                        <div id="${folderId}" class="vocab-folder-content" style="display: grid; gap: 10px;">
+                            ${grouped[folderName].map(w => `
+                                <div class="vocab-item">
+                                    <div class="v-word">${w.w}</div>
+                                    <div class="v-def">${w.d}</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                `).join('');
+                `;
+            }).join('');
+        }
+
+        function toggleFolder(folderId) {
+            const content = document.getElementById(folderId);
+            const arrow = document.getElementById(folderId + '-arrow');
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                arrow.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                arrow.textContent = '▶';
             }
         }
 
