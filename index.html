@@ -972,6 +972,33 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, get, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdA6I-a8eYZz1NFUpctYLIa-h56Rh1jNU",
+            authDomain: "dataluminary.firebaseapp.com",
+            databaseURL: "https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "dataluminary",
+            storageBucket: "dataluminary.firebasestorage.app",
+            messagingSenderId: "136281703091",
+            appId: "1:136281703091:web:632b8d1bbb202f9d95a6c6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.firebase = {
+            db: database,
+            ref, set, push, get, remove, onValue, child
+        };
+
+        console.log('🔥 Firebase initialized successfully!');
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
+
     <script>
         // ===== DEFAULT DATA =====
         const defaultBooks = [
@@ -1024,28 +1051,6 @@
         let heroClickHandler = null;
         const ADMIN_PASSWORD = "admin123";
 
-        // ===== STORAGE (localStorage - works everywhere) =====
-        function loadFromStorage(key) {
-            try {
-                const result = localStorage.getItem('lum_' + key);
-                return result ? JSON.parse(result) : null;
-            } catch (error) {
-                console.error('[LOAD ERROR]', key, error);
-                return null;
-            }
-        }
-
-        function saveToStorage(key, data) {
-            try {
-                localStorage.setItem('lum_' + key, JSON.stringify(data));
-                console.log('[SAVE]', key, '→', data.length, 'items');
-                return true;
-            } catch (error) {
-                console.error('[SAVE ERROR]', key, error);
-                return false;
-            }
-        }
-
         // ===== NAVIGATION =====
         function switchTab(tab) {
             // Reset education to main when switching tabs
@@ -1087,34 +1092,40 @@
         }
 
         async function loadAdminData() {
-            const customBooks = loadFromStorage('custom-books') || [];
-            displayAdminBooks(customBooks);
+            const { db, ref, get } = window.firebase;
+            
+            const booksSnap = await get(ref(db, 'books'));
+            const books = booksSnap.val() ? Object.keys(booksSnap.val()).map(k => ({id: k, ...booksSnap.val()[k]})) : [];
+            displayAdminBooks(books);
 
-            const satWords = loadFromStorage('sat-words') || [];
+            const satSnap = await get(ref(db, 'sat-words'));
+            const satWords = satSnap.val() ? Object.keys(satSnap.val()).map(k => ({id: k, ...satSnap.val()[k]})) : [];
             displayAdminWords('sat-word-list', satWords, 'sat');
 
-            const ieltsWords = loadFromStorage('ielts-words') || [];
+            const ieltsSnap = await get(ref(db, 'ielts-words'));
+            const ieltsWords = ieltsSnap.val() ? Object.keys(ieltsSnap.val()).map(k => ({id: k, ...ieltsSnap.val()[k]})) : [];
             displayAdminWords('ielts-word-list', ieltsWords, 'ielts');
 
-            const podcasts = loadFromStorage('podcasts') || [];
+            const podcastsSnap = await get(ref(db, 'podcasts'));
+            const podcasts = podcastsSnap.val() ? Object.keys(podcastsSnap.val()).map(k => ({id: k, ...podcastsSnap.val()[k]})) : [];
             displayAdminPodcasts(podcasts);
         }
 
         function displayAdminBooks(books) {
             const container = document.getElementById('book-list-admin');
             if (books.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No custom books yet</p>';
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No books yet</p>';
                 return;
             }
             
-            container.innerHTML = books.map((book, idx) => `
+            container.innerHTML = books.map((book) => `
                 <div class="book-admin-entry">
                     <div class="book-admin-thumb" style="background-image:url('${book.i}')"></div>
                     <div class="item-info">
                         <div class="item-title">${book.t}</div>
                         <div class="item-detail">by ${book.a} • ${book.pages.length} pages</div>
                     </div>
-                    <button class="btn-delete" onclick="deleteBook(${idx})">Delete</button>
+                    <button class="btn-delete" onclick="deleteBook('${book.id}')">Delete</button>
                 </div>
             `).join('');
         }
@@ -1126,13 +1137,13 @@
                 return;
             }
             
-            container.innerHTML = words.map((word, idx) => `
+            container.innerHTML = words.map((word) => `
                 <div class="item-entry">
                     <div class="item-info">
                         <div class="item-title">${word.w}</div>
                         <div class="item-detail">${word.d}</div>
                     </div>
-                    <button class="btn-delete" onclick="deleteWord('${type}', ${idx})">Delete</button>
+                    <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
                 </div>
             `).join('');
         }
@@ -1144,13 +1155,13 @@
                 return;
             }
             
-            container.innerHTML = podcasts.map((podcast, idx) => `
+            container.innerHTML = podcasts.map((podcast) => `
                 <div class="item-entry">
                     <div class="item-info">
                         <div class="item-title">${podcast.t}</div>
                         <div class="item-detail">${podcast.u}</div>
                     </div>
-                    <button class="btn-delete" onclick="deletePodcast(${idx})">Delete</button>
+                    <button class="btn-delete" onclick="deletePodcast('${podcast.id}')">Delete</button>
                 </div>
             `).join('');
         }
@@ -1249,15 +1260,19 @@
                 });
             }
 
-            const customBooks = loadFromStorage('custom-books') || [];
-            customBooks.push({ t: title, a: author, i: cover, pages, chapters });
-            saveToStorage('custom-books', customBooks);
+            const { db, ref, push, set } = window.firebase;
+            const newBookRef = push(ref(db, 'books'));
+            await set(newBookRef, {
+                t: title,
+                a: author,
+                i: cover,
+                pages: pages,
+                chapters: chapters
+            });
 
-            showSuccess(`"${title}" added!`);
+            showSuccess(`"${title}" added to cloud! ☁️`);
             resetBookForm();
             loadAdminData();
-            loadAllBooks();
-            renderBooks(allBooks);
         }
 
         function resetBookForm() {
@@ -1279,16 +1294,15 @@
                 return;
             }
 
-            const satWords = loadFromStorage('sat-words') || [];
-            satWords.push({ w: word, d: def });
-            saveToStorage('sat-words', satWords);
+            const { db, ref, push, set } = window.firebase;
+            const newWordRef = push(ref(db, 'sat-words'));
+            await set(newWordRef, { w: word, d: def });
 
             document.getElementById('sat-word').value = '';
             document.getElementById('sat-def').value = '';
             
-            showSuccess('SAT word added!');
+            showSuccess('SAT word added to cloud! ☁️');
             loadAdminData();
-            renderVocabLists();
         }
 
         async function addIELTSWord() {
@@ -1300,16 +1314,15 @@
                 return;
             }
 
-            const ieltsWords = loadFromStorage('ielts-words') || [];
-            ieltsWords.push({ w: word, d: def });
-            saveToStorage('ielts-words', ieltsWords);
+            const { db, ref, push, set } = window.firebase;
+            const newWordRef = push(ref(db, 'ielts-words'));
+            await set(newWordRef, { w: word, d: def });
 
             document.getElementById('ielts-word').value = '';
             document.getElementById('ielts-def').value = '';
             
-            showSuccess('IELTS word added!');
+            showSuccess('IELTS word added to cloud! ☁️');
             loadAdminData();
-            renderVocabLists();
         }
 
         async function addPodcast() {
@@ -1328,49 +1341,44 @@
                 videoId = url.split('v=')[1].split('&')[0];
             }
 
-            const podcasts = loadFromStorage('podcasts') || [];
-            podcasts.push({
+            const { db, ref, push, set } = window.firebase;
+            const newPodcastRef = push(ref(db, 'podcasts'));
+            await set(newPodcastRef, {
                 t: title,
                 u: url,
                 i: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
             });
-            saveToStorage('podcasts', podcasts);
 
             document.getElementById('podcast-title').value = '';
             document.getElementById('podcast-url').value = '';
             
-            showSuccess('Podcast added!');
+            showSuccess('Podcast added to cloud! ☁️');
             loadAdminData();
-            renderPodcasts();
         }
 
-        async function deleteBook(idx) {
+        async function deleteBook(id) {
             if (!confirm('Delete this book?')) return;
-            const customBooks = loadFromStorage('custom-books') || [];
-            customBooks.splice(idx, 1);
-            saveToStorage('custom-books', customBooks);
+            const { db, ref, remove } = window.firebase;
+            await remove(ref(db, `books/${id}`));
+            showSuccess('Book deleted from cloud!');
             loadAdminData();
-            loadAllBooks();
-            renderBooks(allBooks);
         }
 
-        async function deleteWord(type, idx) {
+        async function deleteWord(type, id) {
             if (!confirm('Delete this word?')) return;
-            const key = type === 'sat' ? 'sat-words' : 'ielts-words';
-            const words = loadFromStorage(key) || [];
-            words.splice(idx, 1);
-            saveToStorage(key, words);
+            const { db, ref, remove } = window.firebase;
+            const path = type === 'sat' ? 'sat-words' : 'ielts-words';
+            await remove(ref(db, `${path}/${id}`));
+            showSuccess('Word deleted from cloud!');
             loadAdminData();
-            renderVocabLists();
         }
 
-        async function deletePodcast(idx) {
+        async function deletePodcast(id) {
             if (!confirm('Delete this podcast?')) return;
-            const podcasts = loadFromStorage('podcasts') || [];
-            podcasts.splice(idx, 1);
-            saveToStorage('podcasts', podcasts);
+            const { db, ref, remove } = window.firebase;
+            await remove(ref(db, `podcasts/${id}`));
+            showSuccess('Podcast deleted from cloud!');
             loadAdminData();
-            renderPodcasts();
         }
 
         function showSuccess(message) {
@@ -1543,23 +1551,98 @@
         }
 
         // ===== INIT =====
-        async function init() {
-            loadAllBooks();
-            renderBooks(allBooks);
-            renderVocabLists();
-            renderPodcasts();
+        // Wait for Firebase
+        window.addEventListener('firebaseReady', () => {
+            console.log('✅ App initializing with Firebase...');
+            initApp();
+        });
+
+        function initApp() {
+            loadAllBooksRealtime();
+            loadVocabRealtime();
+            loadPodcastsRealtime();
             renderThemeGrid();
             
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
             setTheme(localStorage.getItem('lum_theme') || 'beige');
-            updateHeroBanner(0);
-
-            let hIdx = 0;
-            setInterval(() => {
-                hIdx = (hIdx + 1) % allBooks.length;
-                updateHeroBanner(hIdx);
-            }, 5000);
         }
+
+        // ===== FIREBASE REAL-TIME LOADERS =====
+        function loadAllBooksRealtime() {
+            const { db, ref, onValue } = window.firebase;
+            onValue(ref(db, 'books'), (snapshot) => {
+                const data = snapshot.val();
+                allBooks = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
+                renderBooks(allBooks);
+                if (allBooks.length > 0) {
+                    updateHeroBanner(0);
+                    let hIdx = 0;
+                    setInterval(() => {
+                        hIdx = (hIdx + 1) % allBooks.length;
+                        updateHeroBanner(hIdx);
+                    }, 5000);
+                }
+            });
+        }
+
+        function loadVocabRealtime() {
+            const { db, ref, onValue } = window.firebase;
+            
+            onValue(ref(db, 'sat-words'), (snapshot) => {
+                const data = snapshot.val();
+                const words = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
+                renderVocabList('vocab-list-sat', words);
+            });
+
+            onValue(ref(db, 'ielts-words'), (snapshot) => {
+                const data = snapshot.val();
+                const words = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
+                renderVocabList('vocab-list-ielts', words);
+            });
+        }
+
+        function loadPodcastsRealtime() {
+            const { db, ref, onValue } = window.firebase;
+            onValue(ref(db, 'podcasts'), (snapshot) => {
+                const data = snapshot.val();
+                const podcasts = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
+                renderPodcastsFromData(podcasts);
+            });
+        }
+
+        function renderVocabList(containerId, words) {
+            const container = document.getElementById(containerId);
+            if (words.length === 0) {
+                container.innerHTML = '<div class="sub-card">No words yet. Add some in admin!</div>';
+            } else {
+                container.innerHTML = words.map(w => `
+                    <div class="vocab-item">
+                        <div class="v-word">${w.w}</div>
+                        <div class="v-def">${w.d}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderPodcastsFromData(podcasts) {
+            const container = document.getElementById('podcast-container');
+            if (podcasts.length === 0) {
+                container.innerHTML = '<div class="sub-card">No podcasts yet. Add some in admin!</div>';
+            } else {
+                container.innerHTML = podcasts.map(p => `
+                    <a href="${p.u}" target="_blank" class="podcast-item">
+                        <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
+                        <div class="podcast-body">
+                            <h3>${p.t}</h3>
+                            <span>Слушать на YouTube</span>
+                        </div>
+                    </a>
+                `).join('');
+            }
+        }
+
+
+
 
         init();
     </script>
