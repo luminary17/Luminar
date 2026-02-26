@@ -1403,25 +1403,6 @@
         }
 
             // Get folder name
-            const { db, ref, push, set, get } = window.firebase;
-            const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
-            const folderName = folderSnap.val()?.name || 'Unknown Folder';
-
-            const newWordRef = push(ref(db, 'sat-words'));
-            await set(newWordRef, { 
-                w: word, 
-                d: def,
-                folder: folderId,
-                folderName: folderName
-            });
-
-            document.getElementById('sat-word').value = '';
-            document.getElementById('sat-def').value = '';
-            
-            showSuccess(`Word added to "${folderName}"! ☁️`);
-            loadAdminData();
-        }
-
         async function addIELTSWord() {
             const word = document.getElementById('ielts-word').value.trim();
             const def = document.getElementById('ielts-def').value.trim();
@@ -1462,26 +1443,6 @@
 
             document.getElementById('ielts-word').value = '';
             document.getElementById('ielts-def').value = '';
-            loadAdminData();
-        }
-
-            // Get folder name
-            const { db, ref, push, set, get } = window.firebase;
-            const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
-            const folderName = folderSnap.val()?.name || 'Unknown Folder';
-
-            const newWordRef = push(ref(db, 'ielts-words'));
-            await set(newWordRef, { 
-                w: word, 
-                d: def,
-                folder: folderId,
-                folderName: folderName
-            });
-
-            document.getElementById('ielts-word').value = '';
-            document.getElementById('ielts-def').value = '';
-            
-            showSuccess(`Word added to "${folderName}"! ☁️`);
             loadAdminData();
         }
 
@@ -1717,7 +1678,7 @@
             initApp();
         });
 
-        function initApp() {
+        async function initApp() {
             loadAllBooksRealtime();
             loadVocabRealtime();
             
@@ -1790,7 +1751,7 @@
             loadIELTSFolders();
         }
 
-        async function loadSATFolders() {
+        async async function loadSATFolders() {
             const { db, ref, get } = window.firebase;
             const snapshot = await get(ref(db, 'sat-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
@@ -1808,7 +1769,7 @@
             renderSATFolders(folders);
         }
 
-        async function loadIELTSFolders() {
+        async async function loadIELTSFolders() {
             const { db, ref, get } = window.firebase;
             const snapshot = await get(ref(db, 'ielts-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
