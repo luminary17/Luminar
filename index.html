@@ -727,6 +727,278 @@
         .yt-c { background: #FF0000; }
 
         .spacer { height: 100px; }
+
+        /* ===== DUOCARDS STYLES ===== */
+
+        /* Cards button on folder header */
+        .folder-cards-btn {
+            background: white;
+            color: var(--accent);
+            border: 2px solid white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .folder-cards-btn:hover { background: rgba(255,255,255,0.85); }
+
+        /* Accuracy badge */
+        .accuracy-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* Full-screen flashcard view */
+        .duocards-view {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-page);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+        }
+        .duocards-view.active { display: flex; }
+
+        .dc-header {
+            background: white;
+            padding: 18px 20px 14px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dc-top-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .dc-back {
+            width: 38px; height: 38px;
+            background: rgba(0,0,0,0.04);
+            border: none; border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .dc-back svg { width: 22px; height: 22px; fill: currentColor; }
+        .dc-folder-name {
+            font-weight: 800;
+            font-size: 17px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .dc-stats {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .dc-progress-bar {
+            height: 7px;
+            background: rgba(0,0,0,0.07);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .dc-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        /* Card arena */
+        .dc-arena {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Swipe hint labels */
+        .dc-hint-know {
+            position: absolute;
+            top: 40px; right: 30px;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 15px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.15s, transform 0.15s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .dc-hint-dontknow {
+            position: absolute;
+            top: 40px; left: 30px;
+            background: #f44336;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 15px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.15s, transform 0.15s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .dc-hint-know.show, .dc-hint-dontknow.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* The flashcard */
+        .dc-card {
+            width: 100%;
+            max-width: 420px;
+            min-height: 260px;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            position: relative;
+            will-change: transform;
+            transition: box-shadow 0.2s;
+        }
+        .dc-card:active { box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+
+        .dc-card-word {
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        .dc-card-tap-hint {
+            font-size: 13px;
+            color: #aaa;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .dc-card-def {
+            font-size: 16px;
+            color: #444;
+            text-align: center;
+            line-height: 1.6;
+            margin-top: 16px;
+            display: none;
+        }
+        .dc-card.flipped .dc-card-def { display: block; }
+        .dc-card.flipped .dc-card-tap-hint { display: none; }
+
+        /* Card tint during drag */
+        .dc-card.tint-right { border: 3px solid #4CAF50; }
+        .dc-card.tint-left  { border: 3px solid #f44336; }
+
+        /* Bottom buttons */
+        .dc-actions {
+            display: flex;
+            gap: 20px;
+            padding: 20px 24px 34px;
+            justify-content: center;
+        }
+        .dc-btn {
+            flex: 1;
+            max-width: 170px;
+            padding: 16px;
+            border-radius: 20px;
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dc-btn:hover { transform: translateY(-3px); }
+        .dc-btn-dont {
+            background: #fde8e8;
+            color: #e53935;
+        }
+        .dc-btn-know {
+            background: #e8f5e9;
+            color: #388E3C;
+        }
+
+        /* Completion screen */
+        .dc-complete {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-page);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+            z-index: 20;
+        }
+        .dc-complete.active { display: flex; }
+        .dc-complete-emoji { font-size: 72px; margin-bottom: 16px; }
+        .dc-complete-title { font-size: 30px; font-weight: 800; margin-bottom: 8px; }
+        .dc-complete-sub { font-size: 16px; color: #555; margin-bottom: 30px; }
+        .dc-accuracy-ring {
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(#4CAF50 0%, #4CAF50 var(--pct), #e0e0e0 var(--pct));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 6px 24px rgba(76,175,80,0.3);
+        }
+        .dc-accuracy-inner {
+            width: 104px; height: 104px;
+            border-radius: 50%;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        .dc-accuracy-pct { font-size: 28px; font-weight: 800; }
+        .dc-accuracy-label { font-size: 11px; color: #888; font-weight: 700; }
+        .dc-complete-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 18px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dc-complete-btn:hover { transform: translateY(-2px); }
     </style>
 </head>
 
@@ -1015,6 +1287,52 @@
             <div class="touch-zone-left" onclick="animatePageChange(-1)"></div>
             <div class="touch-zone-right" onclick="animatePageChange(1)"></div>
             <div id="page-content" class="page-content page-active"></div>
+        </div>
+    </div>
+
+    <!-- DUOCARDS VIEW -->
+    <div id="duocards-view" class="duocards-view">
+        <div class="dc-header">
+            <div class="dc-top-row">
+                <button class="dc-back" onclick="exitDuoCards()">
+                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <div class="dc-folder-name" id="dc-folder-name">Folder</div>
+                <div class="dc-stats" id="dc-stats">0 / 0</div>
+            </div>
+            <div class="dc-progress-bar">
+                <div class="dc-progress-fill" id="dc-progress-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="dc-arena">
+            <div class="dc-hint-know" id="dc-hint-know">✓ Know it!</div>
+            <div class="dc-hint-dontknow" id="dc-hint-dontknow">✗ Still learning</div>
+
+            <div class="dc-card" id="dc-card">
+                <div class="dc-card-word" id="dc-card-word">Word</div>
+                <div class="dc-card-tap-hint">Tap to reveal definition</div>
+                <div class="dc-card-def" id="dc-card-def">Definition</div>
+            </div>
+
+            <!-- Completion screen inside arena -->
+            <div class="dc-complete" id="dc-complete">
+                <div class="dc-complete-emoji">🎉</div>
+                <div class="dc-complete-title">Folder Complete!</div>
+                <div class="dc-complete-sub" id="dc-complete-sub">You mastered all the words.</div>
+                <div class="dc-accuracy-ring" id="dc-accuracy-ring" style="--pct: 0%">
+                    <div class="dc-accuracy-inner">
+                        <div class="dc-accuracy-pct" id="dc-accuracy-pct">0%</div>
+                        <div class="dc-accuracy-label">ACCURACY</div>
+                    </div>
+                </div>
+                <button class="dc-complete-btn" onclick="exitDuoCards()">Back to Vocabulary</button>
+            </div>
+        </div>
+
+        <div class="dc-actions" id="dc-actions">
+            <button class="dc-btn dc-btn-dont" onclick="swipeCard('left')">✗ Don't Know</button>
+            <button class="dc-btn dc-btn-know" onclick="swipeCard('right')">✓ Know It</button>
         </div>
     </div>
 
@@ -1893,13 +2211,36 @@
                 grouped[folderName].push(word);
             });
             
+            // We need the actual folder IDs from words to hook up Cards button
+            // Build a map of folderName -> { folderId, type }
+            const folderMeta = {};
+            words.forEach(word => {
+                const fn = word.folderName || 'Uncategorized';
+                if (!folderMeta[fn]) {
+                    folderMeta[fn] = { folderId: word.folder, type: containerId.includes('sat') ? 'sat' : 'ielts' };
+                }
+            });
+
             container.innerHTML = Object.keys(grouped).map((folderName, folderIdx) => {
-                const folderId = `folder-${containerId}-${folderIdx}`;
+                const folderId   = `folder-${containerId}-${folderIdx}`;
+                const realFolderId = folderMeta[folderName]?.folderId || '';
+                const vocabType    = folderMeta[folderName]?.type || 'sat';
+                const savedAcc     = realFolderId ? localStorage.getItem(`dc_accuracy_${realFolderId}`) : null;
+                const hasSaved     = realFolderId ? loadDCState(realFolderId) : null;
+                const resumeDisplay = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0) ? 'inline-flex' : 'none';
                 return `
                     <div style="margin-bottom: 20px;">
-                        <div class="vocab-folder-header" onclick="toggleFolder('${folderId}')" style="background: var(--accent); color: white; padding: 15px 20px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 800; font-size: 16px;">📁 ${folderName}</div>
-                            <div style="font-size: 13px; font-weight: 600;">${grouped[folderName].length} words <span id="${folderId}-arrow" style="margin-left: 8px;">▼</span></div>
+                        <div style="background: var(--accent); color: white; padding: 13px 16px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); gap: 10px;">
+                            <div onclick="toggleFolder('${folderId}')" style="font-weight: 800; font-size: 15px; cursor: pointer; flex:1; display:flex; align-items:center; gap:8px; min-width:0;">
+                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📁 ${folderName}</span>
+                                <span id="${folderId}-arrow" style="opacity:0.7; flex-shrink:0;">▼</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="font-size:12px; font-weight:600; opacity:0.85;">${grouped[folderName].length}w</span>
+                                <span class="accuracy-badge" data-folder-accuracy="${realFolderId}" style="display:${savedAcc !== null ? 'inline-flex' : 'none'}">${savedAcc !== null ? savedAcc + '%' : ''}</span>
+                                <span data-folder-resume="${realFolderId}" style="display:${resumeDisplay}; background:rgba(255,255,255,0.25); color:white; font-size:10px; font-weight:800; padding:3px 8px; border-radius:10px;">RESUME</span>
+                                <button class="folder-cards-btn" onclick="openDuoCards('${realFolderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')">🃏 Cards</button>
+                            </div>
                         </div>
                         <div id="${folderId}" class="vocab-folder-content" style="display: grid; gap: 10px;">
                             ${grouped[folderName].map(w => `
@@ -1964,6 +2305,253 @@
             
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
             setTheme(localStorage.getItem('lum_theme') || 'beige');
+        }
+
+        // ===== DUOCARDS ENGINE =====
+        let dc = {
+            folderId: null,
+            folderName: null,
+            type: null,
+            queue: [],
+            allWords: [],
+            known: 0,
+            totalSwipes: 0,
+            rightSwipes: 0,
+            isFlipped: false,
+            isSwiping: false,
+        };
+        let dragState = { active: false, startX: 0, startY: 0, curX: 0, curY: 0 };
+
+        function openDuoCards(folderId, folderName, type) {
+            dc.folderId   = folderId;
+            dc.folderName = folderName;
+            dc.type       = type;
+
+            const saved = loadDCState(folderId);
+            if (saved && saved.queue && saved.queue.length > 0) {
+                dc.queue       = saved.queue;
+                dc.allWords    = saved.allWords;
+                dc.known       = saved.known;
+                dc.totalSwipes = saved.totalSwipes;
+                dc.rightSwipes = saved.rightSwipes;
+                startDCSession();
+            } else {
+                const { db, ref, get } = window.firebase;
+                const path = type === 'sat' ? 'sat-words' : 'ielts-words';
+                get(ref(db, path)).then(snap => {
+                    const data = snap.val() || {};
+                    const words = Object.keys(data)
+                        .map(k => ({ id: k, ...data[k] }))
+                        .filter(w => w.folder === folderId);
+                    if (words.length === 0) { alert('No words in this folder yet!'); return; }
+                    dc.allWords    = words;
+                    dc.queue       = shuffle([...words]);
+                    dc.known       = 0;
+                    dc.totalSwipes = 0;
+                    dc.rightSwipes = 0;
+                    startDCSession();
+                });
+            }
+        }
+
+        function startDCSession() {
+            document.getElementById('dc-folder-name').textContent = dc.folderName;
+            document.getElementById('dc-complete').classList.remove('active');
+            document.getElementById('dc-actions').style.display = 'flex';
+            document.getElementById('duocards-view').classList.add('active');
+            showDCCard();
+            bindDCDrag();
+        }
+
+        function showDCCard() {
+            if (dc.queue.length === 0) { completeDCSession(); return; }
+            const word = dc.queue[0];
+            const card = document.getElementById('dc-card');
+            card.classList.remove('flipped', 'tint-right', 'tint-left');
+            card.style.transition = '';
+            card.style.transform  = '';
+            card.style.opacity    = '';
+            document.getElementById('dc-card-word').textContent = word.w;
+            document.getElementById('dc-card-def').textContent  = word.d;
+            dc.isFlipped = false;
+            updateDCProgress();
+        }
+
+        function updateDCProgress() {
+            const total = dc.allWords.length;
+            const pct   = total > 0 ? Math.round((dc.known / total) * 100) : 0;
+            document.getElementById('dc-stats').textContent = `${dc.known} / ${total} mastered`;
+            document.getElementById('dc-progress-fill').style.width = pct + '%';
+        }
+
+        function swipeCard(direction) {
+            if (dc.isSwiping || dc.queue.length === 0) return;
+            dc.isSwiping = true;
+            const card    = document.getElementById('dc-card');
+            const isRight = direction === 'right';
+            const targetX = isRight ? window.innerWidth * 1.2 : -window.innerWidth * 1.2;
+
+            card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
+            card.style.transform  = `translateX(${targetX}px) rotate(${isRight ? 18 : -18}deg)`;
+            card.style.opacity    = '0';
+            document.getElementById('dc-hint-know').classList.toggle('show', isRight);
+            document.getElementById('dc-hint-dontknow').classList.toggle('show', !isRight);
+
+            setTimeout(() => {
+                const word = dc.queue.shift();
+                dc.totalSwipes++;
+                if (isRight) { dc.rightSwipes++; dc.known++; }
+                else          { dc.queue.push(word); }
+
+                saveDCState();
+                document.getElementById('dc-hint-know').classList.remove('show');
+                document.getElementById('dc-hint-dontknow').classList.remove('show');
+                card.classList.remove('tint-right','tint-left');
+
+                // Animate in from opposite side
+                card.style.transition = 'none';
+                card.style.transform  = `translateX(${isRight ? -80 : 80}px)`;
+                card.style.opacity    = '0';
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    card.style.transition = 'transform 0.28s ease, opacity 0.28s ease';
+                    card.style.transform  = '';
+                    card.style.opacity    = '1';
+                    showDCCard();
+                    dc.isSwiping = false;
+                }));
+            }, 350);
+        }
+
+        function flipCard() {
+            const card   = document.getElementById('dc-card');
+            dc.isFlipped = !dc.isFlipped;
+            card.classList.toggle('flipped', dc.isFlipped);
+        }
+
+        function completeDCSession() {
+            const accuracy = dc.totalSwipes > 0
+                ? Math.round((dc.rightSwipes / dc.totalSwipes) * 100) : 100;
+            localStorage.setItem(`dc_accuracy_${dc.folderId}`, accuracy);
+            clearDCState(dc.folderId);
+
+            document.getElementById('dc-actions').style.display = 'none';
+            document.getElementById('dc-complete').classList.add('active');
+            document.getElementById('dc-accuracy-pct').textContent = accuracy + '%';
+            document.getElementById('dc-accuracy-ring').style.setProperty('--pct', accuracy + '%');
+            document.getElementById('dc-complete-sub').textContent =
+                `You mastered all ${dc.allWords.length} words in this folder!`;
+            refreshAccuracyBadges();
+        }
+
+        function exitDuoCards() {
+            if (dc.queue.length > 0) {
+                saveDCState();
+                if (dc.totalSwipes > 0) {
+                    const accuracy = Math.round((dc.rightSwipes / dc.totalSwipes) * 100);
+                    localStorage.setItem(`dc_accuracy_${dc.folderId}`, accuracy);
+                }
+            }
+            document.getElementById('duocards-view').classList.remove('active');
+            unbindDCDrag();
+            refreshAccuracyBadges();
+        }
+
+        function saveDCState() {
+            const state = { queue: dc.queue, allWords: dc.allWords, known: dc.known,
+                            totalSwipes: dc.totalSwipes, rightSwipes: dc.rightSwipes };
+            localStorage.setItem(`dc_state_${dc.folderId}`, JSON.stringify(state));
+        }
+        function loadDCState(folderId) {
+            try { return JSON.parse(localStorage.getItem(`dc_state_${folderId}`)); }
+            catch { return null; }
+        }
+        function clearDCState(folderId) { localStorage.removeItem(`dc_state_${folderId}`); }
+
+        // --- Drag & Swipe ---
+        function bindDCDrag() {
+            const card = document.getElementById('dc-card');
+            card.addEventListener('mousedown',  dcDragStart);
+            card.addEventListener('touchstart', dcDragStart, { passive: true });
+            window.addEventListener('mousemove',  dcDragMove);
+            window.addEventListener('touchmove',  dcDragMove, { passive: true });
+            window.addEventListener('mouseup',    dcDragEnd);
+            window.addEventListener('touchend',   dcDragEnd);
+        }
+        function unbindDCDrag() {
+            const card = document.getElementById('dc-card');
+            card.removeEventListener('mousedown',  dcDragStart);
+            card.removeEventListener('touchstart', dcDragStart);
+            window.removeEventListener('mousemove',  dcDragMove);
+            window.removeEventListener('touchmove',  dcDragMove);
+            window.removeEventListener('mouseup',    dcDragEnd);
+            window.removeEventListener('touchend',   dcDragEnd);
+        }
+
+        function dcDragStart(e) {
+            if (dc.isSwiping) return;
+            const t = e.touches ? e.touches[0] : e;
+            dragState = { active: true, startX: t.clientX, startY: t.clientY,
+                          curX: t.clientX, curY: t.clientY };
+            document.getElementById('dc-card').style.transition = 'none';
+        }
+        function dcDragMove(e) {
+            if (!dragState.active) return;
+            const t = e.touches ? e.touches[0] : e;
+            dragState.curX = t.clientX;
+            dragState.curY = t.clientY;
+            const dx = dragState.curX - dragState.startX;
+            const card = document.getElementById('dc-card');
+            card.style.transform = `translateX(${dx}px) rotate(${dx * 0.06}deg)`;
+            const thr = 70;
+            card.classList.toggle('tint-right', dx >  thr);
+            card.classList.toggle('tint-left',  dx < -thr);
+            document.getElementById('dc-hint-know').classList.toggle('show', dx >  thr);
+            document.getElementById('dc-hint-dontknow').classList.toggle('show', dx < -thr);
+        }
+        function dcDragEnd(e) {
+            if (!dragState.active) return;
+            dragState.active = false;
+            const dx  = dragState.curX - dragState.startX;
+            const dy  = dragState.curY - dragState.startY;
+            const card = document.getElementById('dc-card');
+
+            document.getElementById('dc-hint-know').classList.remove('show');
+            document.getElementById('dc-hint-dontknow').classList.remove('show');
+            card.classList.remove('tint-right','tint-left');
+
+            if (Math.abs(dx) > 90 && Math.abs(dy) < 90) {
+                swipeCard(dx > 0 ? 'right' : 'left');
+            } else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) {
+                card.style.transition = 'transform 0.2s ease';
+                card.style.transform  = '';
+                flipCard();
+            } else {
+                card.style.transition = 'transform 0.3s ease';
+                card.style.transform  = '';
+            }
+        }
+
+        // --- Accuracy badge refresh ---
+        function refreshAccuracyBadges() {
+            document.querySelectorAll('[data-folder-accuracy]').forEach(el => {
+                const fid = el.getAttribute('data-folder-accuracy');
+                const acc = localStorage.getItem(`dc_accuracy_${fid}`);
+                el.textContent     = acc !== null ? acc + '%' : '';
+                el.style.display   = acc !== null ? 'inline-flex' : 'none';
+            });
+            document.querySelectorAll('[data-folder-resume]').forEach(el => {
+                const fid   = el.getAttribute('data-folder-resume');
+                const saved = loadDCState(fid);
+                el.style.display = (saved && saved.queue && saved.queue.length > 0) ? 'inline-flex' : 'none';
+            });
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
         }
     </script>
 </body>
