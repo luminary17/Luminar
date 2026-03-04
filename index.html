@@ -1146,6 +1146,15 @@
             text-align: center;
             margin-bottom: 10px;
             line-height: 1.2;
+        }
+        
+        /* Front face word is mirrored/backwards */
+        .dc-card-front .dc-card-word {
+            transform: scaleX(-1);
+        }
+        
+        /* Back face word is normal */
+        .dc-card-back .dc-card-word {
             transform: none;
         }
         
@@ -1157,15 +1166,15 @@
         @keyframes wordPop {
             0% {
                 opacity: 0;
-                transform: scale(0.8) translateY(-10px);
+                transform: scaleX(-1) scale(0.8) translateY(-10px);
             }
             60% {
                 opacity: 1;
-                transform: scale(1.08) translateY(0);
+                transform: scaleX(-1) scale(1.08) translateY(0);
             }
             100% {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: scaleX(-1) scale(1) translateY(0);
             }
         }
         
@@ -1174,7 +1183,11 @@
             color: #aaa;
             font-weight: 600;
             margin-top: 6px;
-            transform: none;
+        }
+        
+        /* Front hint is also mirrored */
+        .dc-card-front .dc-card-tap-hint {
+            transform: scaleX(-1);
         }
         
         .dc-card-def {
@@ -1183,7 +1196,6 @@
             text-align: center;
             line-height: 1.6;
             margin-top: 16px;
-            transform: none;
         }
         
         /* Sparkle effect when revealing */
