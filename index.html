@@ -1103,6 +1103,7 @@
             min-height: 260px;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
             background: white;
             border-radius: 28px;
             box-shadow: 0 15px 50px rgba(0,0,0,0.12);
@@ -1111,6 +1112,13 @@
             align-items: center;
             justify-content: center;
             padding: 40px 30px;
+            top: 0;
+            left: 0;
+        }
+
+        .dc-card-front {
+            z-index: 2;
+            transform: rotateY(0deg);
         }
 
         .dc-card-back {
@@ -1138,10 +1146,11 @@
             text-align: center;
             margin-bottom: 10px;
             line-height: 1.2;
+            transform: none;
         }
         
         /* Entrance animation for new word */
-        .dc-card.word-enter .dc-card-word {
+        .dc-card.word-enter .dc-card-front .dc-card-word {
             animation: wordPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         
@@ -1165,6 +1174,7 @@
             color: #aaa;
             font-weight: 600;
             margin-top: 6px;
+            transform: none;
         }
         
         .dc-card-def {
@@ -1173,6 +1183,7 @@
             text-align: center;
             line-height: 1.6;
             margin-top: 16px;
+            transform: none;
         }
         
         /* Sparkle effect when revealing */
