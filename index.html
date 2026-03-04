@@ -1153,9 +1153,9 @@
             transform: scaleX(-1);
         }
         
-        /* Back face word is normal */
+        /* Back face word needs scaleX(-1) to compensate for the rotateY(180deg) */
         .dc-card-back .dc-card-word {
-            transform: none;
+            transform: scaleX(-1);
         }
         
         /* Entrance animation for new word */
@@ -1196,6 +1196,11 @@
             text-align: center;
             line-height: 1.6;
             margin-top: 16px;
+        }
+        
+        /* Definition on back also needs scaleX(-1) to appear normal */
+        .dc-card-back .dc-card-def {
+            transform: scaleX(-1);
         }
         
         /* Sparkle effect when revealing */
