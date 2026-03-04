@@ -75,8 +75,203 @@
             transition: 0.3s;
         }
 
+        /* Universal Button Animations */
+        button,
+        .btn-primary,
+        .btn-delete,
+        .admin-btn,
+        .close-modal,
+        .nav-item,
+        .theme-btn,
+        .edu-card,
+        .book-card,
+        .folder-cards-btn,
+        .dc-btn,
+        .dc-back,
+        .dc-complete-btn,
+        .back-arrow {
+            cursor: pointer !important;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover,
+        .btn-primary:hover,
         .admin-btn:hover {
-            transform: scale(1.05);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        button:active,
+        .btn-primary:active,
+        .admin-btn:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(255,68,68,0.4);
+            background: #ff5555 !important;
+        }
+
+        .btn-delete:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .close-modal:hover {
+            transform: scale(1.15) rotate(90deg);
+            background: rgba(0,0,0,0.15);
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px);
+            opacity: 1;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .edu-card:hover {
+            transform: scale(1.03) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .book-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .folder-cards-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(217,185,155,0.4);
+        }
+
+        .dc-btn:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .dc-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .dc-back:hover {
+            transform: scale(1.1);
+            background: rgba(0,0,0,0.08);
+        }
+
+        .dc-complete-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(217,185,155,0.4);
+        }
+
+        .back-arrow:hover {
+            transform: scale(1.15);
+            background: rgba(0,0,0,0.06);
+        }
+
+        /* Podcast and vocab items */
+        .podcast-item {
+            cursor: pointer !important;
+            transition: all 0.3s ease;
+        }
+
+        .podcast-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .vocab-item {
+            cursor: default;
+            transition: all 0.2s ease;
+        }
+
+        .vocab-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        /* Input focus animations */
+        input:focus,
+        textarea:focus,
+        select:focus {
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(217,185,155,0.3);
+            border-color: var(--accent) !important;
+        }
+
+        /* Search bar animation */
+        .search-bar:focus-within {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Hero banner animation */
+        .hero {
+            transition: all 0.4s ease;
+        }
+
+        .hero:hover {
+            transform: scale(1.01);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .hero:active {
+            transform: scale(0.99);
+        }
+
+        /* Social icons animation */
+        .soc-circle {
+            cursor: pointer !important;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .soc-circle:hover {
+            transform: translateY(-5px) scale(1.15) rotate(5deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .soc-circle:active {
+            transform: translateY(-2px) scale(1.05) rotate(2deg);
+        }
+
+        /* Ripple effect on click */
+        @keyframes ripple {
+            0% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        button::after,
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:active::after,
+        .btn-primary:active::after {
+            width: 300px;
+            height: 300px;
+            opacity: 0;
+            transition: 0s;
         }
 
         .nav-links {
@@ -190,7 +385,6 @@
             flex-shrink: 0;
             transition: 0.2s;
         }
-        .close-modal:hover { background: rgba(0,0,0,0.13); transform: scale(1.1); }
 
         .admin-section {
             margin-bottom: 30px;
@@ -244,10 +438,12 @@
             cursor: pointer;
             width: 100%;
             transition: 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
+            /* Handled by universal button animations */
         }
 
         .item-list { margin-top: 20px; }
@@ -520,8 +716,6 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        .book-card:hover { transform: translateY(-8px); }
-
         /* Education */
         .edu-section {
             display: none;
@@ -542,8 +736,6 @@
             justify-content: space-between;
             border: 1px solid rgba(0,0,0,0.05);
         }
-
-        .edu-card:hover { transform: scale(1.02); }
 
         .edu-title {
             font-size: 24px;
@@ -756,7 +948,6 @@
             align-items: center;
             gap: 5px;
         }
-        .folder-cards-btn:hover { background: rgba(255,255,255,0.85); }
 
         /* Accuracy badge */
         .accuracy-badge {
@@ -877,11 +1068,41 @@
             transform: scale(1);
         }
 
-        /* The flashcard */
+        /* The flashcard - Container */
         .dc-card {
             width: 100%;
             max-width: 420px;
             min-height: 260px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        /* Inner card that flips */
+        .dc-card-inner {
+            position: relative;
+            width: 100%;
+            min-height: 260px;
+            text-align: center;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-style: preserve-3d;
+            border-radius: 28px;
+        }
+
+        .dc-card.flipped .dc-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Front and Back faces */
+        .dc-card-front,
+        .dc-card-back {
+            position: absolute;
+            width: 100%;
+            min-height: 260px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
             background: white;
             border-radius: 28px;
             box-shadow: 0 15px 50px rgba(0,0,0,0.12);
@@ -890,47 +1111,24 @@
             align-items: center;
             justify-content: center;
             padding: 40px 30px;
-            cursor: pointer;
-            user-select: none;
-            touch-action: none;
-            position: relative;
-            will-change: transform;
-            transition: background 0.3s ease, box-shadow 0.2s;
-            transform-style: preserve-3d;
-            perspective: 1000px;
         }
-        .dc-card:active { box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-        
-        /* Flipped state gets subtle background tint */
-        .dc-card.flipped {
+
+        .dc-card-back {
+            transform: rotateY(180deg);
             background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
         }
 
-        /* Flip animation with glow effect */
-        .dc-card.flipping {
-            animation: cardFlip 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        /* Glow effect on flip */
+        .dc-card.flipping .dc-card-inner {
+            animation: cardGlow 0.7s ease-in-out;
         }
         
-        @keyframes cardFlip {
-            0% {
-                transform: scale(1) rotateY(0deg);
-                box-shadow: 0 15px 50px rgba(0,0,0,0.12);
-            }
-            25% {
-                transform: scale(1.08) rotateY(45deg);
-                box-shadow: 0 20px 60px rgba(161,140,209,0.3);
+        @keyframes cardGlow {
+            0%, 100% {
+                filter: drop-shadow(0 15px 50px rgba(0,0,0,0.12));
             }
             50% {
-                transform: scale(1.12) rotateY(90deg);
-                box-shadow: 0 25px 70px rgba(161,140,209,0.5);
-            }
-            75% {
-                transform: scale(1.08) rotateY(135deg);
-                box-shadow: 0 20px 60px rgba(251,194,235,0.3);
-            }
-            100% {
-                transform: scale(1) rotateY(180deg);
-                box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+                filter: drop-shadow(0 25px 70px rgba(161,140,209,0.5));
             }
         }
 
@@ -940,8 +1138,6 @@
             text-align: center;
             margin-bottom: 10px;
             line-height: 1.2;
-            opacity: 1;
-            transition: opacity 0.15s ease;
         }
         
         /* Entrance animation for new word */
@@ -964,21 +1160,11 @@
             }
         }
         
-        .dc-card.flipping .dc-card-word {
-            opacity: 0;
-        }
-        
         .dc-card-tap-hint {
             font-size: 13px;
             color: #aaa;
             font-weight: 600;
             margin-top: 6px;
-            opacity: 1;
-            transition: opacity 0.15s ease;
-        }
-        
-        .dc-card.flipping .dc-card-tap-hint {
-            opacity: 0;
         }
         
         .dc-card-def {
@@ -987,20 +1173,6 @@
             text-align: center;
             line-height: 1.6;
             margin-top: 16px;
-            display: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s,
-                        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s;
-        }
-        
-        .dc-card.flipped .dc-card-def { 
-            display: block; 
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .dc-card.flipped .dc-card-tap-hint { 
-            display: none; 
         }
         
         /* Sparkle effect when revealing */
@@ -1011,6 +1183,7 @@
             font-size: 24px;
             opacity: 0;
             pointer-events: none;
+            z-index: 10;
         }
         
         .dc-card.flipping::before {
@@ -1038,14 +1211,13 @@
         }
         
         /* Add flip back hint when definition is shown */
-        .dc-card.flipped::after {
+        .dc-card-back::after {
             content: '✨ Tap to flip back';
             position: absolute;
             bottom: 20px;
             font-size: 12px;
             color: #999;
             font-weight: 600;
-            opacity: 0;
             animation: fadeInHint 0.4s ease 0.4s forwards;
         }
         
@@ -1081,7 +1253,6 @@
             justify-content: center;
             gap: 8px;
         }
-        .dc-btn:hover { transform: translateY(-3px); }
         .dc-btn-dont {
             background: #fde8e8;
             color: #e53935;
@@ -1138,7 +1309,6 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .dc-complete-btn:hover { transform: translateY(-2px); }
     </style>
 </head>
 
@@ -1450,9 +1620,16 @@
             <div class="dc-hint-dontknow" id="dc-hint-dontknow">✗ Still learning</div>
 
             <div class="dc-card" id="dc-card">
-                <div class="dc-card-word" id="dc-card-word">Word</div>
-                <div class="dc-card-tap-hint">Tap to reveal definition</div>
-                <div class="dc-card-def" id="dc-card-def">Definition</div>
+                <div class="dc-card-inner">
+                    <div class="dc-card-front">
+                        <div class="dc-card-word" id="dc-card-word">Word</div>
+                        <div class="dc-card-tap-hint">Tap to reveal definition</div>
+                    </div>
+                    <div class="dc-card-back">
+                        <div class="dc-card-word" id="dc-card-word-back">Word</div>
+                        <div class="dc-card-def" id="dc-card-def">Definition</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Completion screen inside arena -->
@@ -2496,8 +2673,12 @@
             card.style.transition = '';
             card.style.transform  = '';
             card.style.opacity    = '';
+            
+            // Populate both front and back
             document.getElementById('dc-card-word').textContent = word.w;
+            document.getElementById('dc-card-word-back').textContent = word.w;
             document.getElementById('dc-card-def').textContent  = word.d;
+            
             dc.isFlipped = false;
             
             // Trigger entrance animation
@@ -2563,14 +2744,12 @@
             // Prevent double-flipping
             if (card.classList.contains('flipping')) return;
             
-            // Add flipping animation class
-            card.classList.add('flipping');
+            // Toggle flipped state
+            dc.isFlipped = !dc.isFlipped;
             
-            // Toggle flipped state after half the animation (when card is perpendicular)
-            setTimeout(() => {
-                dc.isFlipped = !dc.isFlipped;
-                card.classList.toggle('flipped', dc.isFlipped);
-            }, 350); // Half of 700ms animation
+            // Add animation classes
+            card.classList.add('flipping');
+            card.classList.toggle('flipped', dc.isFlipped);
             
             // Remove flipping class after animation completes
             setTimeout(() => {
@@ -2668,13 +2847,18 @@
             document.getElementById('dc-hint-dontknow').classList.remove('show');
             card.classList.remove('tint-right','tint-left');
 
+            // If significant horizontal drag (>90px) - swipe card
             if (Math.abs(dx) > 90 && Math.abs(dy) < 90) {
                 swipeCard(dx > 0 ? 'right' : 'left');
-            } else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) {
+            } 
+            // If very small movement (<15px) - treat as tap to flip
+            else if (Math.abs(dx) < 15 && Math.abs(dy) < 15) {
                 card.style.transition = 'transform 0.2s ease';
                 card.style.transform  = '';
                 flipCard();
-            } else {
+            } 
+            // Otherwise - just reset position (accidental drag)
+            else {
                 card.style.transition = 'transform 0.3s ease';
                 card.style.transform  = '';
             }
