@@ -1068,42 +1068,11 @@
             transform: scale(1);
         }
 
-        /* The flashcard - Container */
+        /* The flashcard - Simple design */
         .dc-card {
             width: 100%;
             max-width: 420px;
             min-height: 260px;
-            cursor: pointer;
-            user-select: none;
-            touch-action: none;
-            position: relative;
-            perspective: 1000px;
-        }
-
-        /* Inner card that flips */
-        .dc-card-inner {
-            position: relative;
-            width: 100%;
-            min-height: 260px;
-            text-align: center;
-            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform-style: preserve-3d;
-            border-radius: 28px;
-        }
-
-        .dc-card.flipped .dc-card-inner {
-            transform: rotateY(180deg);
-        }
-
-        /* Front and Back faces */
-        .dc-card-front,
-        .dc-card-back {
-            position: absolute;
-            width: 100%;
-            min-height: 260px;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            -moz-backface-visibility: hidden;
             background: white;
             border-radius: 28px;
             box-shadow: 0 15px 50px rgba(0,0,0,0.12);
@@ -1112,32 +1081,17 @@
             align-items: center;
             justify-content: center;
             padding: 40px 30px;
-            top: 0;
-            left: 0;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        .dc-card-front {
-            z-index: 2;
-            transform: rotateY(0deg);
-        }
-
-        .dc-card-back {
-            transform: rotateY(180deg);
-            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
-        }
-
-        /* Glow effect on flip */
-        .dc-card.flipping .dc-card-inner {
-            animation: cardGlow 0.7s ease-in-out;
-        }
-        
-        @keyframes cardGlow {
-            0%, 100% {
-                filter: drop-shadow(0 15px 50px rgba(0,0,0,0.12));
-            }
-            50% {
-                filter: drop-shadow(0 25px 70px rgba(161,140,209,0.5));
-            }
+        /* Glow effect when revealing */
+        .dc-card.revealing {
+            box-shadow: 0 20px 60px rgba(161,140,209,0.4);
+            transform: scale(1.02);
         }
 
         .dc-card-word {
@@ -1146,35 +1100,32 @@
             text-align: center;
             margin-bottom: 10px;
             line-height: 1.2;
+            transition: all 0.3s ease;
         }
         
-        /* Front face word is mirrored/backwards */
-        .dc-card-front .dc-card-word {
-            transform: scaleX(-1);
-        }
-        
-        /* Back face word needs scaleX(-1) to compensate for the rotateY(180deg) */
-        .dc-card-back .dc-card-word {
-            transform: scaleX(-1);
+        /* When revealed, word moves up a bit */
+        .dc-card.flipped .dc-card-word {
+            transform: translateY(-15px);
+            font-size: 28px;
         }
         
         /* Entrance animation for new word */
-        .dc-card.word-enter .dc-card-front .dc-card-word {
+        .dc-card.word-enter .dc-card-word {
             animation: wordPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         
         @keyframes wordPop {
             0% {
                 opacity: 0;
-                transform: scaleX(-1) scale(0.8) translateY(-10px);
+                transform: scale(0.8) translateY(-10px);
             }
             60% {
                 opacity: 1;
-                transform: scaleX(-1) scale(1.08) translateY(0);
+                transform: scale(1.08) translateY(0);
             }
             100% {
                 opacity: 1;
-                transform: scaleX(-1) scale(1) translateY(0);
+                transform: scale(1) translateY(0);
             }
         }
         
@@ -1183,11 +1134,12 @@
             color: #aaa;
             font-weight: 600;
             margin-top: 6px;
+            transition: opacity 0.3s ease;
         }
         
-        /* Front hint is also mirrored */
-        .dc-card-front .dc-card-tap-hint {
-            transform: scaleX(-1);
+        .dc-card.flipped .dc-card-tap-hint {
+            opacity: 0;
+            pointer-events: none;
         }
         
         .dc-card-def {
@@ -1195,17 +1147,24 @@
             color: #444;
             text-align: center;
             line-height: 1.6;
-            margin-top: 16px;
+            margin-top: 20px;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: translateY(-10px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        /* Definition on back also needs scaleX(-1) to appear normal */
-        .dc-card-back .dc-card-def {
-            transform: scaleX(-1);
+        /* Definition reveals with slide down + fade in */
+        .dc-card.flipped .dc-card-def {
+            max-height: 300px;
+            opacity: 1;
+            transform: translateY(0);
         }
         
         /* Sparkle effect when revealing */
-        .dc-card.flipping::before,
-        .dc-card.flipping::after {
+        .dc-card.revealing::before,
+        .dc-card.revealing::after {
             content: '✨';
             position: absolute;
             font-size: 24px;
@@ -1214,13 +1173,13 @@
             z-index: 10;
         }
         
-        .dc-card.flipping::before {
+        .dc-card.revealing::before {
             top: 20%;
             left: 15%;
             animation: sparkle1 0.7s ease-out;
         }
         
-        .dc-card.flipping::after {
+        .dc-card.revealing::after {
             bottom: 25%;
             right: 15%;
             animation: sparkle2 0.7s ease-out 0.1s;
@@ -1238,9 +1197,14 @@
             100% { opacity: 0; transform: translate(40px, 40px) scale(0.5); }
         }
         
-        /* Add flip back hint when definition is shown */
-        .dc-card-back::after {
-            content: '✨ Tap to flip back';
+        /* Gradient background when revealed */
+        .dc-card.flipped {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+        }
+        
+        /* Tap to hide hint appears when definition is shown */
+        .dc-card.flipped::after {
+            content: '✨ Tap to hide';
             position: absolute;
             bottom: 20px;
             font-size: 12px;
@@ -1648,16 +1612,9 @@
             <div class="dc-hint-dontknow" id="dc-hint-dontknow">✗ Still learning</div>
 
             <div class="dc-card" id="dc-card">
-                <div class="dc-card-inner">
-                    <div class="dc-card-front">
-                        <div class="dc-card-word" id="dc-card-word">Word</div>
-                        <div class="dc-card-tap-hint">Tap to reveal definition</div>
-                    </div>
-                    <div class="dc-card-back">
-                        <div class="dc-card-word" id="dc-card-word-back">Word</div>
-                        <div class="dc-card-def" id="dc-card-def">Definition</div>
-                    </div>
-                </div>
+                <div class="dc-card-word" id="dc-card-word">Word</div>
+                <div class="dc-card-tap-hint">Tap to reveal definition</div>
+                <div class="dc-card-def" id="dc-card-def">Definition</div>
             </div>
 
             <!-- Completion screen inside arena -->
@@ -2697,14 +2654,13 @@
             if (dc.queue.length === 0) { completeDCSession(); return; }
             const word = dc.queue[0];
             const card = document.getElementById('dc-card');
-            card.classList.remove('flipped', 'tint-right', 'tint-left', 'word-enter');
+            card.classList.remove('flipped', 'tint-right', 'tint-left', 'word-enter', 'revealing');
             card.style.transition = '';
             card.style.transform  = '';
             card.style.opacity    = '';
             
-            // Populate both front and back
+            // Populate card
             document.getElementById('dc-card-word').textContent = word.w;
-            document.getElementById('dc-card-word-back').textContent = word.w;
             document.getElementById('dc-card-def').textContent  = word.d;
             
             dc.isFlipped = false;
@@ -2769,19 +2725,17 @@
         function flipCard() {
             const card = document.getElementById('dc-card');
             
-            // Prevent double-flipping
-            if (card.classList.contains('flipping')) return;
+            // Prevent double-clicking
+            if (card.classList.contains('revealing')) return;
             
-            // Toggle flipped state
+            // Toggle revealed state
             dc.isFlipped = !dc.isFlipped;
-            
-            // Add animation classes
-            card.classList.add('flipping');
             card.classList.toggle('flipped', dc.isFlipped);
             
-            // Remove flipping class after animation completes
+            // Add revealing animation
+            card.classList.add('revealing');
             setTimeout(() => {
-                card.classList.remove('flipping');
+                card.classList.remove('revealing');
             }, 700);
         }
 
