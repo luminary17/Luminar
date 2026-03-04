@@ -895,9 +895,44 @@
             touch-action: none;
             position: relative;
             will-change: transform;
-            transition: box-shadow 0.2s;
+            transition: background 0.3s ease, box-shadow 0.2s;
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
         .dc-card:active { box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        
+        /* Flipped state gets subtle background tint */
+        .dc-card.flipped {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+        }
+
+        /* Flip animation with glow effect */
+        .dc-card.flipping {
+            animation: cardFlip 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes cardFlip {
+            0% {
+                transform: scale(1) rotateY(0deg);
+                box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+            }
+            25% {
+                transform: scale(1.08) rotateY(45deg);
+                box-shadow: 0 20px 60px rgba(161,140,209,0.3);
+            }
+            50% {
+                transform: scale(1.12) rotateY(90deg);
+                box-shadow: 0 25px 70px rgba(161,140,209,0.5);
+            }
+            75% {
+                transform: scale(1.08) rotateY(135deg);
+                box-shadow: 0 20px 60px rgba(251,194,235,0.3);
+            }
+            100% {
+                transform: scale(1) rotateY(180deg);
+                box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+            }
+        }
 
         .dc-card-word {
             font-size: 32px;
@@ -905,13 +940,47 @@
             text-align: center;
             margin-bottom: 10px;
             line-height: 1.2;
+            opacity: 1;
+            transition: opacity 0.15s ease;
         }
+        
+        /* Entrance animation for new word */
+        .dc-card.word-enter .dc-card-word {
+            animation: wordPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes wordPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.08) translateY(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .dc-card.flipping .dc-card-word {
+            opacity: 0;
+        }
+        
         .dc-card-tap-hint {
             font-size: 13px;
             color: #aaa;
             font-weight: 600;
             margin-top: 6px;
+            opacity: 1;
+            transition: opacity 0.15s ease;
         }
+        
+        .dc-card.flipping .dc-card-tap-hint {
+            opacity: 0;
+        }
+        
         .dc-card-def {
             font-size: 16px;
             color: #444;
@@ -919,9 +988,71 @@
             line-height: 1.6;
             margin-top: 16px;
             display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s,
+                        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s;
         }
-        .dc-card.flipped .dc-card-def { display: block; }
-        .dc-card.flipped .dc-card-tap-hint { display: none; }
+        
+        .dc-card.flipped .dc-card-def { 
+            display: block; 
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .dc-card.flipped .dc-card-tap-hint { 
+            display: none; 
+        }
+        
+        /* Sparkle effect when revealing */
+        .dc-card.flipping::before,
+        .dc-card.flipping::after {
+            content: '✨';
+            position: absolute;
+            font-size: 24px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .dc-card.flipping::before {
+            top: 20%;
+            left: 15%;
+            animation: sparkle1 0.7s ease-out;
+        }
+        
+        .dc-card.flipping::after {
+            bottom: 25%;
+            right: 15%;
+            animation: sparkle2 0.7s ease-out 0.1s;
+        }
+        
+        @keyframes sparkle1 {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            50% { opacity: 1; transform: translate(-20px, -20px) scale(1.5); }
+            100% { opacity: 0; transform: translate(-40px, -40px) scale(0.5); }
+        }
+        
+        @keyframes sparkle2 {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            50% { opacity: 1; transform: translate(20px, 20px) scale(1.5); }
+            100% { opacity: 0; transform: translate(40px, 40px) scale(0.5); }
+        }
+        
+        /* Add flip back hint when definition is shown */
+        .dc-card.flipped::after {
+            content: '✨ Tap to flip back';
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            color: #999;
+            font-weight: 600;
+            opacity: 0;
+            animation: fadeInHint 0.4s ease 0.4s forwards;
+        }
+        
+        @keyframes fadeInHint {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* Card tint during drag */
         .dc-card.tint-right { border: 3px solid #4CAF50; }
@@ -2361,13 +2492,24 @@
             if (dc.queue.length === 0) { completeDCSession(); return; }
             const word = dc.queue[0];
             const card = document.getElementById('dc-card');
-            card.classList.remove('flipped', 'tint-right', 'tint-left');
+            card.classList.remove('flipped', 'tint-right', 'tint-left', 'word-enter');
             card.style.transition = '';
             card.style.transform  = '';
             card.style.opacity    = '';
             document.getElementById('dc-card-word').textContent = word.w;
             document.getElementById('dc-card-def').textContent  = word.d;
             dc.isFlipped = false;
+            
+            // Trigger entrance animation
+            setTimeout(() => {
+                card.classList.add('word-enter');
+            }, 50);
+            
+            // Remove entrance class after animation
+            setTimeout(() => {
+                card.classList.remove('word-enter');
+            }, 600);
+            
             updateDCProgress();
         }
 
@@ -2416,9 +2558,24 @@
         }
 
         function flipCard() {
-            const card   = document.getElementById('dc-card');
-            dc.isFlipped = !dc.isFlipped;
-            card.classList.toggle('flipped', dc.isFlipped);
+            const card = document.getElementById('dc-card');
+            
+            // Prevent double-flipping
+            if (card.classList.contains('flipping')) return;
+            
+            // Add flipping animation class
+            card.classList.add('flipping');
+            
+            // Toggle flipped state after half the animation (when card is perpendicular)
+            setTimeout(() => {
+                dc.isFlipped = !dc.isFlipped;
+                card.classList.toggle('flipped', dc.isFlipped);
+            }, 350); // Half of 700ms animation
+            
+            // Remove flipping class after animation completes
+            setTimeout(() => {
+                card.classList.remove('flipping');
+            }, 700);
         }
 
         function completeDCSession() {
