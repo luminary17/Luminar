@@ -1386,7 +1386,10 @@
 
                 <!-- SAT Words with Folders -->
                 <div class="admin-section">
-                    <h3>📖 SAT Vocabulary - Manage Folders</h3>
+                    <h3>📖 SAT Vocabulary - Direct Database Storage</h3>
+                    <p style="background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 15px;">
+                        ✅ Words are stored <strong>directly in Firebase database</strong> - no file uploads needed!
+                    </p>
                     
                     <!-- Create New Folder -->
                     <div class="form-group">
@@ -1424,7 +1427,10 @@
 
                 <!-- IELTS Words with Folders -->
                 <div class="admin-section">
-                    <h3>🎓 IELTS Vocabulary - Manage Folders</h3>
+                    <h3>🎓 IELTS Vocabulary - Direct Database Storage</h3>
+                    <p style="background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 15px;">
+                        ✅ Words are stored <strong>directly in Firebase database</strong> - no file uploads needed!
+                    </p>
                     
                     <!-- Create New Folder -->
                     <div class="form-group">
@@ -1762,7 +1768,10 @@
                         <div class="item-title">${book.t}</div>
                         <div class="item-detail">by ${book.a} • ${book.pages.length} pages</div>
                     </div>
-                    <button class="btn-delete" onclick="deleteBook('${book.id}')">Delete</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-delete" onclick="editBook('${book.id}', '${book.t.replace(/'/g, "\\'")}', '${book.a.replace(/'/g, "\\'")}', '${book.i}')" style="background: #0078D4;">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteBook('${book.id}')">Delete</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -2052,11 +2061,102 @@
             loadAdminData();
         }
 
+        let currentEditingBookId = null;
+
+        function editBook(id, title, author, coverUrl) {
+            currentEditingBookId = id;
+            
+            // Show step 1 and hide step 2
+            document.getElementById('book-step-1').style.display = 'block';
+            document.getElementById('book-step-2').style.display = 'none';
+            
+            // Populate form fields
+            document.getElementById('book-title').value = title;
+            document.getElementById('book-author').value = author;
+            document.getElementById('book-cover').value = coverUrl;
+            
+            // Hide the chapters field since we're editing
+            const chaptersField = document.getElementById('book-chapters').parentElement;
+            chaptersField.style.display = 'none';
+            
+            // Change "Next" button to "Update Book" button
+            const nextBtn = document.querySelector('#book-step-1 .btn-primary');
+            nextBtn.textContent = '💾 Update Book Info';
+            nextBtn.onclick = updateBook;
+            
+            // Show cancel button
+            let cancelBtn = document.getElementById('book-cancel-edit');
+            if (!cancelBtn) {
+                cancelBtn = document.createElement('button');
+                cancelBtn.id = 'book-cancel-edit';
+                cancelBtn.textContent = '❌ Cancel Edit';
+                cancelBtn.style.cssText = 'width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;';
+                cancelBtn.onclick = cancelBookEdit;
+                nextBtn.parentNode.appendChild(cancelBtn);
+            }
+            cancelBtn.style.display = 'block';
+            
+            // Scroll to form
+            document.querySelector('.admin-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function updateBook() {
+            if (!currentEditingBookId) return;
+            
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const coverUrl = document.getElementById('book-cover').value.trim();
+            
+            if (!title || !author || !coverUrl) {
+                alert('Please fill all book fields!');
+                return;
+            }
+            
+            const { db, ref, update } = window.firebase;
+            
+            try {
+                // Update only title, author, and cover - keep pages and chapters intact
+                await update(ref(db, `books/${currentEditingBookId}`), {
+                    t: title,
+                    a: author,
+                    i: coverUrl
+                });
+                
+                showSuccess('Book updated successfully! ✅');
+                cancelBookEdit();
+                loadAdminData();
+            } catch (error) {
+                alert('Error updating book: ' + error.message);
+            }
+        }
+
+        function cancelBookEdit() {
+            currentEditingBookId = null;
+            
+            // Clear form
+            document.getElementById('book-title').value = '';
+            document.getElementById('book-author').value = '';
+            document.getElementById('book-cover').value = '';
+            
+            // Show chapters field again
+            const chaptersField = document.getElementById('book-chapters').parentElement;
+            chaptersField.style.display = 'block';
+            
+            // Reset "Next" button
+            const nextBtn = document.querySelector('#book-step-1 .btn-primary');
+            nextBtn.textContent = 'Next: Set Up Chapters →';
+            nextBtn.onclick = setupChapters;
+            
+            // Hide cancel button
+            const cancelBtn = document.getElementById('book-cancel-edit');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        }
+
         async function deleteBook(id) {
-            if (!confirm('Delete this book?')) return;
+            if (!confirm('⚠️ Delete this book? This cannot be undone!')) return;
             const { db, ref, remove } = window.firebase;
             await remove(ref(db, `books/${id}`));
-            showSuccess('Book deleted from cloud!');
+            showSuccess('Book deleted! 🗑️');
             loadAdminData();
         }
 
