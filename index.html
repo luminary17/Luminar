@@ -758,6 +758,10 @@
             opacity: 0.5;
         }
 
+        .edu-cards-container {
+            padding: 0 20px;
+        }
+
         .back-btn-edu {
             background: none;
             border: none;
@@ -1659,6 +1663,8 @@
         let heroClickHandler = null;
         let heroIntervalId = null;
         const ADMIN_PASSWORD = "admin123";
+        let cachedVocab_sat = [];
+        let cachedVocab_ielts = [];
 
         // ===== NAVIGATION =====
         function switchTab(tab) {
@@ -2532,26 +2538,26 @@
         function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
             
-            onValue(ref(db, 'vocabulary_sat'), (snapshot) => {
+            onValue(ref(db, 'sat-words'), (snapshot) => {
                 const data = snapshot.val();
                 cachedVocab_sat = data ? Object.keys(data).map(key => ({
                     id: key,
                     w: data[key].word,
                     d: data[key].definition,
                     folder: data[key].folder || '',
-                    folderName: data[key].folder || 'Default'
+                    folderName: data[key].folderName || 'Default'
                 })) : [];
                 renderVocabList('sat');
             });
 
-            onValue(ref(db, 'vocabulary_ielts'), (snapshot) => {
+            onValue(ref(db, 'ielts-words'), (snapshot) => {
                 const data = snapshot.val();
                 cachedVocab_ielts = data ? Object.keys(data).map(key => ({
                     id: key,
                     w: data[key].word,
                     d: data[key].definition,
                     folder: data[key].folder || '',
-                    folderName: data[key].folder || 'Default'
+                    folderName: data[key].folderName || 'Default'
                 })) : [];
                 renderVocabList('ielts');
             });
@@ -2729,15 +2735,15 @@
                 }
                 
                 // Update all words with this folder name
-                const vocabPath = vocabType === 'sat' ? 'vocabulary_sat' : 'vocabulary_ielts';
+                const vocabPath = vocabType === 'sat' ? 'sat-words' : 'ielts-words';
                 const vocabRef = ref(db, vocabPath);
                 const vocabSnapshot = await get(vocabRef);
                 const words = vocabSnapshot.val() || {};
                 
-                // Update each word's folder
+                // Update each word's folder and folderName
                 for (const [key, word] of Object.entries(words)) {
-                    if (word.folder === currentName) {
-                        await set(ref(db, `${vocabPath}/${key}/folder`), newName.trim());
+                    if (word.folderName === currentName) {
+                        await set(ref(db, `${vocabPath}/${key}/folderName`), newName.trim());
                     }
                 }
                 
@@ -2769,15 +2775,15 @@
                 await set(ref(db, `${metadataPath}/${folderName}`), null);
                 
                 // Move all words in this folder to Default
-                const vocabPath = vocabType === 'sat' ? 'vocabulary_sat' : 'vocabulary_ielts';
+                const vocabPath = vocabType === 'sat' ? 'sat-words' : 'ielts-words';
                 const vocabRef = ref(db, vocabPath);
                 const snapshot = await get(vocabRef);
                 const words = snapshot.val() || {};
                 
-                // Update each word's folder to Default
+                // Update each word's folderName to Default
                 for (const [key, word] of Object.entries(words)) {
-                    if (word.folder === folderName) {
-                        await set(ref(db, `${vocabPath}/${key}/folder`), 'Default');
+                    if (word.folderName === folderName) {
+                        await set(ref(db, `${vocabPath}/${key}/folderName`), 'Default');
                     }
                 }
                 
