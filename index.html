@@ -2542,10 +2542,7 @@
                 const data = snapshot.val();
                 cachedVocab_sat = data ? Object.keys(data).map(key => ({
                     id: key,
-                    w: data[key].word,
-                    d: data[key].definition,
-                    folder: data[key].folder || '',
-                    folderName: data[key].folderName || 'Default'
+                    ...data[key]
                 })) : [];
                 renderVocabList('sat');
             });
@@ -2554,10 +2551,7 @@
                 const data = snapshot.val();
                 cachedVocab_ielts = data ? Object.keys(data).map(key => ({
                     id: key,
-                    w: data[key].word,
-                    d: data[key].definition,
-                    folder: data[key].folder || '',
-                    folderName: data[key].folderName || 'Default'
+                    ...data[key]
                 })) : [];
                 renderVocabList('ielts');
             });
@@ -2575,29 +2569,34 @@
         function renderVocabList(vocabType) {
             // Get the words for this vocab type
             const words = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
-            const containerid = vocabType === 'sat' ? 'sat-folders-list' : 'ielts-folders-list';
-            const container = document.getElementById(containerid);
+            const containerId = vocabType === 'sat' ? 'sat-folders-list' : 'ielts-folders-list';
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error('Container not found:', containerId);
+                return;
+            }
             
             if (words.length === 0) {
                 container.innerHTML = '<div class="sub-card">No words yet. Add some in admin!</div>';
                 return;
             }
             
-            // Group words by folder
+            // Group words by folder name
             const grouped = {};
             words.forEach(word => {
-                const folderName = word.folderName || 'Default';
+                const folderName = word.folderName || 'Uncategorized';
                 if (!grouped[folderName]) {
                     grouped[folderName] = [];
                 }
                 grouped[folderName].push(word);
             });
             
-            // Get folder metadata
+            // Get folder metadata (folder ID for each folder name)
             const folderMeta = {};
             words.forEach(word => {
-                const fn = word.folderName || 'Default';
-                if (!folderMeta[fn]) {
+                const fn = word.folderName || 'Uncategorized';
+                if (!folderMeta[fn] && word.folder) {
                     folderMeta[fn] = { folderId: word.folder, type: vocabType };
                 }
             });
@@ -2713,36 +2712,19 @@
             const { db, ref, get, set } = window.firebase;
             
             try {
-                // Get current folder metadata
-                const metadataPath = vocabType === 'sat' ? 'folderMetadata_sat' : 'folderMetadata_ielts';
-                const metadataRef = ref(db, metadataPath);
-                const snapshot = await get(metadataRef);
-                const metadata = snapshot.val() || {};
+                // Update folder name in folders collection
+                const folderPath = vocabType === 'sat' ? 'sat-folders' : 'ielts-folders';
+                await set(ref(db, `${folderPath}/${folderId}/name`), newName.trim());
                 
-                // Check if new name already exists
-                if (metadata[newName.trim()]) {
-                    alert('A folder with this name already exists!');
-                    return;
-                }
-                
-                // Update folder metadata (rename key)
-                const oldEntry = metadata[currentName];
-                if (oldEntry) {
-                    // Remove old entry by setting to null
-                    await set(ref(db, `${metadataPath}/${currentName}`), null);
-                    // Add new entry
-                    await set(ref(db, `${metadataPath}/${newName.trim()}`), oldEntry);
-                }
-                
-                // Update all words with this folder name
+                // Update all words with this folder
                 const vocabPath = vocabType === 'sat' ? 'sat-words' : 'ielts-words';
                 const vocabRef = ref(db, vocabPath);
                 const vocabSnapshot = await get(vocabRef);
                 const words = vocabSnapshot.val() || {};
                 
-                // Update each word's folder and folderName
+                // Update each word's folderName
                 for (const [key, word] of Object.entries(words)) {
-                    if (word.folderName === currentName) {
+                    if (word.folder === folderId) {
                         await set(ref(db, `${vocabPath}/${key}/folderName`), newName.trim());
                     }
                 }
@@ -2751,11 +2733,7 @@
                 closeFolderPage(vocabType);
                 
                 // Refresh display
-                if (vocabType === 'sat') {
-                    renderVocabList('sat');
-                } else {
-                    renderVocabList('ielts');
-                }
+                renderVocabList(vocabType);
                 
                 alert(`Folder renamed to "${newName.trim()}" successfully!`);
             } catch (error) {
@@ -2765,27 +2743,33 @@
         }
 
         async function deleteFolder(folderId, folderName, vocabType) {
-            if (!confirm(`Delete folder "${folderName}"?\n\nAll words in this folder will be moved to the Default folder.`)) return;
+            if (!confirm(`Delete folder "${folderName}"?\n\nAll words in this folder will need to be reassigned. This action cannot be undone.`)) return;
             
-            const { db, ref, get, set } = window.firebase;
+            const { db, ref, get, set, remove } = window.firebase;
             
             try {
-                // Remove folder from metadata by setting to null
-                const metadataPath = vocabType === 'sat' ? 'folderMetadata_sat' : 'folderMetadata_ielts';
-                await set(ref(db, `${metadataPath}/${folderName}`), null);
-                
-                // Move all words in this folder to Default
+                // Get all words in this folder
                 const vocabPath = vocabType === 'sat' ? 'sat-words' : 'ielts-words';
                 const vocabRef = ref(db, vocabPath);
                 const snapshot = await get(vocabRef);
                 const words = snapshot.val() || {};
                 
-                // Update each word's folderName to Default
+                // Count words that will be affected
+                let affectedCount = 0;
                 for (const [key, word] of Object.entries(words)) {
-                    if (word.folderName === folderName) {
-                        await set(ref(db, `${vocabPath}/${key}/folderName`), 'Default');
+                    if (word.folder === folderId) {
+                        affectedCount++;
                     }
                 }
+                
+                if (affectedCount > 0) {
+                    alert(`Cannot delete folder: ${affectedCount} words are still in this folder. Please move or delete the words first in Admin panel.`);
+                    return;
+                }
+                
+                // Delete the folder
+                const folderPath = vocabType === 'sat' ? 'sat-folders' : 'ielts-folders';
+                await remove(ref(db, `${folderPath}/${folderId}`));
                 
                 // Clear DuoCards state for this folder
                 localStorage.removeItem(`dc_state_${folderId}`);
@@ -2795,13 +2779,9 @@
                 closeFolderPage(vocabType);
                 
                 // Refresh display
-                if (vocabType === 'sat') {
-                    renderVocabList('sat');
-                } else {
-                    renderVocabList('ielts');
-                }
+                renderVocabList(vocabType);
                 
-                alert(`Folder "${folderName}" deleted. Words moved to Default folder.`);
+                alert(`Folder "${folderName}" deleted successfully!`);
             } catch (error) {
                 console.error('Error deleting folder:', error);
                 alert('Error deleting folder: ' + error.message);
