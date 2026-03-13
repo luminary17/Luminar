@@ -1222,6 +1222,267 @@
             cursor: pointer;
             transition: 0.2s;
         }
+
+        /* ===== BULK MANAGEMENT STYLES ===== */
+        .word-item-row {
+            background: white;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .word-item-row.selected {
+            border-color: #D9B99B;
+            background: #fff8f0;
+        }
+        .word-item-row.deleted-row {
+            opacity: 0.4;
+            text-decoration: line-through;
+            pointer-events: none;
+        }
+        .word-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            background: white;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+        .word-checkbox:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .word-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .word-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .word-item-word {
+            font-weight: 800;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .word-item-def {
+            font-size: 12px;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .word-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .word-btn-sm {
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: none;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .word-btn-edit { background: #e8f0ff; color: #2563eb; }
+        .word-btn-edit:hover { background: #2563eb; color: white; transform: scale(1.05); }
+        .word-btn-del { background: #fee2e2; color: #dc2626; }
+        .word-btn-del:hover { background: #dc2626; color: white; transform: scale(1.05); }
+
+        /* Folder header in admin */
+        .admin-folder-header {
+            background: var(--accent);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .admin-folder-header:first-child { margin-top: 0; }
+        .admin-folder-words-wrap {
+            border: 2px solid #D9B99B;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 10px;
+            margin-bottom: 16px;
+        }
+        .folder-bulk-bar {
+            background: #fff8f0;
+            border: 1px solid #D9B99B;
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .folder-bulk-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .folder-bulk-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: #666;
+        }
+        .sel-all-btn {
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 2px solid #D9B99B;
+            background: white;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.2s;
+        }
+        .sel-all-btn:hover { background: #D9B99B; color: white; }
+        .bulk-del-btn {
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+        }
+        .bulk-del-btn.visible { display: inline-flex; align-items: center; gap: 4px; }
+        .bulk-del-btn:hover { background: #dc2626; color: white; }
+
+        /* Undo toast */
+        .undo-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            z-index: 9999;
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            white-space: nowrap;
+        }
+        .undo-toast.show { transform: translateX(-50%) translateY(0); }
+        .undo-toast-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .undo-toast-btn:hover { background: #c5a589; transform: scale(1.05); }
+        .undo-progress {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .undo-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 100%;
+            transition: width linear;
+        }
+
+        /* Folder delete confirm modal */
+        .folder-del-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 9000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .folder-del-modal.active { display: flex; }
+        .folder-del-box {
+            background: white;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .folder-del-emoji { font-size: 48px; margin-bottom: 12px; }
+        .folder-del-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .folder-del-sub { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .folder-del-btns { display: flex; flex-direction: column; gap: 10px; }
+        .folder-del-confirm {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .folder-del-confirm:hover { background: #b91c1c; transform: scale(1.02); }
+        .folder-del-cancel {
+            background: #f3f4f6;
+            color: #333;
+            border: none;
+            padding: 13px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .folder-del-cancel:hover { background: #e5e7eb; }
     </style>
 </head>
 
@@ -1580,6 +1841,28 @@
         </div>
     </div>
 
+    <!-- UNDO TOAST -->
+    <div class="undo-toast" id="undo-toast">
+        <div>
+            <div id="undo-toast-msg" style="margin-bottom:6px;">Deleted 1 word</div>
+            <div class="undo-progress"><div class="undo-progress-fill" id="undo-progress-fill"></div></div>
+        </div>
+        <button class="undo-toast-btn" onclick="undoDelete()">Undo</button>
+    </div>
+
+    <!-- FOLDER DELETE CONFIRM MODAL -->
+    <div class="folder-del-modal" id="folder-del-modal">
+        <div class="folder-del-box">
+            <div class="folder-del-emoji">&#128465;&#65039;</div>
+            <div class="folder-del-title" id="fdm-title">Delete folder?</div>
+            <div class="folder-del-sub" id="fdm-sub">This will permanently delete the folder and all words inside.</div>
+            <div class="folder-del-btns">
+                <button class="folder-del-confirm" id="fdm-confirm-btn">Yes, delete everything</button>
+                <button class="folder-del-cancel" onclick="closeFolderDelModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -1728,27 +2011,215 @@
                 grouped[folderName].push(word);
             });
 
-            container.innerHTML = Object.keys(grouped).map(folderName => `
-                <div style="margin-bottom: 20px;">
-                    <div style="background: var(--accent); color: white; padding: 10px 15px; border-radius: 10px; font-weight: 800; margin-bottom: 10px;">
-                        📁 ${folderName} (${grouped[folderName].length} words)
-                    </div>
-                    ${grouped[folderName].map(word => `
-                        <div class="item-entry">
-                            <div class="item-info">
-                                <div class="item-title">${word.w}</div>
-                                <div class="item-detail">${word.d}</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn-delete" onclick="editWord('${type}', '${word.id}', '${word.w.replace(/'/g, "\\'")}', '${word.d.replace(/'/g, "\\'")}', '${word.folder}')" style="background: #0078D4;">✏️ Edit</button>
-                                <button class="btn-delete" onclick="deleteWord('${type}', '${word.id}')">Delete</button>
-                            </div>
-                        </div>
-                    `).join('')}
+            let html = '';
+            Object.keys(grouped).forEach(folderName => {
+                const folderWords = grouped[folderName];
+                const folderId = folderWords[0]?.folder || '';
+                const gid = `${type}-${folderId}`;
+                const safeName = folderName.replace(/'/g, "\\'");
+
+                html += `
+                <div class="admin-folder-header">
+                    <span>📁 ${folderName} <span style="opacity:0.7;font-weight:600;">(${folderWords.length} words)</span></span>
+                    <button class="word-btn-sm" style="background:rgba(255,255,255,0.2);color:white;font-size:11px;border:1px solid rgba(255,255,255,0.3);" onclick="adminDeleteFolder('${folderId}','${safeName}','${type}')">🗑️ Delete Folder</button>
                 </div>
-            `).join('');
+                <div class="admin-folder-words-wrap">
+                    <div class="folder-bulk-bar">
+                        <div class="folder-bulk-left">
+                            <button class="sel-all-btn" id="selall-${gid}" onclick="toggleSelectAll('${gid}')">Select All</button>
+                            <span class="folder-bulk-count" id="sel-count-${gid}">0 selected</span>
+                        </div>
+                        <button class="bulk-del-btn" id="bulk-del-${gid}" onclick="bulkDeleteWords('${gid}','${type}')">🗑️ Delete selected</button>
+                    </div>
+                    ${folderWords.map(word => {
+                        const sw = (word.w||'').replace(/'/g,"\\'");
+                        const sd = (word.d||'').replace(/'/g,"\\'");
+                        return `<div class="word-item-row" id="row-${word.id}" data-group="${gid}" data-id="${word.id}">
+                            <input type="checkbox" class="word-checkbox" data-group="${gid}" data-id="${word.id}" onchange="updateBulkBar('${gid}')">
+                            <div class="word-item-info">
+                                <div class="word-item-word">${word.w}</div>
+                                <div class="word-item-def">${word.d}</div>
+                            </div>
+                            <div class="word-item-actions">
+                                <button class="word-btn-sm word-btn-edit" onclick="editWord('${type}','${word.id}','${sw}','${sd}','${word.folder}')">✏️</button>
+                                <button class="word-btn-sm word-btn-del" onclick="deleteSingleWord('${type}','${word.id}','${sw}')">🗑️</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
+        // ===== SELECTION & BULK DELETE =====
+        function updateBulkBar(gid) {
+            const checkboxes = document.querySelectorAll(`.word-checkbox[data-group="${gid}"]`);
+            const checked = [...checkboxes].filter(c => c.checked);
+            const countEl = document.getElementById(`sel-count-${gid}`);
+            const bulkBtn = document.getElementById(`bulk-del-${gid}`);
+            const selAllBtn = document.getElementById(`selall-${gid}`);
+            if (countEl) countEl.textContent = checked.length > 0 ? `${checked.length} selected` : '0 selected';
+            if (bulkBtn) {
+                bulkBtn.classList.toggle('visible', checked.length > 0);
+                bulkBtn.textContent = `\uD83D\uDDD1\uFE0F Delete ${checked.length} word${checked.length !== 1 ? 's' : ''}`;
+            }
+            if (selAllBtn) selAllBtn.textContent = (checked.length === checkboxes.length && checkboxes.length > 0) ? 'Deselect All' : 'Select All';
+        }
+
+        function toggleSelectAll(gid) {
+            const checkboxes = document.querySelectorAll(`.word-checkbox[data-group="${gid}"]`);
+            const allChecked = [...checkboxes].every(c => c.checked);
+            checkboxes.forEach(c => c.checked = !allChecked);
+            updateBulkBar(gid);
+        }
+
+        // ===== UNDO SYSTEM =====
+        let undoState = null;
+        let undoTimer = null;
+        const UNDO_DURATION = 5000;
+
+        function showUndoToast(msg, onUndo) {
+            if (undoTimer) clearTimeout(undoTimer);
+            undoState = { onUndo };
+            const toast = document.getElementById('undo-toast');
+            const msgEl = document.getElementById('undo-toast-msg');
+            const fill = document.getElementById('undo-progress-fill');
+            msgEl.textContent = msg;
+            fill.style.transition = 'none';
+            fill.style.width = '100%';
+            toast.classList.add('show');
+            requestAnimationFrame(() => {
+                fill.style.transition = `width ${UNDO_DURATION}ms linear`;
+                fill.style.width = '0%';
+            });
+            undoTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                undoState = null;
+            }, UNDO_DURATION);
+        }
+
+        function undoDelete() {
+            if (!undoState) return;
+            clearTimeout(undoTimer);
+            document.getElementById('undo-toast').classList.remove('show');
+            undoState.onUndo();
+            undoState = null;
+        }
+
+        // ===== SINGLE WORD DELETE (with undo) =====
+        async function deleteSingleWord(type, id, wordText) {
+            const { db, ref, get, set, remove } = window.firebase;
+            const path = type === 'sat' ? 'sat-words' : 'ielts-words';
+            const snap = await get(ref(db, `${path}/${id}`));
+            const wordData = snap.val();
+            if (!wordData) return;
+            await remove(ref(db, `${path}/${id}`));
+            loadAdminData();
+            showUndoToast(`Deleted "${wordText}"`, async () => {
+                await set(ref(db, `${path}/${id}`), wordData);
+                loadAdminData();
+            });
+        }
+
+        // ===== BULK WORD DELETE (with undo) =====
+        async function bulkDeleteWords(gid, type) {
+            const checkboxes = document.querySelectorAll(`.word-checkbox[data-group="${gid}"]:checked`);
+            const ids = [...checkboxes].map(c => c.getAttribute('data-id'));
+            if (ids.length === 0) return;
+            const { db, ref, get, set, remove } = window.firebase;
+            const path = type === 'sat' ? 'sat-words' : 'ielts-words';
+            const snapshots = {};
+            for (const id of ids) {
+                const snap = await get(ref(db, `${path}/${id}`));
+                if (snap.val()) snapshots[id] = snap.val();
+            }
+            for (const id of ids) {
+                await remove(ref(db, `${path}/${id}`));
+            }
+            loadAdminData();
+            showUndoToast(`Deleted ${ids.length} word${ids.length !== 1 ? 's' : ''}`, async () => {
+                for (const [id, data] of Object.entries(snapshots)) {
+                    await set(ref(db, `${path}/${id}`), data);
+                }
+                loadAdminData();
+            });
+        }
+
+        // ===== ADMIN FOLDER DELETE (2-step confirm modal + undo) =====
+        let pendingFolderDelete = null;
+
+        function adminDeleteFolder(folderId, folderName, type) {
+            pendingFolderDelete = { folderId, folderName, type };
+            document.getElementById('fdm-title').textContent = `Delete "${folderName}"?`;
+            document.getElementById('fdm-sub').textContent =
+                `This will permanently delete the folder and ALL words inside it. This cannot be undone without the Undo button.`;
+            const confirmBtn = document.getElementById('fdm-confirm-btn');
+            confirmBtn.onclick = confirmFolderDelete1;
+            document.getElementById('folder-del-modal').classList.add('active');
+        }
+
+        function confirmFolderDelete1() {
+            // second confirmation — change button text
+            const confirmBtn = document.getElementById('fdm-confirm-btn');
+            confirmBtn.textContent = '⚠️ I understand, delete permanently';
+            confirmBtn.style.background = '#7f1d1d';
+            confirmBtn.onclick = confirmFolderDelete2;
+        }
+
+        async function confirmFolderDelete2() {
+            closeFolderDelModal();
+            if (!pendingFolderDelete) return;
+            const { folderId, folderName, type } = pendingFolderDelete;
+            pendingFolderDelete = null;
+
+            const { db, ref, get, set, push, remove } = window.firebase;
+            const vocabPath = type === 'sat' ? 'sat-words' : 'ielts-words';
+            const folderPath = type === 'sat' ? 'sat-folders' : 'ielts-folders';
+
+            // Snapshot all words in folder
+            const wordsSnap = await get(ref(db, vocabPath));
+            const allWords = wordsSnap.val() || {};
+            const folderWords = {};
+            for (const [k, v] of Object.entries(allWords)) {
+                if (v.folder === folderId) folderWords[k] = v;
+            }
+
+            // Snapshot folder record
+            const folderSnap = await get(ref(db, `${folderPath}/${folderId}`));
+            const folderData = folderSnap.val();
+
+            // Delete words
+            for (const id of Object.keys(folderWords)) {
+                await remove(ref(db, `${vocabPath}/${id}`));
+            }
+            // Delete folder
+            await remove(ref(db, `${folderPath}/${folderId}`));
+
+            loadAdminData();
+
+            const wordCount = Object.keys(folderWords).length;
+            showUndoToast(
+                `Deleted "${folderName}" + ${wordCount} word${wordCount !== 1 ? 's' : ''}`,
+                async () => {
+                    // Restore folder
+                    await set(ref(db, `${folderPath}/${folderId}`), folderData);
+                    // Restore words
+                    for (const [id, data] of Object.entries(folderWords)) {
+                        await set(ref(db, `${vocabPath}/${id}`), data);
+                    }
+                    loadAdminData();
+                }
+            );
+        }
+
+        function closeFolderDelModal() {
+            document.getElementById('folder-del-modal').classList.remove('active');
+            // reset button
+            const confirmBtn = document.getElementById('fdm-confirm-btn');
+            confirmBtn.textContent = 'Yes, delete everything';
+            confirmBtn.style.background = '';
+            confirmBtn.onclick = confirmFolderDelete1;
+        }
         function displayAdminPodcasts(podcasts) {
             const container = document.getElementById('podcast-list-admin');
             if (podcasts.length === 0) {
@@ -2055,12 +2526,8 @@
         }
 
         async function deleteWord(type, id) {
-            if (!confirm('Delete this word?')) return;
-            const { db, ref, remove } = window.firebase;
-            const path = type === 'sat' ? 'sat-words' : 'ielts-words';
-            await remove(ref(db, `${path}/${id}`));
-            showSuccess('Word deleted from cloud!');
-            loadAdminData();
+            // Legacy wrapper - now handled by deleteSingleWord
+            await deleteSingleWord(type, id, 'word');
         }
 
         async function deletePodcast(id) {
