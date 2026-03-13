@@ -1495,22 +1495,20 @@
             </div>
 
             <div id="edu-vocab-sat" class="edu-section">
-                <div id="vocab-sat-main" class="folder-page active">
-                    <button class="back-btn-edu" onclick="openEduLevel('edu-sat')">← Назад</button>
-                    <div class="label">SAT Words</div>
-                    <div class="vocab-list" id="vocab-list-sat"></div>
-                </div>
-                <div id="vocab-sat-folders" class="folder-pages-container"></div>
+                <button class="back-btn-edu" onclick="openEduLevel('edu-sat')">← Назад</button>
+                <div class="label">SAT Folders</div>
+                <div id="sat-folders-list" class="edu-cards-container"></div>
             </div>
 
             <div id="edu-vocab-ielts" class="edu-section">
-                <div id="vocab-ielts-main" class="folder-page active">
-                    <button class="back-btn-edu" onclick="openEduLevel('edu-ielts')">← Назад</button>
-                    <div class="label">IELTS Words</div>
-                    <div class="vocab-list" id="vocab-list-ielts"></div>
-                </div>
-                <div id="vocab-ielts-folders" class="folder-pages-container"></div>
+                <button class="back-btn-edu" onclick="openEduLevel('edu-ielts')">← Назад</button>
+                <div class="label">IELTS Folders</div>
+                <div id="ielts-folders-list" class="edu-cards-container"></div>
             </div>
+            
+            <!-- Individual folder pages container -->
+            <div id="folder-pages-sat"></div>
+            <div id="folder-pages-ielts"></div>
             <div class="spacer"></div>
         </div>
 
@@ -2534,16 +2532,28 @@
         function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
             
-            onValue(ref(db, 'sat-words'), (snapshot) => {
+            onValue(ref(db, 'vocabulary_sat'), (snapshot) => {
                 const data = snapshot.val();
-                const words = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
-                renderVocabList('vocab-list-sat', words);
+                cachedVocab_sat = data ? Object.keys(data).map(key => ({
+                    id: key,
+                    w: data[key].word,
+                    d: data[key].definition,
+                    folder: data[key].folder || '',
+                    folderName: data[key].folder || 'Default'
+                })) : [];
+                renderVocabList('sat');
             });
 
-            onValue(ref(db, 'ielts-words'), (snapshot) => {
+            onValue(ref(db, 'vocabulary_ielts'), (snapshot) => {
                 const data = snapshot.val();
-                const words = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
-                renderVocabList('vocab-list-ielts', words);
+                cachedVocab_ielts = data ? Object.keys(data).map(key => ({
+                    id: key,
+                    w: data[key].word,
+                    d: data[key].definition,
+                    folder: data[key].folder || '',
+                    folderName: data[key].folder || 'Default'
+                })) : [];
+                renderVocabList('ielts');
             });
         }
 
@@ -2556,54 +2566,55 @@
             });
         }
 
-        function renderVocabList(containerId, words) {
-            const container = document.getElementById(containerId);
+        function renderVocabList(vocabType) {
+            // Get the words for this vocab type
+            const words = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
+            const containerid = vocabType === 'sat' ? 'sat-folders-list' : 'ielts-folders-list';
+            const container = document.getElementById(containerid);
+            
             if (words.length === 0) {
                 container.innerHTML = '<div class="sub-card">No words yet. Add some in admin!</div>';
                 return;
             }
             
+            // Group words by folder
             const grouped = {};
             words.forEach(word => {
-                const folderName = word.folderName || 'Uncategorized';
+                const folderName = word.folderName || 'Default';
                 if (!grouped[folderName]) {
                     grouped[folderName] = [];
                 }
                 grouped[folderName].push(word);
             });
             
+            // Get folder metadata
             const folderMeta = {};
             words.forEach(word => {
-                const fn = word.folderName || 'Uncategorized';
+                const fn = word.folderName || 'Default';
                 if (!folderMeta[fn]) {
-                    folderMeta[fn] = { folderId: word.folder, type: containerId.includes('sat') ? 'sat' : 'ielts' };
+                    folderMeta[fn] = { folderId: word.folder, type: vocabType };
                 }
             });
-
-            container.innerHTML = Object.keys(grouped).map((folderName, folderIdx) => {
-                const folderId   = `folder-${containerId}-${folderIdx}`;
+            
+            // Render folders as edu-cards
+            container.innerHTML = Object.keys(grouped).map((folderName) => {
                 const realFolderId = folderMeta[folderName]?.folderId || '';
-                const vocabType    = folderMeta[folderName]?.type || 'sat';
-                const savedAcc     = realFolderId ? localStorage.getItem(`dc_accuracy_${realFolderId}`) : null;
-                const hasSaved     = realFolderId ? loadDCState(realFolderId) : null;
-                const resumeDisplay = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0) ? 'inline-flex' : 'none';
+                const wordCount = grouped[folderName].length;
+                const savedAcc = realFolderId ? localStorage.getItem(`dc_accuracy_${realFolderId}`) : null;
+                const hasSaved = realFolderId ? loadDCState(realFolderId) : null;
+                const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
+                
                 return `
-                    <div style="margin-bottom: 20px;">
-                        <div onclick="openFolder('${realFolderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" style="background: var(--accent); color: white; padding: 13px 16px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); gap: 10px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                            <div style="font-weight: 800; font-size: 15px; flex:1; display:flex; align-items:center; gap:8px; min-width:0;">
-                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📁 ${folderName}</span>
-                                <span style="opacity:0.7; flex-shrink:0;">▶</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="font-size:12px; font-weight:600; opacity:0.85;">${grouped[folderName].length}w</span>
-                                <span class="accuracy-badge" data-folder-accuracy="${realFolderId}" style="display:${savedAcc !== null ? 'inline-flex' : 'none'}">${savedAcc !== null ? savedAcc + '%' : ''}</span>
-                                <span data-folder-resume="${realFolderId}" style="display:${resumeDisplay}; background:rgba(255,255,255,0.25); color:white; font-size:10px; font-weight:800; padding:3px 8px; border-radius:10px;">RESUME</span>
-                                ${realFolderId && folderName !== 'Default' ? `
-                                <button class="folder-edit-btn" onclick="event.stopPropagation(); editFolder('${realFolderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" title="Edit folder name">✏️</button>
-                                <button class="folder-delete-btn" onclick="event.stopPropagation(); deleteFolder('${realFolderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" title="Delete folder">🗑️</button>
-                                ` : ''}
+                    <div class="edu-card" onclick="openFolderPage('${realFolderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')">
+                        <div>
+                            <div class="edu-title">📁 ${folderName}</div>
+                            <div style="font-size: 13px; color: #888; margin-top: 8px;">
+                                ${wordCount} ${wordCount === 1 ? 'word' : 'words'}
+                                ${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}
+                                ${hasResume ? ' • <span style="color: var(--accent); font-weight: 700;">RESUME</span>' : ''}
                             </div>
                         </div>
+                        <div class="edu-icon">📖</div>
                     </div>
                 `;
             }).join('');
@@ -2613,58 +2624,57 @@
             // This function is no longer used - folders open as pages now
         }
 
-        function openFolder(folderId, folderName, vocabType) {
-            const containerPrefix = vocabType === 'sat' ? 'vocab-sat' : 'vocab-ielts';
-            const container = document.getElementById(`${containerPrefix}-folders`);
-            const mainPage = document.getElementById(`${containerPrefix}-main`);
-            
-            // Hide main page
-            mainPage.classList.remove('active');
-            
-            // Create or get folder page
-            let folderPageId = `folder-page-${folderId}`;
-            let folderPage = document.getElementById(folderPageId);
-            
-            if (!folderPage) {
-                // Create new folder page
-                folderPage = document.createElement('div');
-                folderPage.id = folderPageId;
-                folderPage.className = 'folder-page';
-                container.appendChild(folderPage);
-            }
-            
-            // Get words for this folder
+        function openFolderPage(folderId, folderName, vocabType) {
+            // Get all words for this vocab type
             const allWords = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
+            
+            // Filter words for this folder
             const folderWords = allWords.filter(w => {
-                const wordFolder = w.folder || 'Default';
+                const wordFolder = w.folderName || 'Default';
                 return wordFolder === folderName;
             });
             
-            // Render folder page content
+            // Get or create folder page element
+            const pageId = `folder-page-${folderId}`;
+            const pagesContainer = document.getElementById(`folder-pages-${vocabType}`);
+            let folderPage = document.getElementById(pageId);
+            
+            if (!folderPage) {
+                // Create new folder page as edu-section
+                folderPage = document.createElement('div');
+                folderPage.id = pageId;
+                folderPage.className = 'edu-section';
+                pagesContainer.appendChild(folderPage);
+            }
+            
+            // Get stats
             const savedAcc = folderId ? localStorage.getItem(`dc_accuracy_${folderId}`) : null;
             const hasSaved = folderId ? loadDCState(folderId) : null;
-            const resumeDisplay = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0) ? 'inline-flex' : 'none';
+            const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
             
+            // Render folder page content
             folderPage.innerHTML = `
                 <button class="back-btn-edu" onclick="closeFolderPage('${vocabType}')">← Назад</button>
                 <div class="label">${folderName}</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; padding: 0 20px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 14px; color: #888; font-weight: 600;">${folderWords.length} words</span>
                         ${savedAcc !== null ? `<span class="accuracy-badge">${savedAcc}%</span>` : ''}
-                        <span data-folder-resume="${folderId}" style="display:${resumeDisplay}; background:var(--accent); color:white; font-size:11px; font-weight:800; padding:4px 12px; border-radius:12px;">RESUME</span>
+                        ${hasResume ? `<span style="background:var(--accent); color:white; font-size:11px; font-weight:800; padding:4px 12px; border-radius:12px;">RESUME</span>` : ''}
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="folder-cards-btn" onclick="openDuoCards('${folderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" style="border: none; background: var(--accent); color: white; padding: 8px 16px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn-primary" onclick="openDuoCards('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" style="padding: 10px 20px; width: auto;">
                             🃏 Start Cards
                         </button>
                         ${folderId && folderName !== 'Default' ? `
-                        <button class="folder-edit-btn" onclick="editFolder('${folderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" title="Edit folder name">✏️</button>
-                        <button class="folder-delete-btn" onclick="deleteFolder('${folderId}', '${folderName.replace(/'/g,"\\\\'\")}', '${vocabType}')" title="Delete folder">🗑️</button>
+                        <button class="folder-edit-btn" onclick="editFolder('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" title="Edit folder name" style="padding: 8px 12px;">✏️</button>
+                        <button class="folder-delete-btn" onclick="deleteFolder('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" title="Delete folder" style="padding: 8px 12px;">🗑️</button>
                         ` : ''}
                     </div>
                 </div>
-                <div class="vocab-list" style="display: grid; gap: 10px;">
+                
+                <div class="vocab-list" style="display: grid; gap: 10px; padding: 0 20px;">
                     ${folderWords.map(w => `
                         <div class="vocab-item">
                             <div class="v-word">${w.w}</div>
@@ -2672,27 +2682,22 @@
                         </div>
                     `).join('')}
                 </div>
+                <div class="spacer"></div>
             `;
             
-            // Hide all folder pages first
-            document.querySelectorAll('.folder-page').forEach(p => p.classList.remove('active'));
-            
-            // Show this folder page
+            // Hide vocab folders list, show this folder page
+            document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
             folderPage.classList.add('active');
-            container.style.display = 'block';
         }
 
         function closeFolderPage(vocabType) {
-            const containerPrefix = vocabType === 'sat' ? 'vocab-sat' : 'vocab-ielts';
-            const container = document.getElementById(`${containerPrefix}-folders`);
-            const mainPage = document.getElementById(`${containerPrefix}-main`);
-            
             // Hide all folder pages
-            document.querySelectorAll('.folder-page').forEach(p => p.classList.remove('active'));
-            container.style.display = 'none';
+            const pagesContainer = document.getElementById(`folder-pages-${vocabType}`);
+            pagesContainer.querySelectorAll('.edu-section').forEach(p => p.classList.remove('active'));
             
-            // Show main page
-            mainPage.classList.add('active');
+            // Show vocab folders list
+            const vocabSection = document.getElementById(vocabType === 'sat' ? 'edu-vocab-sat' : 'edu-vocab-ielts');
+            vocabSection.classList.add('active');
         }
 
         async function editFolder(folderId, currentName, vocabType) {
