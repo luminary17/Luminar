@@ -1959,9 +1959,6 @@
             await loadSATFolders();
             await loadIELTSFolders();
 
-            await migrateExistingSATWords();
-            await migrateExistingIELTSWords();
-
             const satSnap = await get(ref(db, 'sat-words'));
             const satWords = satSnap.val() ? Object.keys(satSnap.val()).map(k => ({id: k, ...satSnap.val()[k]})) : [];
             displayAdminWords('sat-word-list', satWords, 'sat');
@@ -2824,45 +2821,10 @@
             }
         }
 
-        async function migrateExistingSATWords() {
-            const { db, ref, get, set } = window.firebase;
-            const foldersSnap = await get(ref(db, 'sat-folders'));
-            const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
-            const defaultFolder = folders.find(f => f.name === '650 must known words | Dsat');
-            if (!defaultFolder) return;
-            const wordsSnap = await get(ref(db, 'sat-words'));
-            if (!wordsSnap.val()) return;
-            let migrated = 0;
-            for (const wordId of Object.keys(wordsSnap.val())) {
-                const word = wordsSnap.val()[wordId];
-                if (!word.folder) {
-                    await set(ref(db, `sat-words/${wordId}/folder`), defaultFolder.id);
-                    await set(ref(db, `sat-words/${wordId}/folderName`), defaultFolder.name);
-                    migrated++;
-                }
-            }
-            if (migrated > 0) console.log(`✅ Migrated ${migrated} SAT words to default folder`);
-        }
-
-        async function migrateExistingIELTSWords() {
-            const { db, ref, get, set } = window.firebase;
-            const foldersSnap = await get(ref(db, 'ielts-folders'));
-            const folders = foldersSnap.val() ? Object.keys(foldersSnap.val()).map(k => ({id: k, ...foldersSnap.val()[k]})) : [];
-            const defaultFolder = folders.find(f => f.name === 'Essential IELTS Vocabulary');
-            if (!defaultFolder) return;
-            const wordsSnap = await get(ref(db, 'ielts-words'));
-            if (!wordsSnap.val()) return;
-            let migrated = 0;
-            for (const wordId of Object.keys(wordsSnap.val())) {
-                const word = wordsSnap.val()[wordId];
-                if (!word.folder) {
-                    await set(ref(db, `ielts-words/${wordId}/folder`), defaultFolder.id);
-                    await set(ref(db, `ielts-words/${wordId}/folderName`), defaultFolder.name);
-                    migrated++;
-                }
-            }
-            if (migrated > 0) console.log(`✅ Migrated ${migrated} IELTS words to default folder`);
-        }
+        // Migration is complete — all words already have folder fields.
+        // These are kept as no-ops so existing call sites don't break.
+        async function migrateExistingSATWords()  { /* already migrated */ }
+        async function migrateExistingIELTSWords() { /* already migrated */ }
 
         // Cached folder lists for the edu view
         let cachedFolders_sat = [];
@@ -3117,10 +3079,7 @@
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
             setTheme(localStorage.getItem('lum_theme') || 'beige');
 
-            // Run migration first so words have folderName/folder fields,
-            // then start realtime listeners so render always has clean data
-            await migrateExistingSATWords();
-            await migrateExistingIELTSWords();
+            // Start vocab listeners immediately — all data already has folder fields
             loadVocabRealtime();
         }
 
