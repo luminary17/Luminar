@@ -2864,8 +2864,25 @@
             if (migrated > 0) console.log(`✅ Migrated ${migrated} IELTS words to default folder`);
         }
 
+        // Cached folder lists for the edu view
+        let cachedFolders_sat = [];
+        let cachedFolders_ielts = [];
+
         function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
+
+            // Listen to folders first, then words — both update the same render
+            onValue(ref(db, 'sat-folders'), (snapshot) => {
+                const data = snapshot.val();
+                cachedFolders_sat = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                renderVocabList('sat');
+            });
+
+            onValue(ref(db, 'ielts-folders'), (snapshot) => {
+                const data = snapshot.val();
+                cachedFolders_ielts = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                renderVocabList('ielts');
+            });
 
             onValue(ref(db, 'sat-words'), (snapshot) => {
                 const data = snapshot.val();
@@ -2890,65 +2907,75 @@
         }
 
         function renderVocabList(vocabType) {
-            const words = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
-
-            // ✅ FIXED: use the unique edu-section IDs
             const containerId = vocabType === 'sat' ? 'edu-sat-folders-list' : 'edu-ielts-folders-list';
             const container = document.getElementById(containerId);
+            if (!container) return;
 
-            if (!container) {
-                console.error('Container not found:', containerId);
+            const words  = vocabType === 'sat' ? cachedVocab_sat   : cachedVocab_ielts;
+            const folders = vocabType === 'sat' ? cachedFolders_sat : cachedFolders_ielts;
+
+            // Build word count per folder ID
+            const countById = {};
+            words.forEach(w => {
+                const fid = w.folder || '__none__';
+                countById[fid] = (countById[fid] || 0) + 1;
+            });
+
+            // If we have folders, render from folder list (source of truth)
+            if (folders.length > 0) {
+                container.innerHTML = folders.map(folder => {
+                    const wordCount = countById[folder.id] || 0;
+                    const savedAcc  = localStorage.getItem(`dc_accuracy_${folder.id}`);
+                    const hasSaved  = loadDCState(folder.id);
+                    const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
+                    const safeName  = folder.name.replace(/'/g, "\'");
+                    return `
+                        <div class="edu-card" onclick="openFolderPage('${folder.id}','${safeName}','${vocabType}')">
+                            <div>
+                                <div class="edu-title">📁 ${folder.name}</div>
+                                <div style="font-size:13px;color:#888;margin-top:8px;">
+                                    ${wordCount} ${wordCount === 1 ? 'word' : 'words'}
+                                    ${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}
+                                    ${hasResume ? ' • <span style="color:var(--accent);font-weight:700;">RESUME</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="edu-icon">📖</div>
+                        </div>`;
+                }).join('');
                 return;
             }
 
+            // Fallback: no folders yet
             if (words.length === 0) {
-                container.innerHTML = '<div class="sub-card">No words yet. Add some in admin!</div>';
+                container.innerHTML = '<div class="sub-card" style="text-align:center;padding:30px;color:#888;">No words yet. Add some in admin!</div>';
                 return;
             }
 
-            // Group words by folder name
+            // Fallback: folders not loaded yet but words exist — group by folderName
             const grouped = {};
             words.forEach(word => {
-                const folderName = word.folderName || 'Uncategorized';
-                if (!grouped[folderName]) grouped[folderName] = [];
-                grouped[folderName].push(word);
-            });
-
-            // Get folder ID for each folder name (for DuoCards and stats)
-            const folderMeta = {};
-            words.forEach(word => {
                 const fn = word.folderName || 'Uncategorized';
-                if (!folderMeta[fn] && word.folder) {
-                    folderMeta[fn] = { folderId: word.folder, type: vocabType };
-                }
+                if (!grouped[fn]) grouped[fn] = { words: [], folderId: word.folder || '' };
+                grouped[fn].words.push(word);
             });
-
-            container.innerHTML = Object.keys(grouped).map((folderName) => {
-                const realFolderId = folderMeta[folderName]?.folderId || '';
-                const wordCount = grouped[folderName].length;
-                const savedAcc = realFolderId ? localStorage.getItem(`dc_accuracy_${realFolderId}`) : null;
-                const hasSaved = realFolderId ? loadDCState(realFolderId) : null;
-                const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
-
+            container.innerHTML = Object.entries(grouped).map(([folderName, meta]) => {
+                const wordCount = meta.words.length;
+                const savedAcc  = meta.folderId ? localStorage.getItem(`dc_accuracy_${meta.folderId}`) : null;
+                const safeName  = folderName.replace(/'/g, "\'");
                 return `
-                    <div class="edu-card" onclick="openFolderPage('${realFolderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')">
+                    <div class="edu-card" onclick="openFolderPage('${meta.folderId}','${safeName}','${vocabType}')">
                         <div>
                             <div class="edu-title">📁 ${folderName}</div>
-                            <div style="font-size: 13px; color: #888; margin-top: 8px;">
-                                ${wordCount} ${wordCount === 1 ? 'word' : 'words'}
-                                ${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}
-                                ${hasResume ? ' • <span style="color: var(--accent); font-weight: 700;">RESUME</span>' : ''}
-                            </div>
+                            <div style="font-size:13px;color:#888;margin-top:8px;">${wordCount} ${wordCount === 1 ? 'word' : 'words'}${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}</div>
                         </div>
                         <div class="edu-icon">📖</div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
-
         function openFolderPage(folderId, folderName, vocabType) {
             const allWords = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
-            const folderWords = allWords.filter(w => (w.folderName || 'Default') === folderName);
+            // Match by folder ID (primary) or folderName (fallback)
+            const folderWords = allWords.filter(w => folderId ? w.folder === folderId : (w.folderName || 'Uncategorized') === folderName);
 
             const pageId = `folder-page-${folderId}`;
             const pagesContainer = document.getElementById(`folder-pages-${vocabType}`);
@@ -3085,18 +3112,16 @@
 
         async function initApp() {
             loadAllBooksRealtime();
-            loadVocabRealtime();
-
-            setTimeout(async () => {
-                await migrateExistingSATWords();
-                await migrateExistingIELTSWords();
-            }, 2000);
-
             loadPodcastsRealtime();
             renderThemeGrid();
-
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
             setTheme(localStorage.getItem('lum_theme') || 'beige');
+
+            // Run migration first so words have folderName/folder fields,
+            // then start realtime listeners so render always has clean data
+            await migrateExistingSATWords();
+            await migrateExistingIELTSWords();
+            loadVocabRealtime();
         }
 
         // ===== DUOCARDS ENGINE =====
