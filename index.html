@@ -2756,6 +2756,76 @@
         function setupPages() {}
         async function addBook() {}
         function resetBookForm() {}
+
+        // ===== ADD SAT WORD =====
+        async function addSATWord() {
+            const word     = document.getElementById('sat-word').value.trim();
+            const def      = document.getElementById('sat-def').value.trim();
+            const folderId = document.getElementById('sat-folder-select').value;
+            if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
+
+            const { db, ref, push, set, get } = window.firebase;
+            const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
+            if (editingWordId && editingWordType === 'sat') {
+                await set(ref(db, `sat-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
+                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                cancelEdit('sat');
+            } else {
+                const r = push(ref(db, 'sat-words'));
+                await set(r, { w: word, d: def, folder: folderId, folderName });
+                showSuccess(`Word added to "${folderName}"! ☁️`);
+            }
+            document.getElementById('sat-word').value = '';
+            document.getElementById('sat-def').value  = '';
+            loadAdminData();
+        }
+
+        // ===== ADD IELTS WORD =====
+        async function addIELTSWord() {
+            const word     = document.getElementById('ielts-word').value.trim();
+            const def      = document.getElementById('ielts-def').value.trim();
+            const folderId = document.getElementById('ielts-folder-select').value;
+            if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
+
+            const { db, ref, push, set, get } = window.firebase;
+            const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
+            const folderName = folderSnap.val()?.name || 'Unknown Folder';
+
+            if (editingWordId && editingWordType === 'ielts') {
+                await set(ref(db, `ielts-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
+                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                cancelEdit('ielts');
+            } else {
+                const r = push(ref(db, 'ielts-words'));
+                await set(r, { w: word, d: def, folder: folderId, folderName });
+                showSuccess(`Word added to "${folderName}"! ☁️`);
+            }
+            document.getElementById('ielts-word').value = '';
+            document.getElementById('ielts-def').value  = '';
+            loadAdminData();
+        }
+
+        // ===== ADD PODCAST =====
+        async function addPodcast() {
+            const title = document.getElementById('podcast-title').value.trim();
+            const url   = document.getElementById('podcast-url').value.trim();
+            if (!title || !url) { alert('Please fill in all fields'); return; }
+
+            let videoId = '';
+            if (url.includes('youtu.be/'))            videoId = url.split('youtu.be/')[1].split('?')[0];
+            else if (url.includes('youtube.com/watch?v=')) videoId = url.split('v=')[1].split('&')[0];
+
+            const { db, ref, push, set } = window.firebase;
+            const r = push(ref(db, 'podcasts'));
+            await set(r, { t: title, u: url, i: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` });
+            document.getElementById('podcast-title').value = '';
+            document.getElementById('podcast-url').value   = '';
+            showSuccess('Podcast added! ☁️');
+            loadAdminData();
+        }
+
         async function deleteWord(type, id) {
             // Legacy wrapper - now handled by deleteSingleWord
             await deleteSingleWord(type, id, 'word');
