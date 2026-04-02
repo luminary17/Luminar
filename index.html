@@ -2110,6 +2110,8 @@
         const ADMIN_PASSWORD = "admin123";
         let cachedVocab_sat = [];
         let cachedVocab_ielts = [];
+        let editingWordId   = null;
+        let editingWordType = null;
 
         // ===== NAVIGATION =====
         function switchTab(tab) {
@@ -3250,9 +3252,6 @@
         }
 
         // ===== EDIT WORD FUNCTIONS =====
-        let editingWordId = null;
-        let editingWordType = null;
-
         function editWord(type, id, word, definition, folderId) {
             editingWordId = id;
             editingWordType = type;
