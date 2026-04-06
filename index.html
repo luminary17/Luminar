@@ -1526,6 +1526,312 @@
             transition: all 0.2s;
         }
         .folder-del-cancel:hover { background: #e5e7eb; }
+
+        /* ===== RULES / HACKS CARDS ===== */
+        .rule-folder-header {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 28px 0 12px 4px;
+        }
+        .rule-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px 22px 18px;
+            margin-bottom: 14px;
+            border: 1.5px solid rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            transition: all 0.25s ease;
+        }
+        .rule-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+        }
+        .rule-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .rule-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .rule-body {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+        .rule-has-quiz {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1.5px dashed rgba(217,185,155,0.35);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .rules-start-quiz-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 13px 28px;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        .rules-start-quiz-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(217,185,155,0.45);
+        }
+        .rules-start-quiz-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== QUIZ FULLSCREEN ===== */
+        .quiz-view {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-page);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+        }
+        .quiz-view.active { display: flex; }
+
+        .quiz-header {
+            background: white;
+            padding: 18px 20px 14px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .quiz-header-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .quiz-back-btn {
+            width: 38px; height: 38px;
+            background: rgba(0,0,0,0.04);
+            border: none; border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .quiz-back-btn svg { width: 22px; height: 22px; fill: currentColor; }
+        .quiz-title-txt {
+            font-weight: 800;
+            font-size: 17px;
+            flex: 1;
+        }
+        .quiz-counter {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .quiz-prog-bar {
+            height: 6px;
+            background: rgba(0,0,0,0.07);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .quiz-prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #c5a589);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .quiz-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .quiz-question-card {
+            width: 100%;
+            max-width: 520px;
+            background: white;
+            border-radius: 24px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        .quiz-q-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .quiz-q-text {
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+        .quiz-options {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .quiz-option {
+            background: white;
+            border: 2px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .quiz-option:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: #fff8f0;
+            transform: translateX(4px);
+        }
+        .quiz-option.correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #15803d;
+        }
+        .quiz-option.wrong {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+        .quiz-option.reveal-correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #15803d;
+            opacity: 0.7;
+        }
+        .quiz-option-letter {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .quiz-option.correct .quiz-option-letter  { background: #22c55e; color: white; }
+        .quiz-option.wrong   .quiz-option-letter  { background: #ef4444; color: white; }
+        .quiz-option.reveal-correct .quiz-option-letter { background: #22c55e; color: white; }
+
+        .quiz-feedback {
+            width: 100%; max-width: 520px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            display: none;
+        }
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: #f0fdf4; color: #15803d; border: 1.5px solid #22c55e; }
+        .quiz-feedback.wrong   { background: #fef2f2; color: #b91c1c; border: 1.5px solid #ef4444; }
+
+        .quiz-next-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 520px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        .quiz-next-btn.show { display: block; }
+        .quiz-next-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(217,185,155,0.4); }
+
+        /* Quiz result screen */
+        .quiz-result {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+            flex: 1;
+        }
+        .quiz-result.show { display: flex; }
+        .quiz-result-emoji { font-size: 72px; margin-bottom: 16px; }
+        .quiz-result-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .quiz-result-sub   { font-size: 16px; color: #666; margin-bottom: 28px; }
+        .quiz-score-ring {
+            width: 130px; height: 130px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent) 0%, var(--accent) var(--pct), #e5e7eb var(--pct));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 28px;
+            box-shadow: 0 6px 24px rgba(217,185,155,0.3);
+        }
+        .quiz-score-inner {
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        .quiz-score-pct   { font-size: 26px; font-weight: 800; }
+        .quiz-score-label { font-size: 10px; color: #aaa; font-weight: 700; }
+        .quiz-retry-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        .quiz-retry-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(217,185,155,0.4); }
     </style>
 </head>
 
@@ -1692,10 +1998,47 @@
                                 <input type="text" id="sat-rules-title" placeholder="e.g., Subject-Verb Agreement">
                             </div>
                             <div class="form-group">
-                                <label>Content</label>
-                                <textarea id="sat-rules-content" placeholder="Explain the rule here..." style="min-height:120px;"></textarea>
+                                <label>Content / Explanation</label>
+                                <textarea id="sat-rules-content" placeholder="Explain the rule here..." style="min-height:100px;"></textarea>
                             </div>
-                            <button class="btn-primary" onclick="addContentItem('sat-rules')">Add Rule</button>
+                            <div style="background:#fff8f0;border-radius:12px;padding:14px;margin-top:8px;">
+                                <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:var(--accent);">🧠 Quiz Question (optional)</div>
+                                <div class="form-group">
+                                    <label>Question</label>
+                                    <input type="text" id="sat-rules-q" placeholder="e.g., Which sentence is a fragment?">
+                                </div>
+                                <div class="form-group">
+                                    <label>Option A</label>
+                                    <input type="text" id="sat-rules-a" placeholder="Answer A">
+                                </div>
+                                <div class="form-group">
+                                    <label>Option B</label>
+                                    <input type="text" id="sat-rules-b" placeholder="Answer B">
+                                </div>
+                                <div class="form-group">
+                                    <label>Option C</label>
+                                    <input type="text" id="sat-rules-c" placeholder="Answer C">
+                                </div>
+                                <div class="form-group">
+                                    <label>Option D</label>
+                                    <input type="text" id="sat-rules-d" placeholder="Answer D">
+                                </div>
+                                <div class="form-group">
+                                    <label>Correct Answer</label>
+                                    <select id="sat-rules-correct" style="width:100%;padding:10px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:14px;background:white;">
+                                        <option value="">Select correct answer</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Explanation (shown after answering)</label>
+                                    <input type="text" id="sat-rules-explain" placeholder="e.g., 'Because he was tired' has no main clause.">
+                                </div>
+                            </div>
+                            <button class="btn-primary" style="margin-top:14px;" onclick="addContentItem('sat-rules')">Add Rule</button>
                         </div>
                         <div class="item-list" id="sat-rules-item-list"></div>
                     </div>
@@ -1727,10 +2070,33 @@
                                 <input type="text" id="sat-hacks-title" placeholder="e.g., Eliminate Wrong Answers First">
                             </div>
                             <div class="form-group">
-                                <label>Content</label>
-                                <textarea id="sat-hacks-content" placeholder="Describe the hack..." style="min-height:120px;"></textarea>
+                                <label>Content / Explanation</label>
+                                <textarea id="sat-hacks-content" placeholder="Describe the hack..." style="min-height:100px;"></textarea>
                             </div>
-                            <button class="btn-primary" onclick="addContentItem('sat-hacks')">Add Hack</button>
+                            <div style="background:#fff8f0;border-radius:12px;padding:14px;margin-top:8px;">
+                                <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:var(--accent);">🧠 Quiz Question (optional)</div>
+                                <div class="form-group">
+                                    <label>Question</label>
+                                    <input type="text" id="sat-hacks-q" placeholder="e.g., What should you do first on a reading question?">
+                                </div>
+                                <div class="form-group"><label>Option A</label><input type="text" id="sat-hacks-a" placeholder="Answer A"></div>
+                                <div class="form-group"><label>Option B</label><input type="text" id="sat-hacks-b" placeholder="Answer B"></div>
+                                <div class="form-group"><label>Option C</label><input type="text" id="sat-hacks-c" placeholder="Answer C"></div>
+                                <div class="form-group"><label>Option D</label><input type="text" id="sat-hacks-d" placeholder="Answer D"></div>
+                                <div class="form-group">
+                                    <label>Correct Answer</label>
+                                    <select id="sat-hacks-correct" style="width:100%;padding:10px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:14px;background:white;">
+                                        <option value="">Select correct answer</option>
+                                        <option value="A">A</option><option value="B">B</option>
+                                        <option value="C">C</option><option value="D">D</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Explanation (shown after answering)</label>
+                                    <input type="text" id="sat-hacks-explain" placeholder="Why this is correct...">
+                                </div>
+                            </div>
+                            <button class="btn-primary" style="margin-top:14px;" onclick="addContentItem('sat-hacks')">Add Hack</button>
                         </div>
                         <div class="item-list" id="sat-hacks-item-list"></div>
                     </div>
@@ -2037,6 +2403,46 @@
         <div class="dc-actions" id="dc-actions">
             <button class="dc-btn dc-btn-dont" onclick="swipeCard('left')">✗ Don't Know</button>
             <button class="dc-btn dc-btn-know" onclick="swipeCard('right')">✓ Know It</button>
+        </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div class="quiz-view" id="quiz-view">
+        <div class="quiz-header">
+            <div class="quiz-header-row">
+                <button class="quiz-back-btn" onclick="exitQuiz()">
+                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <div class="quiz-title-txt" id="quiz-title-txt">Quiz</div>
+                <div class="quiz-counter" id="quiz-counter">1 / 10</div>
+            </div>
+            <div class="quiz-prog-bar">
+                <div class="quiz-prog-fill" id="quiz-prog-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="quiz-body" id="quiz-body">
+            <div class="quiz-question-card">
+                <div class="quiz-q-label">Question</div>
+                <div class="quiz-q-text" id="quiz-q-text">Loading...</div>
+            </div>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-feedback" id="quiz-feedback"></div>
+            <button class="quiz-next-btn" id="quiz-next-btn" onclick="quizNext()">Next →</button>
+        </div>
+
+        <div class="quiz-result" id="quiz-result">
+            <div class="quiz-result-emoji" id="quiz-result-emoji">🎉</div>
+            <div class="quiz-result-title" id="quiz-result-title">Quiz Complete!</div>
+            <div class="quiz-result-sub"   id="quiz-result-sub">Great work!</div>
+            <div class="quiz-score-ring"   id="quiz-score-ring" style="--pct:0%">
+                <div class="quiz-score-inner">
+                    <div class="quiz-score-pct"   id="quiz-score-pct">0%</div>
+                    <div class="quiz-score-label">SCORE</div>
+                </div>
+            </div>
+            <button class="quiz-retry-btn" onclick="retryQuiz()">🔁 Retry Quiz</button>
+            <button onclick="exitQuiz()" style="margin-top:12px;background:none;border:2px solid rgba(0,0,0,0.1);padding:13px 32px;border-radius:14px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">Back to Rules</button>
         </div>
     </div>
 
@@ -2910,11 +3316,30 @@
             const fSnap = await get(ref(db, `${type}-folders/${folderId}`));
             const folderName = fSnap.val()?.name || '';
 
-            const r = push(ref(db, `${type}-items`));
-            await set(r, { title, body, folder: folderId, folderName });
+            // Collect optional quiz fields
+            const qText    = (document.getElementById(`${type}-q`)?.value       || '').trim();
+            const optA     = (document.getElementById(`${type}-a`)?.value       || '').trim();
+            const optB     = (document.getElementById(`${type}-b`)?.value       || '').trim();
+            const optC     = (document.getElementById(`${type}-c`)?.value       || '').trim();
+            const optD     = (document.getElementById(`${type}-d`)?.value       || '').trim();
+            const correct  = (document.getElementById(`${type}-correct`)?.value || '').trim();
+            const explain  = (document.getElementById(`${type}-explain`)?.value || '').trim();
 
-            document.getElementById(`${type}-title`).value   = '';
-            document.getElementById(`${type}-content`).value = '';
+            const item = { title, body, folder: folderId, folderName };
+            if (qText && optA && optB && correct) {
+                item.quiz = { q: qText, options: { A: optA, B: optB, C: optC, D: optD }, correct, explain };
+            }
+
+            const r = push(ref(db, `${type}-items`));
+            await set(r, item);
+
+            // Clear all fields
+            ['title','content','q','a','b','c','d','explain'].forEach(f => {
+                const el = document.getElementById(`${type}-${f}`);
+                if (el) el.value = '';
+            });
+            const sel = document.getElementById(`${type}-correct`);
+            if (sel) sel.value = '';
             showSuccess(`Added to "${folderName}"!`);
             loadContentItems(type);
         }
@@ -3002,6 +3427,133 @@
             await remove(ref(db, `sat-practice-tests/${id}`));
             showSuccess('Deleted!');
             loadPracticeTests();
+        }
+
+        // ===== QUIZ ENGINE =====
+        let quizState = {
+            questions: [], current: 0, score: 0,
+            answered: false, title: ''
+        };
+
+        function startQuiz(items, title) {
+            // items is already filtered to quiz-able ones
+            const shuffled = [...items].sort(() => Math.random() - 0.5);
+            quizState = { questions: shuffled, current: 0, score: 0, answered: false, title };
+
+            document.getElementById('quiz-title-txt').textContent = title;
+            document.getElementById('quiz-result').classList.remove('show');
+            document.getElementById('quiz-body').style.display = 'flex';
+            document.getElementById('quiz-view').classList.add('active');
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const q   = quizState.questions[quizState.current];
+            const qz  = q.quiz;
+            const tot = quizState.questions.length;
+            const idx = quizState.current;
+
+            document.getElementById('quiz-counter').textContent  = `${idx + 1} / ${tot}`;
+            document.getElementById('quiz-prog-fill').style.width = `${((idx) / tot) * 100}%`;
+            document.getElementById('quiz-q-text').textContent    = qz.q;
+
+            const letters = ['A','B','C','D'];
+            const optionsEl = document.getElementById('quiz-options');
+            optionsEl.innerHTML = letters
+                .filter(l => qz.options[l])
+                .map(l => `
+                    <button class="quiz-option" onclick="answerQuiz('${l}')" data-letter="${l}">
+                        <span class="quiz-option-letter">${l}</span>
+                        <span>${qz.options[l]}</span>
+                    </button>`).join('');
+
+            const fb = document.getElementById('quiz-feedback');
+            fb.className = 'quiz-feedback';
+            fb.textContent = '';
+            document.getElementById('quiz-next-btn').classList.remove('show');
+            quizState.answered = false;
+        }
+
+        function answerQuiz(letter) {
+            if (quizState.answered) return;
+            quizState.answered = true;
+
+            const q      = quizState.questions[quizState.current];
+            const correct= q.quiz.correct;
+            const isRight= letter === correct;
+            if (isRight) quizState.score++;
+
+            // Style options
+            document.querySelectorAll('.quiz-option').forEach(btn => {
+                btn.disabled = true;
+                const l = btn.getAttribute('data-letter');
+                if (l === correct)  btn.classList.add(isRight && l === letter ? 'correct' : 'reveal-correct');
+                if (l === letter && !isRight) btn.classList.add('wrong');
+            });
+            // Fix: make the correct button always green
+            document.querySelectorAll('.quiz-option').forEach(btn => {
+                if (btn.getAttribute('data-letter') === correct) {
+                    btn.classList.remove('reveal-correct');
+                    btn.classList.add('correct');
+                }
+            });
+
+            const fb = document.getElementById('quiz-feedback');
+            fb.classList.add('show', isRight ? 'correct' : 'wrong');
+            fb.textContent = isRight
+                ? `✓ Correct! ${q.quiz.explain || ''}`
+                : `✗ The correct answer is ${correct}. ${q.quiz.explain || ''}`;
+
+            document.getElementById('quiz-next-btn').textContent =
+                quizState.current + 1 < quizState.questions.length ? 'Next →' : 'See Results';
+            document.getElementById('quiz-next-btn').classList.add('show');
+        }
+
+        function quizNext() {
+            quizState.current++;
+            if (quizState.current >= quizState.questions.length) {
+                showQuizResult();
+            } else {
+                renderQuizQuestion();
+                document.getElementById('quiz-body').scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function showQuizResult() {
+            const tot = quizState.questions.length;
+            const sc  = quizState.score;
+            const pct = Math.round((sc / tot) * 100);
+
+            document.getElementById('quiz-prog-fill').style.width = '100%';
+            document.getElementById('quiz-body').style.display    = 'none';
+
+            const result = document.getElementById('quiz-result');
+            result.classList.add('show');
+
+            document.getElementById('quiz-score-pct').textContent  = pct + '%';
+            document.getElementById('quiz-score-ring').style.setProperty('--pct', pct + '%');
+            document.getElementById('quiz-result-sub').textContent = `${sc} out of ${tot} correct`;
+
+            let emoji = '🎉', title = 'Excellent!';
+            if (pct < 50)       { emoji = '📚'; title = 'Keep studying!'; }
+            else if (pct < 75)  { emoji = '👍'; title = 'Good effort!';   }
+            else if (pct < 90)  { emoji = '🌟'; title = 'Great work!';    }
+
+            document.getElementById('quiz-result-emoji').textContent = emoji;
+            document.getElementById('quiz-result-title').textContent = title;
+        }
+
+        function retryQuiz() {
+            quizState.questions = [...quizState.questions].sort(() => Math.random() - 0.5);
+            quizState.current   = 0;
+            quizState.score     = 0;
+            document.getElementById('quiz-result').classList.remove('show');
+            document.getElementById('quiz-body').style.display = 'flex';
+            renderQuizQuestion();
+        }
+
+        function exitQuiz() {
+            document.getElementById('quiz-view').classList.remove('active');
         }
 
         function showSuccess(message) {
@@ -3363,40 +3915,62 @@
         function loadContentRealtime() {
             const { db, ref, onValue } = window.firebase;
 
-            const renderContentItems = (containerId, items) => {
+            const renderContentItems = (containerId, items, type) => {
                 const el = document.getElementById(containerId);
                 if (!el) return;
                 if (items.length === 0) {
-                    el.innerHTML = '<div class="sub-card" style="text-align:center;padding:40px;color:#aaa;">Nothing here yet!</div>';
+                    el.innerHTML = '<div class="sub-card" style="text-align:center;padding:50px;color:#aaa;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;">Nothing here yet!</div></div>';
                     return;
                 }
+
                 const grouped = {};
                 items.forEach(it => {
                     const fn = it.folderName || 'General';
                     if (!grouped[fn]) grouped[fn] = [];
                     grouped[fn].push(it);
                 });
-                el.innerHTML = Object.entries(grouped).map(([fn, its]) => `
-                    <div style="margin-bottom:20px;">
-                        <div style="font-size:13px;font-weight:800;color:var(--accent);margin:0 0 10px 5px;text-transform:uppercase;letter-spacing:0.5px;">📁 ${fn}</div>
-                        ${its.map(it => `
-                            <div class="vocab-item" style="margin-bottom:10px;">
-                                <div class="v-word">${it.title}</div>
-                                <div class="v-def">${it.body}</div>
-                            </div>`).join('')}
-                    </div>`).join('');
+
+                // Count quiz-able items
+                const quizItems = items.filter(it => it.quiz && it.quiz.q);
+                const hasQuiz   = quizItems.length > 0;
+
+                let html = '';
+                if (hasQuiz) {
+                    html += `<button class="rules-start-quiz-btn" onclick="startQuiz(${JSON.stringify(quizItems).replace(/"/g,'&quot;')}, '${type === 'edu-rules-sat-content' ? 'Rules' : 'Hacks'} Quiz')">
+                        🧠 Take Quiz (${quizItems.length} questions)
+                    </button>`;
+                }
+
+                let ruleNum = 1;
+                Object.entries(grouped).forEach(([fn, its]) => {
+                    html += `<div class="rule-folder-header">📁 ${fn}</div>`;
+                    its.forEach(it => {
+                        html += `<div class="rule-card">
+                            <div style="display:flex;align-items:flex-start;gap:12px;">
+                                <div class="rule-number">${ruleNum++}</div>
+                                <div style="flex:1;">
+                                    <div class="rule-title">${it.title}</div>
+                                    <div class="rule-body">${it.body}</div>
+                                    ${it.quiz && it.quiz.q ? `<div class="rule-has-quiz">🧠 Has quiz question</div>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                });
+
+                el.innerHTML = html;
             };
 
             onValue(ref(db, 'sat-rules-items'), (snap) => {
                 const data = snap.val();
                 const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-                renderContentItems('edu-rules-sat-content', items);
+                renderContentItems('edu-rules-sat-content', items, 'edu-rules-sat-content');
             }, () => {});
 
             onValue(ref(db, 'sat-hacks-items'), (snap) => {
                 const data = snap.val();
                 const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-                renderContentItems('edu-hacks-sat-content', items);
+                renderContentItems('edu-hacks-sat-content', items, 'edu-hacks-sat-content');
             }, () => {});
 
             onValue(ref(db, 'sat-practice-tests'), (snap) => {
