@@ -1528,126 +1528,190 @@
         .folder-del-cancel:hover { background: #e5e7eb; }
 
         /* ===== RULES / HACKS CARDS ===== */
-        /* ===== RULES PAGE — Textbook Design ===== */
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800&display=swap');
-
+        /* ===== RULES PAGE — Engaging Visual Design ===== */
         .rules-page-wrap {
-            background: #fffdf7;
+            background: var(--bg-page);
             min-height: 100%;
-            padding: 20px 22px 60px;
+            padding: 0 0 80px;
             font-family: 'Nunito', sans-serif;
-            max-width: 680px;
-            margin: 0 auto;
         }
 
-        /* Big page title — "SAT Grammar Rules" */
+        /* Hero banner at top */
+        .rules-hero {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563a8 100%);
+            padding: 28px 22px 32px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .rules-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+        .rules-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30px; left: -20px;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .rules-hero-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
         .rules-main-title {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 900;
-            color: #1e6fa8;
-            text-align: center;
-            margin: 0 0 28px;
-            letter-spacing: -0.3px;
+            margin: 0 0 6px;
+            line-height: 1.2;
+        }
+        .rules-hero-sub {
+            font-size: 13px;
+            opacity: 0.75;
+            font-weight: 600;
         }
 
-        /* Section group — "Sentence Structure Rules" */
-        .rule-section-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #1a1a1a;
-            margin: 32px 0 6px;
-            padding-bottom: 6px;
-        }
-        .rule-section-title:first-of-type { margin-top: 0; }
-
-        /* Subsection — "Fragments" in red italic */
-        .rule-subsection-label {
-            font-size: 19px;
-            font-weight: 800;
-            font-style: italic;
-            color: #e8360d;
-            margin: 18px 0 14px;
-            font-family: 'Nunito', sans-serif;
-        }
-
-        /* Individual rule block */
-        .rule-block {
-            margin-bottom: 24px;
-        }
-
-        /* "1." + bold rule statement on same line */
-        .rule-headline {
-            display: flex;
-            align-items: baseline;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        .rule-num {
-            font-size: 20px;
-            font-weight: 900;
-            color: #1a1a1a;
-            flex-shrink: 0;
-            min-width: 28px;
-        }
-        .rule-statement {
-            font-size: 17px;
-            font-weight: 800;
-            color: #1a1a1a;
-            line-height: 1.4;
-        }
-
-        /* Body explanation paragraphs */
-        .rule-body-text {
-            font-size: 14px;
-            color: #2a2a2a;
-            line-height: 1.85;
-            white-space: pre-wrap;
-            margin-left: 28px;
-        }
-
-        /* Thin separator between rules */
-        .rule-sep {
-            height: 1px;
-            background: rgba(0,0,0,0.07);
-            margin: 20px 0 0;
-        }
-
-        /* Practice button at bottom of section */
+        /* Practice button — inside hero */
         .rules-practice-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: #1e6fa8;
-            color: white;
+            background: white;
+            color: #1e3a5f;
             border: none;
-            padding: 12px 22px;
-            border-radius: 10px;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-family: inherit;
             font-size: 14px;
             font-weight: 800;
             cursor: pointer;
-            margin-top: 28px;
+            margin-top: 20px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             width: 100%;
             justify-content: center;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 14px rgba(30,111,168,0.28);
         }
         .rules-practice-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30,111,168,0.35);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+        .rules-practice-btn-count {
+            background: #e8360d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 900;
         }
 
-        /* small quiz badge on rule */
-        .rule-has-quiz {
-            margin-top: 8px;
-            margin-left: 28px;
-            font-size: 11px;
-            color: #1e6fa8;
-            font-weight: 700;
+        /* Section header strip */
+        .rule-section-title {
+            background: white;
+            padding: 16px 22px 12px;
+            font-size: 17px;
+            font-weight: 900;
+            color: #1a1a1a;
+            margin-top: 20px;
+            border-left: 4px solid #e8360d;
+            letter-spacing: -0.2px;
+        }
+
+        /* Rule card — visual, engaging */
+        .rule-block {
+            background: white;
+            margin: 2px 0 0;
+            padding: 18px 22px 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.2s ease;
+        }
+        .rule-block:active { background: #fafafa; }
+
+        .rule-headline {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .rule-num {
+            background: linear-gradient(135deg, #1e3a5f, #2563a8);
+            color: white;
+            font-size: 13px;
+            font-weight: 900;
+            min-width: 30px;
+            height: 30px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .rule-statement {
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            line-height: 1.35;
+            flex: 1;
+        }
+
+        /* Body lines */
+        .rule-body-text {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.8;
+            margin: 4px 0 2px 42px;
+        }
+        .rule-body-correct {
+            color: #15803d;
+            font-weight: 700;
+            font-size: 13px;
+            margin: 3px 0 3px 42px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .rule-body-correct::before { content: '✅'; flex-shrink: 0; }
+        .rule-body-wrong {
+            color: #b91c1c;
+            font-weight: 700;
+            font-size: 13px;
+            margin: 3px 0 3px 42px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .rule-body-wrong::before { content: '❌'; flex-shrink: 0; }
+        .rule-body-bullet {
+            color: #555;
+            font-size: 13px;
+            margin: 3px 0 3px 42px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .rule-body-bullet::before { content: '✓'; color: #15803d; font-weight: 900; flex-shrink: 0; }
+
+        /* Quiz badge */
+        .rule-has-quiz {
+            margin: 10px 0 0 42px;
+            font-size: 11px;
+            color: #2563a8;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
             gap: 4px;
-            opacity: 0.8;
+            background: #eff6ff;
+            padding: 3px 10px;
+            border-radius: 20px;
         }
 
         /* Legacy — keep so old calls don't break */
@@ -1655,8 +1719,9 @@
         .rules-start-quiz-btn { display: none; }
         .rule-folder-header { display: none; }
         .rule-item { display: none; }
-        .rule-body-text-old { display: none; }
         .rule-divider { display: none; }
+        .rule-sep { display: none; }
+        .rule-subsection-label { display: none; }
 
         /* ===== QUIZ FULLSCREEN — Practice Test Style ===== */
         .quiz-view {
@@ -1948,18 +2013,7 @@
                 <button class="close-modal" onclick="closeAdminPanel()">×</button>
             </div>
 
-            <div id="password-section">
-                <div class="admin-section">
-                    <h3>🔐 Enter Password</h3>
-                    <div class="form-group">
-                        <input type="password" id="admin-password" placeholder="Enter admin password" onkeypress="if(event.key==='Enter') checkPassword()">
-                    </div>
-                    <button class="btn-primary" onclick="checkPassword()">Login</button>
-                    <p style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">Default password: <strong>admin123</strong></p>
-                </div>
-            </div>
-
-            <div id="admin-content" style="display: none;">
+            <div id="admin-content">
 
                 <!-- ── BOOKS ── -->
                 <div class="admin-section collapsed" id="as-books">
@@ -2617,22 +2671,14 @@
         // ===== ADMIN =====
         function openAdminPanel() {
             document.getElementById('admin-modal').classList.add('active');
+            loadAdminData();
         }
 
         function closeAdminPanel() {
             document.getElementById('admin-modal').classList.remove('active');
         }
 
-        function checkPassword() {
-            const password = document.getElementById('admin-password').value;
-            if (password === ADMIN_PASSWORD) {
-                document.getElementById('password-section').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                loadAdminData();
-            } else {
-                alert('Incorrect password!');
-            }
-        }
+        function checkPassword() { /* password removed */ }
 
         async function loadAdminData() {
             const { db, ref, get } = window.firebase;
@@ -3422,6 +3468,9 @@
             loadContentItems(type);
         }
 
+        let editingContentId   = null;
+        let editingContentType = null;
+
         async function loadContentItems(type) {
             const { db, ref, get } = window.firebase;
             const snap  = await get(ref(db, `${type}-items`));
@@ -3446,15 +3495,73 @@
             listEl.innerHTML = Object.entries(grouped).map(([fn, its]) => `
                 <div style="margin-top:16px;">
                     <div style="background:var(--accent);color:white;padding:8px 14px;border-radius:10px;font-weight:800;font-size:13px;margin-bottom:8px;">📁 ${fn}</div>
-                    ${its.map(it => `
-                        <div class="item-entry">
+                    ${its.map(it => {
+                        const st = (it.title||'').replace(/'/g,"\'");
+                        const sb = (it.body||'').replace(/'/g,"\'");
+                        const sf = it.folder || '';
+                        return `<div class="item-entry">
                             <div class="item-info">
                                 <div class="item-title">${it.title}</div>
-                                <div class="item-detail">${it.body.substring(0,80)}${it.body.length>80?'…':''}</div>
+                                <div class="item-detail">${(it.body||'').substring(0,80)}${(it.body||'').length>80?'…':''}</div>
                             </div>
-                            <button class="btn-delete" onclick="deleteContentItem('${type}','${it.id}')">🗑️</button>
-                        </div>`).join('')}
+                            <div style="display:flex;gap:6px;">
+                                <button class="btn-delete" style="background:#0078D4;" onclick="editContentItem('${type}','${it.id}','${st}','${sb}','${sf}')">✏️</button>
+                                <button class="btn-delete" onclick="deleteContentItem('${type}','${it.id}')">🗑️</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
                 </div>`).join('');
+        }
+
+        function editContentItem(type, id, title, body, folderId) {
+            editingContentId   = id;
+            editingContentType = type;
+
+            document.getElementById(`${type}-title`).value   = title;
+            document.getElementById(`${type}-content`).value = body;
+            const sel = document.getElementById(`${type}-folder-select`);
+            if (sel) sel.value = folderId;
+
+            const addBtn = document.getElementById(`${type}-add-btn`) ||
+                           document.querySelector(`[onclick="addContentItem('${type}')"]`);
+            if (addBtn) {
+                addBtn.textContent = '✏️ Update';
+                addBtn.setAttribute('onclick', `saveContentEdit('${type}')`);
+            }
+            document.querySelector(`[onclick="addContentItem('${type}')"]`)?.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+
+        async function saveContentEdit(type) {
+            if (!editingContentId) return;
+            const title    = document.getElementById(`${type}-title`).value.trim();
+            const body     = document.getElementById(`${type}-content`).value.trim();
+            const folderId = document.getElementById(`${type}-folder-select`)?.value || '';
+            if (!title || !body) { alert('Fill in all fields'); return; }
+
+            const { db, ref, get, set } = window.firebase;
+            const fSnap = folderId ? await get(ref(db, `${type}-folders/${folderId}`)) : null;
+            const folderName = fSnap?.val()?.name || '';
+
+            // Keep existing quiz data
+            const existSnap = await get(ref(db, `${type}-items/${editingContentId}`));
+            const existing  = existSnap.val() || {};
+
+            await set(ref(db, `${type}-items/${editingContentId}`), {
+                ...existing,
+                title, body, folder: folderId, folderName
+            });
+
+            showSuccess('Updated! ✅');
+            editingContentId   = null;
+            editingContentType = null;
+
+            // Reset button
+            const addBtn = document.querySelector(`#as-${type.replace('-','-')} .btn-primary`);
+            if (addBtn) {
+                addBtn.textContent = type === 'sat-rules' ? 'Add Rule' : 'Add Hack';
+                addBtn.setAttribute('onclick', `addContentItem('${type}')`);
+            }
+            loadContentItems(type);
         }
 
         async function deleteContentItem(type, id) {
@@ -4005,11 +4112,10 @@
                 if (!el) return;
 
                 if (items.length === 0) {
-                    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;background:#fffdf7;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;font-size:16px;">Nothing here yet!</div></div>';
+                    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;font-size:16px;">Nothing here yet!</div></div>';
                     return;
                 }
 
-                // Group by folderName (= section)
                 const grouped = {};
                 items.forEach(it => {
                     const fn = it.folderName || 'General';
@@ -4020,58 +4126,57 @@
                 const quizItems = items.filter(it => it.quiz && it.quiz.q);
                 const isRules   = type === 'edu-rules-sat-content';
                 const pageTitle = isRules ? 'SAT Grammar & Punctuation Rules' : 'SAT Hacks & Strategies';
+                const heroSub   = isRules ? 'Master the rules. Ace the test.' : 'Smart shortcuts to boost your score.';
                 const quizLabel = isRules ? 'Rules Practice' : 'Hacks Quiz';
+                const totalRules = items.length;
 
+                // Hero header
                 let html = `<div class="rules-page-wrap">
-                    <div class="rules-main-title">${pageTitle}</div>`;
+                    <div class="rules-hero">
+                        <div class="rules-hero-label">${isRules ? 'SAT PREP' : 'SAT STRATEGIES'}</div>
+                        <div class="rules-main-title">${pageTitle}</div>
+                        <div class="rules-hero-sub">${heroSub} &nbsp;·&nbsp; ${totalRules} rule${totalRules!==1?'s':''}</div>
+                        ${quizItems.length > 0 ? (() => {
+                            const qdata = JSON.stringify(quizItems).replace(/"/g,'&quot;');
+                            return `<button class="rules-practice-btn" onclick="startQuiz(${qdata},'${quizLabel}')">
+                                ✏️ Practice Questions
+                                <span class="rules-practice-btn-count">${quizItems.length}</span>
+                            </button>`;
+                        })() : ''}
+                    </div>`;
 
                 let ruleNum = 1;
                 Object.entries(grouped).forEach(([sectionName, its]) => {
                     html += `<div class="rule-section-title">${sectionName}</div>`;
 
-                    its.forEach((it, i) => {
-                        html += `<div class="rule-block">`;
+                    its.forEach(it => {
+                        html += `<div class="rule-block">
+                            <div class="rule-headline">
+                                <div class="rule-num">${ruleNum++}</div>
+                                <div class="rule-statement">${it.title}</div>
+                            </div>`;
 
-                        // Numbered headline
-                        html += `<div class="rule-headline">
-                            <span class="rule-num">${ruleNum++}.</span>
-                            <span class="rule-statement">${it.title}</span>
-                        </div>`;
-
-                        // Body — render as paragraphs split by newline
                         if (it.body && it.body.trim()) {
-                            const paras = it.body.split('\n').filter(p => p.trim());
-                            paras.forEach(para => {
-                                // Lines starting with ✅ or ❌ or ✓ get colored
-                                const trimmed = para.trim();
-                                if (trimmed.startsWith('✅') || trimmed.startsWith('☑') || trimmed.startsWith('✓')) {
-                                    html += `<div class="rule-body-text" style="color:#1a7a4a;font-weight:700;">${trimmed}</div>`;
-                                } else if (trimmed.startsWith('❌') || trimmed.startsWith('✗') || trimmed.startsWith('☒')) {
-                                    html += `<div class="rule-body-text" style="color:#c0392b;font-weight:700;">${trimmed}</div>`;
-                                } else if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('–')) {
-                                    html += `<div class="rule-body-text" style="margin-left:36px;">✓ ${trimmed.substring(1).trim()}</div>`;
+                            it.body.split('\n').filter(p => p.trim()).forEach(para => {
+                                const t = para.trim();
+                                if (t.startsWith('✅') || t.startsWith('☑')) {
+                                    html += `<div class="rule-body-correct">${t.replace(/^[✅☑]\s*/,'')}</div>`;
+                                } else if (t.startsWith('❌') || t.startsWith('✗')) {
+                                    html += `<div class="rule-body-wrong">${t.replace(/^[❌✗]\s*/,'')}</div>`;
+                                } else if (t.startsWith('•') || t.startsWith('-') || t.startsWith('–')) {
+                                    html += `<div class="rule-body-bullet">${t.replace(/^[-–•]\s*/,'')}</div>`;
                                 } else {
-                                    html += `<div class="rule-body-text">${trimmed}</div>`;
+                                    html += `<div class="rule-body-text">${t}</div>`;
                                 }
                             });
                         }
 
                         if (it.quiz && it.quiz.q) {
-                            html += `<div class="rule-has-quiz">🧠 Practice question attached</div>`;
+                            html += `<div class="rule-has-quiz">🧠 Practice question</div>`;
                         }
-
                         html += `</div>`;
-                        if (i < its.length - 1) html += `<div class="rule-sep"></div>`;
                     });
                 });
-
-                // Practice button at bottom
-                if (quizItems.length > 0) {
-                    const qdata = JSON.stringify(quizItems).replace(/"/g,'&quot;');
-                    html += `<button class="rules-practice-btn" onclick="startQuiz(${qdata},'${quizLabel}')">
-                        ✏️ Practice Questions &nbsp;·&nbsp; ${quizItems.length} question${quizItems.length !== 1 ? 's' : ''}
-                    </button>`;
-                }
 
                 html += '</div>';
                 el.innerHTML = html;
