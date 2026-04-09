@@ -1528,93 +1528,141 @@
         .folder-del-cancel:hover { background: #e5e7eb; }
 
         /* ===== RULES / HACKS CARDS ===== */
-        .rule-folder-header {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 28px 0 12px 4px;
-        }
-        .rule-card {
-            background: white;
-            border-radius: 20px;
-            padding: 22px 22px 18px;
-            margin-bottom: 14px;
-            border: 1.5px solid rgba(0,0,0,0.06);
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            transition: all 0.25s ease;
-        }
-        .rule-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.09);
-        }
-        .rule-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: white;
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
-        .rule-title {
-            font-size: 16px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            line-height: 1.3;
-        }
-        .rule-body {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.7;
-            white-space: pre-wrap;
-        }
-        .rule-has-quiz {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1.5px dashed rgba(217,185,155,0.35);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--accent);
-            font-weight: 700;
-        }
-        .rules-start-quiz-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 13px 28px;
-            border-radius: 14px;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 800;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-        .rules-start-quiz-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(217,185,155,0.45);
-        }
-        .rules-start-quiz-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
+        /* ===== RULES PAGE — Textbook Design ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800&display=swap');
+
+        .rules-page-wrap {
+            background: #fffdf7;
+            min-height: 100%;
+            padding: 20px 22px 60px;
+            font-family: 'Nunito', sans-serif;
+            max-width: 680px;
+            margin: 0 auto;
         }
 
-        /* ===== QUIZ FULLSCREEN ===== */
+        /* Big page title — "SAT Grammar Rules" */
+        .rules-main-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1e6fa8;
+            text-align: center;
+            margin: 0 0 28px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Section group — "Sentence Structure Rules" */
+        .rule-section-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin: 32px 0 6px;
+            padding-bottom: 6px;
+        }
+        .rule-section-title:first-of-type { margin-top: 0; }
+
+        /* Subsection — "Fragments" in red italic */
+        .rule-subsection-label {
+            font-size: 19px;
+            font-weight: 800;
+            font-style: italic;
+            color: #e8360d;
+            margin: 18px 0 14px;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* Individual rule block */
+        .rule-block {
+            margin-bottom: 24px;
+        }
+
+        /* "1." + bold rule statement on same line */
+        .rule-headline {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .rule-num {
+            font-size: 20px;
+            font-weight: 900;
+            color: #1a1a1a;
+            flex-shrink: 0;
+            min-width: 28px;
+        }
+        .rule-statement {
+            font-size: 17px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+
+        /* Body explanation paragraphs */
+        .rule-body-text {
+            font-size: 14px;
+            color: #2a2a2a;
+            line-height: 1.85;
+            white-space: pre-wrap;
+            margin-left: 28px;
+        }
+
+        /* Thin separator between rules */
+        .rule-sep {
+            height: 1px;
+            background: rgba(0,0,0,0.07);
+            margin: 20px 0 0;
+        }
+
+        /* Practice button at bottom of section */
+        .rules-practice-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1e6fa8;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 28px;
+            width: 100%;
+            justify-content: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(30,111,168,0.28);
+        }
+        .rules-practice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30,111,168,0.35);
+        }
+
+        /* small quiz badge on rule */
+        .rule-has-quiz {
+            margin-top: 8px;
+            margin-left: 28px;
+            font-size: 11px;
+            color: #1e6fa8;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.8;
+        }
+
+        /* Legacy — keep so old calls don't break */
+        .rules-quiz-btn { display: none; }
+        .rules-start-quiz-btn { display: none; }
+        .rule-folder-header { display: none; }
+        .rule-item { display: none; }
+        .rule-body-text-old { display: none; }
+        .rule-divider { display: none; }
+
+        /* ===== QUIZ FULLSCREEN — Practice Test Style ===== */
         .quiz-view {
             position: fixed;
             inset: 0;
-            background: var(--bg-page);
+            background: #fffdf7;
             z-index: 5000;
             display: none;
             flex-direction: column;
@@ -1623,8 +1671,8 @@
 
         .quiz-header {
             background: white;
-            padding: 18px 20px 14px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+            padding: 16px 20px 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -1674,56 +1722,65 @@
             flex-direction: column;
             align-items: center;
         }
+        /* Practice question paper style */
         .quiz-question-card {
             width: 100%;
-            max-width: 520px;
+            max-width: 560px;
             background: white;
-            border-radius: 24px;
-            padding: 28px 24px 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
+            border-radius: 16px;
+            padding: 22px 22px 18px;
+            border-left: 4px solid #1e6fa8;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
         .quiz-q-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            color: var(--accent);
+            color: #1e6fa8;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+        .quiz-q-rule-ref {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
             margin-bottom: 10px;
+            font-style: italic;
         }
         .quiz-q-text {
-            font-size: 18px;
-            font-weight: 800;
-            line-height: 1.4;
-            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #1a1a1a;
         }
         .quiz-options {
             width: 100%;
-            max-width: 520px;
+            max-width: 560px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .quiz-option {
             background: white;
-            border: 2px solid rgba(0,0,0,0.08);
-            border-radius: 16px;
-            padding: 16px 20px;
+            border: 1.5px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 14px 18px;
             font-family: inherit;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s ease;
+            transition: all 0.18s ease;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
+            line-height: 1.5;
         }
         .quiz-option:hover:not(:disabled) {
-            border-color: var(--accent);
-            background: #fff8f0;
-            transform: translateX(4px);
+            border-color: #1e6fa8;
+            background: #f0f7ff;
         }
         .quiz-option.correct {
             border-color: #22c55e;
@@ -1738,54 +1795,70 @@
         .quiz-option.reveal-correct {
             border-color: #22c55e;
             background: #f0fdf4;
-            color: #15803d;
-            opacity: 0.7;
+            color: #166534;
         }
         .quiz-option-letter {
-            width: 28px; height: 28px;
-            border-radius: 50%;
+            width: 26px; height: 26px;
+            border-radius: 6px;
             background: rgba(0,0,0,0.06);
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
             flex-shrink: 0;
-            transition: all 0.2s;
+            margin-top: 1px;
+            transition: all 0.18s;
         }
         .quiz-option.correct .quiz-option-letter  { background: #22c55e; color: white; }
         .quiz-option.wrong   .quiz-option-letter  { background: #ef4444; color: white; }
         .quiz-option.reveal-correct .quiz-option-letter { background: #22c55e; color: white; }
 
+        /* Feedback box — shows the rule explanation */
         .quiz-feedback {
-            width: 100%; max-width: 520px;
-            padding: 14px 18px;
-            border-radius: 14px;
-            margin-top: 16px;
+            width: 100%; max-width: 560px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            margin-top: 14px;
             font-size: 14px;
-            font-weight: 700;
+            line-height: 1.6;
             display: none;
+            border-left: 4px solid;
         }
         .quiz-feedback.show { display: block; }
-        .quiz-feedback.correct { background: #f0fdf4; color: #15803d; border: 1.5px solid #22c55e; }
-        .quiz-feedback.wrong   { background: #fef2f2; color: #b91c1c; border: 1.5px solid #ef4444; }
-
+        .quiz-feedback.correct {
+            background: #f0fdf4; color: #166534;
+            border-color: #22c55e;
+        }
+        .quiz-feedback.wrong {
+            background: #fef9f0; color: #7c3900;
+            border-color: #f59e0b;
+        }
+        .quiz-feedback-verdict {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .quiz-feedback-explain {
+            font-weight: 600;
+            opacity: 0.9;
+        }
         .quiz-next-btn {
-            background: var(--accent);
+            background: #1e6fa8;
             color: white;
             border: none;
-            padding: 15px 32px;
-            border-radius: 16px;
+            padding: 14px 28px;
+            border-radius: 12px;
             font-family: inherit;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 18px;
             width: 100%;
-            max-width: 520px;
+            max-width: 560px;
             display: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
         .quiz-next-btn.show { display: block; }
-        .quiz-next-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(217,185,155,0.4); }
+        .quiz-next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(30,111,168,0.35); }
 
         /* Quiz result screen */
         .quiz-result {
@@ -2268,21 +2341,25 @@
             </div>
 
             <!-- SAT Rules -->
-            <div id="edu-rules-sat" class="edu-section">
-                <button class="back-btn-edu" onclick="openEduLevel('edu-sat')">← Назад</button>
-                <div class="label">SAT Rules</div>
-                <div id="edu-rules-sat-content" class="edu-cards-container">
-                    <div class="sub-card" style="text-align:center;padding:40px;color:#aaa;">Loading...</div>
+            <div id="edu-rules-sat" class="edu-section" style="padding:0;">
+                <div style="padding:16px 20px 0;background:var(--bg-page);">
+                    <button class="back-btn-edu" onclick="openEduLevel('edu-sat')" style="margin-bottom:0;">← Назад</button>
                 </div>
+                <div id="edu-rules-sat-content" style="min-height:200px;">
+                    <div style="text-align:center;padding:60px;color:#aaa;">Loading...</div>
+                </div>
+                <div class="spacer"></div>
             </div>
 
             <!-- SAT Hacks -->
-            <div id="edu-hacks-sat" class="edu-section">
-                <button class="back-btn-edu" onclick="openEduLevel('edu-sat')">← Назад</button>
-                <div class="label">SAT Hacks</div>
-                <div id="edu-hacks-sat-content" class="edu-cards-container">
-                    <div class="sub-card" style="text-align:center;padding:40px;color:#aaa;">Loading...</div>
+            <div id="edu-hacks-sat" class="edu-section" style="padding:0;">
+                <div style="padding:16px 20px 0;background:var(--bg-page);">
+                    <button class="back-btn-edu" onclick="openEduLevel('edu-sat')" style="margin-bottom:0;">← Назад</button>
                 </div>
+                <div id="edu-hacks-sat-content" style="min-height:200px;">
+                    <div style="text-align:center;padding:60px;color:#aaa;">Loading...</div>
+                </div>
+                <div class="spacer"></div>
             </div>
 
             <!-- SAT Practice Tests -->
@@ -2423,7 +2500,8 @@
 
         <div class="quiz-body" id="quiz-body">
             <div class="quiz-question-card">
-                <div class="quiz-q-label">Question</div>
+                <div class="quiz-q-label" id="quiz-q-label">Practice Question</div>
+                <div class="quiz-q-rule-ref" id="quiz-q-rule-ref"></div>
                 <div class="quiz-q-text" id="quiz-q-text">Loading...</div>
             </div>
             <div class="quiz-options" id="quiz-options"></div>
@@ -3429,20 +3507,20 @@
             loadPracticeTests();
         }
 
-        // ===== QUIZ ENGINE =====
+        // ===== QUIZ ENGINE — Practice Test Mode =====
         let quizState = {
             questions: [], current: 0, score: 0,
-            answered: false, title: ''
+            answered: false, title: '', wrongIds: []
         };
 
         function startQuiz(items, title) {
-            // items is already filtered to quiz-able ones
             const shuffled = [...items].sort(() => Math.random() - 0.5);
-            quizState = { questions: shuffled, current: 0, score: 0, answered: false, title };
+            quizState = { questions: shuffled, current: 0, score: 0, answered: false, title, wrongIds: [] };
 
             document.getElementById('quiz-title-txt').textContent = title;
             document.getElementById('quiz-result').classList.remove('show');
-            document.getElementById('quiz-body').style.display = 'flex';
+            document.getElementById('quiz-body').style.display    = 'flex';
+            document.getElementById('quiz-body').style.flexDirection = 'column';
             document.getElementById('quiz-view').classList.add('active');
             renderQuizQuestion();
         }
@@ -3453,59 +3531,65 @@
             const tot = quizState.questions.length;
             const idx = quizState.current;
 
-            document.getElementById('quiz-counter').textContent  = `${idx + 1} / ${tot}`;
-            document.getElementById('quiz-prog-fill').style.width = `${((idx) / tot) * 100}%`;
-            document.getElementById('quiz-q-text').textContent    = qz.q;
+            // Header progress
+            document.getElementById('quiz-counter').textContent   = `${idx + 1} / ${tot}`;
+            document.getElementById('quiz-prog-fill').style.width = `${(idx / tot) * 100}%`;
 
-            const letters = ['A','B','C','D'];
+            // Question card — show rule title as context
+            document.getElementById('quiz-q-label').textContent    = 'Practice Question';
+            const ruleRef = document.getElementById('quiz-q-rule-ref');
+            if (ruleRef) ruleRef.textContent = `Rule: ${q.title}`;
+            document.getElementById('quiz-q-text').textContent     = qz.q;
+
+            // Shuffle options so correct answer isn't always same position
+            const letters = ['A','B','C','D'].filter(l => qz.options[l]);
             const optionsEl = document.getElementById('quiz-options');
-            optionsEl.innerHTML = letters
-                .filter(l => qz.options[l])
-                .map(l => `
-                    <button class="quiz-option" onclick="answerQuiz('${l}')" data-letter="${l}">
-                        <span class="quiz-option-letter">${l}</span>
-                        <span>${qz.options[l]}</span>
-                    </button>`).join('');
+            optionsEl.innerHTML = letters.map(l => `
+                <button class="quiz-option" onclick="answerQuiz('${l}')" data-letter="${l}">
+                    <span class="quiz-option-letter">${l}</span>
+                    <span>${qz.options[l]}</span>
+                </button>`).join('');
 
+            // Reset feedback
             const fb = document.getElementById('quiz-feedback');
-            fb.className = 'quiz-feedback';
-            fb.textContent = '';
+            fb.className  = 'quiz-feedback';
+            fb.innerHTML  = '';
             document.getElementById('quiz-next-btn').classList.remove('show');
             quizState.answered = false;
+
+            // Scroll to top
+            document.getElementById('quiz-body').scrollTop = 0;
         }
 
         function answerQuiz(letter) {
             if (quizState.answered) return;
             quizState.answered = true;
 
-            const q      = quizState.questions[quizState.current];
-            const correct= q.quiz.correct;
-            const isRight= letter === correct;
+            const q       = quizState.questions[quizState.current];
+            const correct = q.quiz.correct;
+            const isRight = letter === correct;
             if (isRight) quizState.score++;
+            else quizState.wrongIds.push(quizState.current);
 
-            // Style options
+            // Style all options
             document.querySelectorAll('.quiz-option').forEach(btn => {
                 btn.disabled = true;
                 const l = btn.getAttribute('data-letter');
-                if (l === correct)  btn.classList.add(isRight && l === letter ? 'correct' : 'reveal-correct');
+                if (l === correct)        btn.classList.add('correct');
                 if (l === letter && !isRight) btn.classList.add('wrong');
             });
-            // Fix: make the correct button always green
-            document.querySelectorAll('.quiz-option').forEach(btn => {
-                if (btn.getAttribute('data-letter') === correct) {
-                    btn.classList.remove('reveal-correct');
-                    btn.classList.add('correct');
-                }
-            });
 
+            // Feedback panel — explain the rule
             const fb = document.getElementById('quiz-feedback');
             fb.classList.add('show', isRight ? 'correct' : 'wrong');
-            fb.textContent = isRight
-                ? `✓ Correct! ${q.quiz.explain || ''}`
-                : `✗ The correct answer is ${correct}. ${q.quiz.explain || ''}`;
+            fb.innerHTML = isRight
+                ? `<div class="quiz-feedback-verdict">✓ Correct!</div>
+                   ${q.quiz.explain ? `<div class="quiz-feedback-explain">${q.quiz.explain}</div>` : ''}`
+                : `<div class="quiz-feedback-verdict">✗ Answer: ${correct} — ${q.quiz.options[correct]}</div>
+                   ${q.quiz.explain ? `<div class="quiz-feedback-explain">💡 ${q.quiz.explain}</div>` : ''}`;
 
-            document.getElementById('quiz-next-btn').textContent =
-                quizState.current + 1 < quizState.questions.length ? 'Next →' : 'See Results';
+            const isLast = quizState.current + 1 >= quizState.questions.length;
+            document.getElementById('quiz-next-btn').textContent = isLast ? 'See Results →' : 'Next Question →';
             document.getElementById('quiz-next-btn').classList.add('show');
         }
 
@@ -3515,7 +3599,6 @@
                 showQuizResult();
             } else {
                 renderQuizQuestion();
-                document.getElementById('quiz-body').scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
@@ -3529,24 +3612,26 @@
 
             const result = document.getElementById('quiz-result');
             result.classList.add('show');
-
             document.getElementById('quiz-score-pct').textContent  = pct + '%';
             document.getElementById('quiz-score-ring').style.setProperty('--pct', pct + '%');
-            document.getElementById('quiz-result-sub').textContent = `${sc} out of ${tot} correct`;
 
-            let emoji = '🎉', title = 'Excellent!';
-            if (pct < 50)       { emoji = '📚'; title = 'Keep studying!'; }
-            else if (pct < 75)  { emoji = '👍'; title = 'Good effort!';   }
-            else if (pct < 90)  { emoji = '🌟'; title = 'Great work!';    }
+            let emoji = '🎉', title = 'Excellent work!', sub = `${sc} / ${tot} correct`;
+            if      (pct === 100) { emoji = '🏆'; title = 'Perfect score!'; }
+            else if (pct >= 90)   { emoji = '🌟'; title = 'Almost perfect!'; }
+            else if (pct >= 75)   { emoji = '👍'; title = 'Good effort!'; }
+            else if (pct >= 50)   { emoji = '📖'; title = 'Keep practicing!'; sub += ' — review the rules and try again'; }
+            else                  { emoji = '📚'; title = 'Review needed'; sub += ' — go back and re-read the rules'; }
 
             document.getElementById('quiz-result-emoji').textContent = emoji;
             document.getElementById('quiz-result-title').textContent = title;
+            document.getElementById('quiz-result-sub').textContent   = sub;
         }
 
         function retryQuiz() {
             quizState.questions = [...quizState.questions].sort(() => Math.random() - 0.5);
             quizState.current   = 0;
             quizState.score     = 0;
+            quizState.wrongIds  = [];
             document.getElementById('quiz-result').classList.remove('show');
             document.getElementById('quiz-body').style.display = 'flex';
             renderQuizQuestion();
@@ -3918,11 +4003,13 @@
             const renderContentItems = (containerId, items, type) => {
                 const el = document.getElementById(containerId);
                 if (!el) return;
+
                 if (items.length === 0) {
-                    el.innerHTML = '<div class="sub-card" style="text-align:center;padding:50px;color:#aaa;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;">Nothing here yet!</div></div>';
+                    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;background:#fffdf7;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;font-size:16px;">Nothing here yet!</div></div>';
                     return;
                 }
 
+                // Group by folderName (= section)
                 const grouped = {};
                 items.forEach(it => {
                     const fn = it.folderName || 'General';
@@ -3930,34 +4017,63 @@
                     grouped[fn].push(it);
                 });
 
-                // Count quiz-able items
                 const quizItems = items.filter(it => it.quiz && it.quiz.q);
-                const hasQuiz   = quizItems.length > 0;
+                const isRules   = type === 'edu-rules-sat-content';
+                const pageTitle = isRules ? 'SAT Grammar & Punctuation Rules' : 'SAT Hacks & Strategies';
+                const quizLabel = isRules ? 'Rules Practice' : 'Hacks Quiz';
 
-                let html = '';
-                if (hasQuiz) {
-                    html += `<button class="rules-start-quiz-btn" onclick="startQuiz(${JSON.stringify(quizItems).replace(/"/g,'&quot;')}, '${type === 'edu-rules-sat-content' ? 'Rules' : 'Hacks'} Quiz')">
-                        🧠 Take Quiz (${quizItems.length} questions)
-                    </button>`;
-                }
+                let html = `<div class="rules-page-wrap">
+                    <div class="rules-main-title">${pageTitle}</div>`;
 
                 let ruleNum = 1;
-                Object.entries(grouped).forEach(([fn, its]) => {
-                    html += `<div class="rule-folder-header">📁 ${fn}</div>`;
-                    its.forEach(it => {
-                        html += `<div class="rule-card">
-                            <div style="display:flex;align-items:flex-start;gap:12px;">
-                                <div class="rule-number">${ruleNum++}</div>
-                                <div style="flex:1;">
-                                    <div class="rule-title">${it.title}</div>
-                                    <div class="rule-body">${it.body}</div>
-                                    ${it.quiz && it.quiz.q ? `<div class="rule-has-quiz">🧠 Has quiz question</div>` : ''}
-                                </div>
-                            </div>
+                Object.entries(grouped).forEach(([sectionName, its]) => {
+                    html += `<div class="rule-section-title">${sectionName}</div>`;
+
+                    its.forEach((it, i) => {
+                        html += `<div class="rule-block">`;
+
+                        // Numbered headline
+                        html += `<div class="rule-headline">
+                            <span class="rule-num">${ruleNum++}.</span>
+                            <span class="rule-statement">${it.title}</span>
                         </div>`;
+
+                        // Body — render as paragraphs split by newline
+                        if (it.body && it.body.trim()) {
+                            const paras = it.body.split('\n').filter(p => p.trim());
+                            paras.forEach(para => {
+                                // Lines starting with ✅ or ❌ or ✓ get colored
+                                const trimmed = para.trim();
+                                if (trimmed.startsWith('✅') || trimmed.startsWith('☑') || trimmed.startsWith('✓')) {
+                                    html += `<div class="rule-body-text" style="color:#1a7a4a;font-weight:700;">${trimmed}</div>`;
+                                } else if (trimmed.startsWith('❌') || trimmed.startsWith('✗') || trimmed.startsWith('☒')) {
+                                    html += `<div class="rule-body-text" style="color:#c0392b;font-weight:700;">${trimmed}</div>`;
+                                } else if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('–')) {
+                                    html += `<div class="rule-body-text" style="margin-left:36px;">✓ ${trimmed.substring(1).trim()}</div>`;
+                                } else {
+                                    html += `<div class="rule-body-text">${trimmed}</div>`;
+                                }
+                            });
+                        }
+
+                        if (it.quiz && it.quiz.q) {
+                            html += `<div class="rule-has-quiz">🧠 Practice question attached</div>`;
+                        }
+
+                        html += `</div>`;
+                        if (i < its.length - 1) html += `<div class="rule-sep"></div>`;
                     });
                 });
 
+                // Practice button at bottom
+                if (quizItems.length > 0) {
+                    const qdata = JSON.stringify(quizItems).replace(/"/g,'&quot;');
+                    html += `<button class="rules-practice-btn" onclick="startQuiz(${qdata},'${quizLabel}')">
+                        ✏️ Practice Questions &nbsp;·&nbsp; ${quizItems.length} question${quizItems.length !== 1 ? 's' : ''}
+                    </button>`;
+                }
+
+                html += '</div>';
                 el.innerHTML = html;
             };
 
