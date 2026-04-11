@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Luminary - Education Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Schoolbell&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-page: #FFF0DB;
@@ -1528,200 +1528,183 @@
         .folder-del-cancel:hover { background: #e5e7eb; }
 
         /* ===== RULES / HACKS CARDS ===== */
-        /* ===== RULES PAGE — Engaging Visual Design ===== */
+        /* ===== RULES PAGE ===== */
         .rules-page-wrap {
-            background: var(--bg-page);
+            background: #fef9ed;
             min-height: 100%;
-            padding: 0 0 80px;
-            font-family: 'Nunito', sans-serif;
+            padding: 28px 24px 100px;
+            font-family: 'Schoolbell', cursive;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
-        /* Hero banner at top */
-        .rules-hero {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2563a8 100%);
-            padding: 28px 22px 32px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        .rules-hero::before {
-            content: '';
-            position: absolute;
-            top: -40px; right: -40px;
-            width: 160px; height: 160px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.06);
-        }
-        .rules-hero::after {
-            content: '';
-            position: absolute;
-            bottom: -30px; left: -20px;
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.04);
-        }
-        .rules-hero-label {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin-bottom: 6px;
-        }
+        /* Centered title like image */
         .rules-main-title {
-            font-size: 24px;
-            font-weight: 900;
+            font-size: 22px;
+            font-weight: 400;
+            color: #1a85c8;
+            text-align: center;
             margin: 0 0 6px;
-            line-height: 1.2;
+            line-height: 1.3;
+            font-family: 'Schoolbell', cursive;
         }
         .rules-hero-sub {
-            font-size: 13px;
-            opacity: 0.75;
-            font-weight: 600;
-        }
-
-        /* Practice button — inside hero */
-        .rules-practice-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            color: #1e3a5f;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-family: inherit;
             font-size: 14px;
+            color: #999;
+            font-weight: 400;
+            text-align: center;
+            margin: 0 0 28px;
+            font-family: 'Schoolbell', cursive;
+        }
+        .rules-hero-label { display: none; }
+        .rules-hero { background: none; padding: 0; box-shadow: none; }
+        .rules-hero::before, .rules-hero::after { display: none; }
+
+        /* Practice quiz button */
+        .rules-practice-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #1a85c8;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 15px;
             font-weight: 800;
             cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            margin: 0 0 32px;
             width: 100%;
-            justify-content: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(26,133,200,0.3);
         }
         .rules-practice-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 24px rgba(26,133,200,0.4);
         }
         .rules-practice-btn-count {
-            background: #e8360d;
-            color: white;
-            padding: 2px 8px;
+            background: rgba(255,255,255,0.25);
+            padding: 2px 10px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 900;
         }
 
-        /* Section header strip */
+        /* Section title — "TOP 50 SAT RULES" style */
         .rule-section-title {
-            background: white;
-            padding: 16px 22px 12px;
-            font-size: 17px;
-            font-weight: 900;
+            font-size: 20px;
+            font-weight: 400;
             color: #1a1a1a;
-            margin-top: 20px;
-            border-left: 4px solid #e8360d;
-            letter-spacing: -0.2px;
+            font-family: 'Schoolbell', cursive;
+            text-transform: none;
+            letter-spacing: 0;
+            margin: 32px 0 8px;
+            padding-bottom: 0;
+            border-bottom: none;
         }
 
-        /* Rule card — visual, engaging */
+        /* Each rule block — clean, spaced */
         .rule-block {
-            background: white;
-            margin: 2px 0 0;
-            padding: 18px 22px 16px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            transition: background 0.2s ease;
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .rule-block:active { background: #fafafa; }
+        .rule-block:last-child {
+            border-bottom: none;
+        }
 
+        /* "1. Bold Rule Title" */
         .rule-headline {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 12px;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 14px;
         }
         .rule-num {
-            background: linear-gradient(135deg, #1e3a5f, #2563a8);
-            color: white;
-            font-size: 13px;
-            font-weight: 900;
-            min-width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 20px;
+            font-weight: 400;
+            color: #1a1a1a;
             flex-shrink: 0;
-            margin-top: 2px;
+            font-family: 'Schoolbell', cursive;
         }
         .rule-statement {
-            font-size: 16px;
-            font-weight: 800;
-            color: #111;
-            line-height: 1.35;
-            flex: 1;
+            font-size: 18px;
+            font-weight: 400;
+            color: #1a85c8;
+            line-height: 1.4;
+            font-family: 'Schoolbell', cursive;
         }
 
-        /* Body lines */
+        /* Body paragraphs */
         .rule-body-text {
-            font-size: 14px;
-            color: #444;
-            line-height: 1.8;
-            margin: 4px 0 2px 42px;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.85;
+            margin: 0 0 6px 0;
+            font-family: 'Schoolbell', cursive;
         }
         .rule-body-correct {
-            color: #15803d;
-            font-weight: 700;
-            font-size: 13px;
-            margin: 3px 0 3px 42px;
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
+            font-size: 15px;
+            color: #1a7a4a;
+            font-weight: 400;
+            line-height: 1.7;
+            margin: 4px 0;
+            padding-left: 4px;
+            font-family: 'Schoolbell', cursive;
         }
-        .rule-body-correct::before { content: '✅'; flex-shrink: 0; }
         .rule-body-wrong {
-            color: #b91c1c;
-            font-weight: 700;
-            font-size: 13px;
-            margin: 3px 0 3px 42px;
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
+            font-size: 15px;
+            color: #cc2200;
+            font-weight: 400;
+            line-height: 1.7;
+            margin: 4px 0;
+            padding-left: 4px;
+            font-family: 'Schoolbell', cursive;
         }
-        .rule-body-wrong::before { content: '❌'; flex-shrink: 0; }
         .rule-body-bullet {
-            color: #555;
-            font-size: 13px;
-            margin: 3px 0 3px 42px;
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.7;
+            margin: 4px 0;
+            padding-left: 18px;
+            position: relative;
+            font-family: 'Schoolbell', cursive;
         }
-        .rule-body-bullet::before { content: '✓'; color: #15803d; font-weight: 900; flex-shrink: 0; }
+        .rule-body-bullet::before {
+            content: '✓';
+            color: #1a7a4a;
+            font-weight: 400;
+            position: absolute;
+            left: 0;
+        }
 
-        /* Quiz badge */
+        /* Quiz attached badge */
         .rule-has-quiz {
-            margin: 10px 0 0 42px;
+            margin-top: 12px;
             font-size: 11px;
-            color: #2563a8;
+            color: #1a85c8;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: #eff6ff;
+            background: #e8f4fd;
             padding: 3px 10px;
             border-radius: 20px;
         }
 
-        /* Legacy — keep so old calls don't break */
-        .rules-quiz-btn { display: none; }
-        .rules-start-quiz-btn { display: none; }
-        .rule-folder-header { display: none; }
-        .rule-item { display: none; }
-        .rule-divider { display: none; }
-        .rule-sep { display: none; }
-        .rule-subsection-label { display: none; }
+        /* Legacy */
+        .rules-quiz-btn, .rules-start-quiz-btn, .rule-folder-header,
+        .rule-item, .rule-divider, .rule-sep { display: none; }
+        .rule-subsection-label {
+            font-size: 22px;
+            font-weight: 400;
+            font-style: italic;
+            color: #e8360d;
+            margin: 16px 0 12px;
+            font-family: 'Schoolbell', cursive;
+        }
 
         /* ===== QUIZ FULLSCREEN — Practice Test Style ===== */
         .quiz-view {
@@ -4130,20 +4113,19 @@
                 const quizLabel = isRules ? 'Rules Practice' : 'Hacks Quiz';
                 const totalRules = items.length;
 
-                // Hero header
+                // Build page — clean title, no hero block
+                const qdata_all = quizItems.length > 0
+                    ? JSON.stringify(quizItems).replace(/"/g,'&quot;')
+                    : '';
+
                 let html = `<div class="rules-page-wrap">
-                    <div class="rules-hero">
-                        <div class="rules-hero-label">${isRules ? 'SAT PREP' : 'SAT STRATEGIES'}</div>
-                        <div class="rules-main-title">${pageTitle}</div>
-                        <div class="rules-hero-sub">${heroSub} &nbsp;·&nbsp; ${totalRules} rule${totalRules!==1?'s':''}</div>
-                        ${quizItems.length > 0 ? (() => {
-                            const qdata = JSON.stringify(quizItems).replace(/"/g,'&quot;');
-                            return `<button class="rules-practice-btn" onclick="startQuiz(${qdata},'${quizLabel}')">
-                                ✏️ Practice Questions
-                                <span class="rules-practice-btn-count">${quizItems.length}</span>
-                            </button>`;
-                        })() : ''}
-                    </div>`;
+                    <div class="rules-main-title">${pageTitle}</div>
+                    <div class="rules-hero-sub">${heroSub} · ${totalRules} rule${totalRules!==1?'s':''}</div>
+                    ${quizItems.length > 0 ? `
+                    <button class="rules-practice-btn" onclick="startQuiz(${qdata_all},'${quizLabel}')">
+                        ✏️ Practice Questions
+                        <span class="rules-practice-btn-count">${quizItems.length} Qs</span>
+                    </button>` : ''}`;
 
                 let ruleNum = 1;
                 Object.entries(grouped).forEach(([sectionName, its]) => {
@@ -4152,19 +4134,19 @@
                     its.forEach(it => {
                         html += `<div class="rule-block">
                             <div class="rule-headline">
-                                <div class="rule-num">${ruleNum++}</div>
-                                <div class="rule-statement">${it.title}</div>
+                                <span class="rule-num">${ruleNum++}.&nbsp;</span>
+                                <span class="rule-statement">${it.title}</span>
                             </div>`;
 
                         if (it.body && it.body.trim()) {
                             it.body.split('\n').filter(p => p.trim()).forEach(para => {
                                 const t = para.trim();
                                 if (t.startsWith('✅') || t.startsWith('☑')) {
-                                    html += `<div class="rule-body-correct">${t.replace(/^[✅☑]\s*/,'')}</div>`;
+                                    html += `<div class="rule-body-correct">${t.replace(/^[✅☑]\s*/u,'')}</div>`;
                                 } else if (t.startsWith('❌') || t.startsWith('✗')) {
-                                    html += `<div class="rule-body-wrong">${t.replace(/^[❌✗]\s*/,'')}</div>`;
+                                    html += `<div class="rule-body-wrong">${t.replace(/^[❌✗]\s*/u,'')}</div>`;
                                 } else if (t.startsWith('•') || t.startsWith('-') || t.startsWith('–')) {
-                                    html += `<div class="rule-body-bullet">${t.replace(/^[-–•]\s*/,'')}</div>`;
+                                    html += `<div class="rule-body-bullet">${t.replace(/^[-–•]\s*/u,'')}</div>`;
                                 } else {
                                     html += `<div class="rule-body-text">${t}</div>`;
                                 }
