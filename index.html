@@ -431,13 +431,14 @@
 
         .admin-section-body {
             padding: 0 25px 25px;
-            overflow: hidden;
+            overflow: visible;
             transition: max-height 0.35s ease, opacity 0.3s ease;
             max-height: 9999px;
             opacity: 1;
         }
         .admin-section.collapsed .admin-section-body {
             max-height: 0;
+            overflow: hidden;
             opacity: 0;
             padding-bottom: 0;
         }
