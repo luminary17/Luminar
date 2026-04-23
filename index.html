@@ -242,14 +242,8 @@
 
         /* Ripple effect on click */
         @keyframes ripple {
-            0% {
-                transform: scale(0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(2);
-                opacity: 0;
-            }
+            0% { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
         }
 
         button::after,
@@ -335,7 +329,9 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Modal */
+        /* =============================================
+           MODAL — SCROLL FIX
+           ============================================= */
         .modal {
             position: fixed;
             top: 0;
@@ -345,8 +341,11 @@
             background: rgba(0,0,0,0.6);
             display: none;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;   /* ← was center; flex-start lets modal sit at top so scroll works */
+            padding: 20px;
             z-index: 3000;
+            overflow-y: auto;          /* ← scroll on the OVERLAY itself */
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal.active { display: flex; }
@@ -355,11 +354,12 @@
             background: white;
             border-radius: 25px;
             padding: 40px;
-            width: 90%;
+            width: 100%;
             max-width: 700px;
-            max-height: 85vh;
-            overflow-y: auto;
+            /* Remove max-height + overflow-y from content — let the overlay scroll */
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: auto;              /* centres vertically when content is short */
+            position: relative;
         }
 
         .modal-header {
@@ -431,8 +431,9 @@
 
         .admin-section-body {
             padding: 0 25px 25px;
-            overflow: visible;
-            transition: max-height 0.35s ease, opacity 0.3s ease;
+            /* FIX: was overflow:visible which breaks parent scroll container */
+            overflow: hidden;
+            transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
             max-height: 9999px;
             opacity: 1;
         }
@@ -599,9 +600,7 @@
             fill: currentColor;
         }
 
-        .reader-info {
-            flex: 1;
-        }
+        .reader-info { flex: 1; }
 
         .reader-chapter-name {
             font-size: 13px;
@@ -757,22 +756,11 @@
         }
 
         /* Education */
-        .edu-section {
-            display: none;
-        }
-
+        .edu-section { display: none; }
         .edu-section.active { display: block; }
-
-        .folder-page {
-            display: none;
-        }
-        .folder-page.active {
-            display: block;
-        }
-
-        .folder-pages-container {
-            display: none;
-        }
+        .folder-page { display: none; }
+        .folder-page.active { display: block; }
+        .folder-pages-container { display: none; }
 
         .edu-card {
             background: white;
@@ -798,9 +786,7 @@
             opacity: 0.5;
         }
 
-        .edu-cards-container {
-            padding: 0 20px;
-        }
+        .edu-cards-container { padding: 0 20px; }
 
         .back-btn-edu {
             background: none;
@@ -815,10 +801,7 @@
             opacity: 0.8;
         }
 
-        .vocab-list {
-            display: grid;
-            gap: 10px;
-        }
+        .vocab-list { display: grid; gap: 10px; }
 
         .vocab-item {
             background: white;
@@ -841,10 +824,7 @@
         }
 
         /* Audio */
-        .podcast-list {
-            display: grid;
-            gap: 20px;
-        }
+        .podcast-list { display: grid; gap: 20px; }
 
         .podcast-item {
             display: flex;
@@ -872,13 +852,8 @@
             justify-content: center;
         }
 
-        .podcast-body h3 {
-            margin: 0 0 8px 0;
-        }
-
-        .podcast-body span {
-            color: #333;
-        }
+        .podcast-body h3 { margin: 0 0 8px 0; }
+        .podcast-body span { color: #333; }
 
         /* User */
         .sub-card {
@@ -972,12 +947,7 @@
             text-decoration: none;
         }
 
-        .soc-circle svg {
-            width: 28px;
-            height: 28px;
-            fill: currentColor;
-        }
-
+        .soc-circle svg { width: 28px; height: 28px; fill: currentColor; }
         .tg-c { background: #26A5E4; }
         .ig-c { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
         .yt-c { background: #FF0000; }
@@ -985,7 +955,6 @@
         .spacer { height: 100px; }
 
         /* ===== DUOCARDS STYLES ===== */
-
         .folder-cards-btn {
             background: white;
             color: var(--accent);
@@ -1316,10 +1285,7 @@
             font-weight: 900;
             line-height: 1;
         }
-        .word-item-info {
-            flex: 1;
-            min-width: 0;
-        }
+        .word-item-info { flex: 1; min-width: 0; }
         .word-item-word {
             font-weight: 800;
             font-size: 14px;
@@ -1334,11 +1300,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .word-item-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
+        .word-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .word-btn-sm {
             padding: 5px 10px;
             border-radius: 8px;
@@ -1354,7 +1316,6 @@
         .word-btn-del { background: #fee2e2; color: #dc2626; }
         .word-btn-del:hover { background: #dc2626; color: white; transform: scale(1.05); }
 
-        /* Folder header in admin */
         .admin-folder-header {
             background: var(--accent);
             color: white;
@@ -1388,16 +1349,8 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        .folder-bulk-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .folder-bulk-count {
-            font-size: 13px;
-            font-weight: 700;
-            color: #666;
-        }
+        .folder-bulk-left { display: flex; align-items: center; gap: 8px; }
+        .folder-bulk-count { font-size: 13px; font-weight: 700; color: #666; }
         .sel-all-btn {
             padding: 4px 10px;
             border-radius: 8px;
@@ -1529,7 +1482,6 @@
         .folder-del-cancel:hover { background: #e5e7eb; }
 
         /* ===== RULES / HACKS CARDS ===== */
-        /* ===== RULES PAGE ===== */
         .rules-page-wrap {
             background: #fef9ed;
             min-height: 100%;
@@ -1539,7 +1491,6 @@
             margin: 0 auto;
         }
 
-        /* Centered title like image */
         .rules-main-title {
             font-size: 22px;
             font-weight: 400;
@@ -1561,7 +1512,6 @@
         .rules-hero { background: none; padding: 0; box-shadow: none; }
         .rules-hero::before, .rules-hero::after { display: none; }
 
-        /* Practice quiz button */
         .rules-practice-btn {
             display: flex;
             align-items: center;
@@ -1593,7 +1543,6 @@
             font-weight: 900;
         }
 
-        /* Section title — "TOP 50 SAT RULES" style */
         .rule-section-title {
             font-size: 20px;
             font-weight: 400;
@@ -1606,17 +1555,13 @@
             border-bottom: none;
         }
 
-        /* Each rule block — clean, spaced */
         .rule-block {
             margin-bottom: 28px;
             padding-bottom: 28px;
             border-bottom: 1px solid #f0f0f0;
         }
-        .rule-block:last-child {
-            border-bottom: none;
-        }
+        .rule-block:last-child { border-bottom: none; }
 
-        /* "1. Bold Rule Title" */
         .rule-headline {
             display: flex;
             align-items: baseline;
@@ -1638,7 +1583,6 @@
             font-family: 'Schoolbell', cursive;
         }
 
-        /* Body paragraphs */
         .rule-body-text {
             font-size: 15px;
             color: #333;
@@ -1681,7 +1625,6 @@
             left: 0;
         }
 
-        /* Quiz attached badge */
         .rule-has-quiz {
             margin-top: 12px;
             font-size: 11px;
@@ -1695,7 +1638,7 @@
             border-radius: 20px;
         }
 
-        /* Legacy */
+        /* Legacy hidden */
         .rules-quiz-btn, .rules-start-quiz-btn, .rule-folder-header,
         .rule-item, .rule-divider, .rule-sep { display: none; }
         .rule-subsection-label {
@@ -1707,7 +1650,7 @@
             font-family: 'Schoolbell', cursive;
         }
 
-        /* ===== QUIZ FULLSCREEN — Practice Test Style ===== */
+        /* ===== QUIZ FULLSCREEN ===== */
         .quiz-view {
             position: fixed;
             inset: 0;
@@ -1740,16 +1683,8 @@
             flex-shrink: 0;
         }
         .quiz-back-btn svg { width: 22px; height: 22px; fill: currentColor; }
-        .quiz-title-txt {
-            font-weight: 800;
-            font-size: 17px;
-            flex: 1;
-        }
-        .quiz-counter {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--accent);
-        }
+        .quiz-title-txt { font-weight: 800; font-size: 17px; flex: 1; }
+        .quiz-counter { font-size: 12px; font-weight: 700; color: var(--accent); }
         .quiz-prog-bar {
             height: 6px;
             background: rgba(0,0,0,0.07);
@@ -1771,7 +1706,6 @@
             flex-direction: column;
             align-items: center;
         }
-        /* Practice question paper style */
         .quiz-question-card {
             width: 100%;
             max-width: 560px;
@@ -1831,21 +1765,9 @@
             border-color: #1e6fa8;
             background: #f0f7ff;
         }
-        .quiz-option.correct {
-            border-color: #22c55e;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-        .quiz-option.wrong {
-            border-color: #ef4444;
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-        .quiz-option.reveal-correct {
-            border-color: #22c55e;
-            background: #f0fdf4;
-            color: #166534;
-        }
+        .quiz-option.correct { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+        .quiz-option.wrong { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+        .quiz-option.reveal-correct { border-color: #22c55e; background: #f0fdf4; color: #166534; }
         .quiz-option-letter {
             width: 26px; height: 26px;
             border-radius: 6px;
@@ -1861,7 +1783,6 @@
         .quiz-option.wrong   .quiz-option-letter  { background: #ef4444; color: white; }
         .quiz-option.reveal-correct .quiz-option-letter { background: #22c55e; color: white; }
 
-        /* Feedback box — shows the rule explanation */
         .quiz-feedback {
             width: 100%; max-width: 560px;
             padding: 16px 18px;
@@ -1873,23 +1794,10 @@
             border-left: 4px solid;
         }
         .quiz-feedback.show { display: block; }
-        .quiz-feedback.correct {
-            background: #f0fdf4; color: #166534;
-            border-color: #22c55e;
-        }
-        .quiz-feedback.wrong {
-            background: #fef9f0; color: #7c3900;
-            border-color: #f59e0b;
-        }
-        .quiz-feedback-verdict {
-            font-weight: 800;
-            font-size: 15px;
-            margin-bottom: 6px;
-        }
-        .quiz-feedback-explain {
-            font-weight: 600;
-            opacity: 0.9;
-        }
+        .quiz-feedback.correct { background: #f0fdf4; color: #166534; border-color: #22c55e; }
+        .quiz-feedback.wrong { background: #fef9f0; color: #7c3900; border-color: #f59e0b; }
+        .quiz-feedback-verdict { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+        .quiz-feedback-explain { font-weight: 600; opacity: 0.9; }
         .quiz-next-btn {
             background: #1e6fa8;
             color: white;
@@ -1909,7 +1817,6 @@
         .quiz-next-btn.show { display: block; }
         .quiz-next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(30,111,168,0.35); }
 
-        /* Quiz result screen */
         .quiz-result {
             display: none;
             flex-direction: column;
@@ -1954,6 +1861,181 @@
             transition: all 0.3s ease;
         }
         .quiz-retry-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(217,185,155,0.4); }
+
+        /* ===== PHOTO GALLERY (Problems / Solutions / Desmos) ===== */
+        .photo-section-page {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-page);
+            z-index: 4500;
+            display: none;
+            flex-direction: column;
+        }
+        .photo-section-page.active { display: flex; }
+
+        .photo-section-header {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+        .photo-section-header .ps-back {
+            width: 38px; height: 38px;
+            background: rgba(0,0,0,0.04);
+            border: none; border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .photo-section-header .ps-back svg { width: 22px; height: 22px; fill: currentColor; }
+        .photo-section-title {
+            font-weight: 800;
+            font-size: 18px;
+            flex: 1;
+        }
+
+        .photo-section-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+        }
+
+        .photo-subsection-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Subsection cards on the list page */
+        .photo-sub-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.25s ease;
+        }
+        .photo-sub-card:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.1);
+        }
+        .photo-sub-card-left { display: flex; align-items: center; gap: 16px; }
+        .photo-sub-card-emoji { font-size: 28px; }
+        .photo-sub-card-title { font-weight: 800; font-size: 17px; }
+        .photo-sub-card-count { font-size: 12px; color: #888; margin-top: 3px; }
+        .photo-sub-card-arrow { font-size: 20px; color: #ccc; }
+
+        /* Inside a subsection — the actual photo grid */
+        .photo-subsection-inner {
+            display: none;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto 30px;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            border: 1px solid rgba(0,0,0,0.06);
+            transition: all 0.25s ease;
+        }
+        .photo-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+        .photo-card img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        .photo-card-body { padding: 12px 14px; }
+        .photo-card-title { font-weight: 800; font-size: 14px; }
+        .photo-card-desc { font-size: 12px; color: #888; margin-top: 3px; line-height: 1.4; }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 9900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 95vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+
+        /* Admin photo upload panel styles */
+        .photo-upload-section {
+            background: white;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1.5px solid rgba(217,185,155,0.3);
+        }
+        .photo-upload-section-title {
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .photo-entry-row {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .photo-entry-thumb {
+            width: 50px; height: 38px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #eee;
+            flex-shrink: 0;
+        }
+        .photo-entry-info { flex: 1; min-width: 0; }
+        .photo-entry-title { font-weight: 700; font-size: 13px; }
+        .photo-entry-url { font-size: 11px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 
@@ -1990,7 +2072,7 @@
     </nav>
 
     <!-- Admin Modal -->
-    <div id="admin-modal" class="modal">
+    <div id="admin-modal" class="modal" onclick="handleModalOverlayClick(event)">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">Admin Panel</div>
@@ -2114,40 +2196,20 @@
                             </div>
                             <div style="background:#fff8f0;border-radius:12px;padding:14px;margin-top:8px;">
                                 <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:var(--accent);">🧠 Quiz Question (optional)</div>
-                                <div class="form-group">
-                                    <label>Question</label>
-                                    <input type="text" id="sat-rules-q" placeholder="e.g., Which sentence is a fragment?">
-                                </div>
-                                <div class="form-group">
-                                    <label>Option A</label>
-                                    <input type="text" id="sat-rules-a" placeholder="Answer A">
-                                </div>
-                                <div class="form-group">
-                                    <label>Option B</label>
-                                    <input type="text" id="sat-rules-b" placeholder="Answer B">
-                                </div>
-                                <div class="form-group">
-                                    <label>Option C</label>
-                                    <input type="text" id="sat-rules-c" placeholder="Answer C">
-                                </div>
-                                <div class="form-group">
-                                    <label>Option D</label>
-                                    <input type="text" id="sat-rules-d" placeholder="Answer D">
-                                </div>
+                                <div class="form-group"><label>Question</label><input type="text" id="sat-rules-q" placeholder="e.g., Which sentence is a fragment?"></div>
+                                <div class="form-group"><label>Option A</label><input type="text" id="sat-rules-a" placeholder="Answer A"></div>
+                                <div class="form-group"><label>Option B</label><input type="text" id="sat-rules-b" placeholder="Answer B"></div>
+                                <div class="form-group"><label>Option C</label><input type="text" id="sat-rules-c" placeholder="Answer C"></div>
+                                <div class="form-group"><label>Option D</label><input type="text" id="sat-rules-d" placeholder="Answer D"></div>
                                 <div class="form-group">
                                     <label>Correct Answer</label>
                                     <select id="sat-rules-correct" style="width:100%;padding:10px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:14px;background:white;">
                                         <option value="">Select correct answer</option>
-                                        <option value="A">A</option>
-                                        <option value="B">B</option>
-                                        <option value="C">C</option>
-                                        <option value="D">D</option>
+                                        <option value="A">A</option><option value="B">B</option>
+                                        <option value="C">C</option><option value="D">D</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label>Explanation (shown after answering)</label>
-                                    <input type="text" id="sat-rules-explain" placeholder="e.g., 'Because he was tired' has no main clause.">
-                                </div>
+                                <div class="form-group"><label>Explanation</label><input type="text" id="sat-rules-explain" placeholder="e.g., 'Because he was tired' has no main clause."></div>
                             </div>
                             <button class="btn-primary" style="margin-top:14px;" onclick="addContentItem('sat-rules')">Add Rule</button>
                         </div>
@@ -2176,20 +2238,11 @@
                                     <option value="">Select folder...</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Title</label>
-                                <input type="text" id="sat-hacks-title" placeholder="e.g., Eliminate Wrong Answers First">
-                            </div>
-                            <div class="form-group">
-                                <label>Content / Explanation</label>
-                                <textarea id="sat-hacks-content" placeholder="Describe the hack..." style="min-height:100px;"></textarea>
-                            </div>
+                            <div class="form-group"><label>Title</label><input type="text" id="sat-hacks-title" placeholder="e.g., Eliminate Wrong Answers First"></div>
+                            <div class="form-group"><label>Content / Explanation</label><textarea id="sat-hacks-content" placeholder="Describe the hack..." style="min-height:100px;"></textarea></div>
                             <div style="background:#fff8f0;border-radius:12px;padding:14px;margin-top:8px;">
                                 <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:var(--accent);">🧠 Quiz Question (optional)</div>
-                                <div class="form-group">
-                                    <label>Question</label>
-                                    <input type="text" id="sat-hacks-q" placeholder="e.g., What should you do first on a reading question?">
-                                </div>
+                                <div class="form-group"><label>Question</label><input type="text" id="sat-hacks-q" placeholder="e.g., What should you do first on a reading question?"></div>
                                 <div class="form-group"><label>Option A</label><input type="text" id="sat-hacks-a" placeholder="Answer A"></div>
                                 <div class="form-group"><label>Option B</label><input type="text" id="sat-hacks-b" placeholder="Answer B"></div>
                                 <div class="form-group"><label>Option C</label><input type="text" id="sat-hacks-c" placeholder="Answer C"></div>
@@ -2202,10 +2255,7 @@
                                         <option value="C">C</option><option value="D">D</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label>Explanation (shown after answering)</label>
-                                    <input type="text" id="sat-hacks-explain" placeholder="Why this is correct...">
-                                </div>
+                                <div class="form-group"><label>Explanation</label><input type="text" id="sat-hacks-explain" placeholder="Why this is correct..."></div>
                             </div>
                             <button class="btn-primary" style="margin-top:14px;" onclick="addContentItem('sat-hacks')">Add Hack</button>
                         </div>
@@ -2222,18 +2272,9 @@
                     <div class="admin-section-body">
                         <div style="background:white;padding:20px;border-radius:15px;">
                             <h4 style="margin:0 0 15px 0;font-size:16px;font-weight:800;">Add Practice Test Link</h4>
-                            <div class="form-group">
-                                <label>Test Name</label>
-                                <input type="text" id="sat-practice-title" placeholder="e.g., Official SAT Practice Test 1">
-                            </div>
-                            <div class="form-group">
-                                <label>URL</label>
-                                <input type="text" id="sat-practice-url" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Description (optional)</label>
-                                <input type="text" id="sat-practice-desc" placeholder="e.g., 98 questions, full length">
-                            </div>
+                            <div class="form-group"><label>Test Name</label><input type="text" id="sat-practice-title" placeholder="e.g., Official SAT Practice Test 1"></div>
+                            <div class="form-group"><label>URL</label><input type="text" id="sat-practice-url" placeholder="https://..."></div>
+                            <div class="form-group"><label>Description (optional)</label><input type="text" id="sat-practice-desc" placeholder="e.g., 98 questions, full length"></div>
                             <button class="btn-primary" onclick="addPracticeTest()">Add Test</button>
                         </div>
                         <div class="item-list" id="sat-practice-item-list"></div>
@@ -2247,10 +2288,7 @@
                         <span class="admin-section-toggle">▼</span>
                     </div>
                     <div class="admin-section-body">
-                        <div class="form-group">
-                            <label>Create New Folder</label>
-                            <input type="text" id="ielts-folder-name" placeholder="e.g., Academic Writing Words">
-                        </div>
+                        <div class="form-group"><label>Create New Folder</label><input type="text" id="ielts-folder-name" placeholder="e.g., Academic Writing Words"></div>
                         <button class="btn-primary" onclick="createIELTSFolder()" style="margin-bottom: 20px;">➕ Create Folder</button>
                         <div id="admin-ielts-folders-list" style="margin-bottom: 20px;"></div>
                         <div style="background: white; padding: 20px; border-radius: 15px; margin-top: 20px;">
@@ -2261,14 +2299,8 @@
                                     <option value="">Loading folders...</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Word</label>
-                                <input type="text" id="ielts-word" placeholder="e.g., Coherent">
-                            </div>
-                            <div class="form-group">
-                                <label>Definition</label>
-                                <textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea>
-                            </div>
+                            <div class="form-group"><label>Word</label><input type="text" id="ielts-word" placeholder="e.g., Coherent"></div>
+                            <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea></div>
                             <button class="btn-primary" id="ielts-add-btn" onclick="addIELTSWord()">Add IELTS Word</button>
                             <button id="ielts-cancel-edit" onclick="cancelEdit('ielts')" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;display:none;">Cancel Edit</button>
                         </div>
@@ -2283,16 +2315,25 @@
                         <span class="admin-section-toggle">▼</span>
                     </div>
                     <div class="admin-section-body">
-                        <div class="form-group">
-                            <label>Title</label>
-                            <input type="text" id="podcast-title" placeholder="e.g., Romeo and Juliet">
-                        </div>
-                        <div class="form-group">
-                            <label>YouTube URL</label>
-                            <input type="text" id="podcast-url" placeholder="https://youtu.be/...">
-                        </div>
+                        <div class="form-group"><label>Title</label><input type="text" id="podcast-title" placeholder="e.g., Romeo and Juliet"></div>
+                        <div class="form-group"><label>YouTube URL</label><input type="text" id="podcast-url" placeholder="https://youtu.be/..."></div>
                         <button class="btn-primary" onclick="addPodcast()">Add Podcast</button>
                         <div class="item-list" id="podcast-list-admin"></div>
+                    </div>
+                </div>
+
+                <!-- ── PHOTO SECTIONS (Problems / Solutions / Desmos) ── -->
+                <div class="admin-section collapsed" id="as-photos">
+                    <div class="admin-section-header" onclick="toggleAdminSection('as-photos')">
+                        <h3>🖼️ Hacks / Problems / Solutions</h3>
+                        <span class="admin-section-toggle">▼</span>
+                    </div>
+                    <div class="admin-section-body">
+                        <p style="font-size:13px;color:#888;margin:0 0 16px;">Upload image URLs for each section. Images are displayed in a gallery grid.</p>
+
+                        <!-- The 5 subsections -->
+                        <div id="admin-photo-sections-list"></div>
+
                     </div>
                 </div>
 
@@ -2319,9 +2360,9 @@
             <div class="home-footer">
                 <div class="soc-title">МЫ В СОЦСЕТЯХ</div>
                 <div class="soc-row">
-                    <a href="#" class="soc-circle tg-c"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" /></svg></a>
-                    <a href="#" class="soc-circle ig-c"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg></a>
-                    <a href="#" class="soc-circle yt-c"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg></a>
+                    <a href="#" class="soc-circle tg-c"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
+                    <a href="#" class="soc-circle ig-c"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                    <a href="#" class="soc-circle yt-c"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
                 </div>
             </div>
             <div class="spacer"></div>
@@ -2339,26 +2380,26 @@
                     <div class="edu-title">IELTS</div>
                     <div class="edu-icon">🎓</div>
                 </div>
+                <div class="edu-card" onclick="openPhotoSectionView()">
+                    <div class="edu-title">Problems & Solutions</div>
+                    <div class="edu-icon">🖼️</div>
+                </div>
             </div>
 
-            <!-- SAT Prep — 4 sections -->
+            <!-- SAT Prep -->
             <div id="edu-sat" class="edu-section">
                 <button class="back-btn-edu" onclick="openEduLevel('edu-main')">← Назад</button>
                 <div class="edu-card" onclick="openEduLevel('edu-vocab-sat')">
-                    <div class="edu-title">Vocab</div>
-                    <div class="edu-icon">📖</div>
+                    <div class="edu-title">Vocab</div><div class="edu-icon">📖</div>
                 </div>
                 <div class="edu-card" onclick="openEduLevel('edu-rules-sat')">
-                    <div class="edu-title">Rules</div>
-                    <div class="edu-icon">📐</div>
+                    <div class="edu-title">Rules</div><div class="edu-icon">📐</div>
                 </div>
                 <div class="edu-card" onclick="openEduLevel('edu-hacks-sat')">
-                    <div class="edu-title">Hacks</div>
-                    <div class="edu-icon">⚡</div>
+                    <div class="edu-title">Hacks</div><div class="edu-icon">⚡</div>
                 </div>
                 <div class="edu-card" onclick="openEduLevel('edu-practice-sat')">
-                    <div class="edu-title">Practice Tests</div>
-                    <div class="edu-icon">📝</div>
+                    <div class="edu-title">Practice Tests</div><div class="edu-icon">📝</div>
                 </div>
             </div>
 
@@ -2366,8 +2407,7 @@
             <div id="edu-ielts" class="edu-section">
                 <button class="back-btn-edu" onclick="openEduLevel('edu-main')">← Назад</button>
                 <div class="edu-card" onclick="openEduLevel('edu-vocab-ielts')">
-                    <div class="edu-title">Vocabulary</div>
-                    <div class="edu-icon">📖</div>
+                    <div class="edu-title">Vocabulary</div><div class="edu-icon">📖</div>
                 </div>
             </div>
 
@@ -2427,9 +2467,7 @@
             <div class="sub-card" style="text-align: center; padding: 60px 30px;">
                 <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
                 <h3 style="margin: 0 0 10px 0; font-size: 22px;">Coming Soon!</h3>
-                <p style="margin: 0; color: #888; font-size: 15px; line-height: 1.6;">
-                    Practice tests for SAT, IELTS, and more will be available here soon.
-                </p>
+                <p style="margin: 0; color: #888; font-size: 15px; line-height: 1.6;">Practice tests for SAT, IELTS, and more will be available here soon.</p>
             </div>
             <div class="spacer"></div>
         </div>
@@ -2491,16 +2529,13 @@
                 <div class="dc-progress-fill" id="dc-progress-fill" style="width:0%"></div>
             </div>
         </div>
-
         <div class="dc-arena">
             <div class="dc-hint-know" id="dc-hint-know">✓ Know it!</div>
             <div class="dc-hint-dontknow" id="dc-hint-dontknow">✗ Still learning</div>
-
             <div class="dc-card" id="dc-card">
                 <div class="dc-card-word" id="dc-card-word">Word</div>
                 <div class="dc-card-def" id="dc-card-def">Definition</div>
             </div>
-
             <div class="dc-complete" id="dc-complete">
                 <div class="dc-complete-emoji">🎉</div>
                 <div class="dc-complete-title">Folder Complete!</div>
@@ -2514,7 +2549,6 @@
                 <button class="dc-complete-btn" onclick="exitDuoCards()">Back to Vocabulary</button>
             </div>
         </div>
-
         <div class="dc-actions" id="dc-actions">
             <button class="dc-btn dc-btn-dont" onclick="swipeCard('left')">✗ Don't Know</button>
             <button class="dc-btn dc-btn-know" onclick="swipeCard('right')">✓ Know It</button>
@@ -2535,7 +2569,6 @@
                 <div class="quiz-prog-fill" id="quiz-prog-fill" style="width:0%"></div>
             </div>
         </div>
-
         <div class="quiz-body" id="quiz-body">
             <div class="quiz-question-card">
                 <div class="quiz-q-label" id="quiz-q-label">Practice Question</div>
@@ -2546,7 +2579,6 @@
             <div class="quiz-feedback" id="quiz-feedback"></div>
             <button class="quiz-next-btn" id="quiz-next-btn" onclick="quizNext()">Next →</button>
         </div>
-
         <div class="quiz-result" id="quiz-result">
             <div class="quiz-result-emoji" id="quiz-result-emoji">🎉</div>
             <div class="quiz-result-title" id="quiz-result-title">Quiz Complete!</div>
@@ -2562,6 +2594,25 @@
         </div>
     </div>
 
+    <!-- PHOTO SECTION FULLSCREEN PAGE -->
+    <div class="photo-section-page" id="photo-section-page">
+        <div class="photo-section-header">
+            <button class="ps-back" onclick="closePhotoSectionView()">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <div class="photo-section-title" id="photo-section-title-txt">Problems & Solutions</div>
+        </div>
+        <div class="photo-section-body" id="photo-section-body">
+            <!-- Subsection list or inner grid rendered here by JS -->
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">×</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
     <!-- UNDO TOAST -->
     <div class="undo-toast" id="undo-toast">
         <div>
@@ -2574,7 +2625,7 @@
     <!-- FOLDER DELETE CONFIRM MODAL -->
     <div class="folder-del-modal" id="folder-del-modal">
         <div class="folder-del-box">
-            <div class="folder-del-emoji">&#128465;&#65039;</div>
+            <div class="folder-del-emoji">🗑️</div>
             <div class="folder-del-title" id="fdm-title">Delete folder?</div>
             <div class="folder-del-sub" id="fdm-sub">This will permanently delete the folder and all words inside.</div>
             <div class="folder-del-btns">
@@ -2612,6 +2663,183 @@
     </script>
 
     <script>
+        // ===== PHOTO SECTIONS CONFIG =====
+        const PHOTO_SUBSECTIONS = [
+            { id: 'geo-problems',    emoji: '📐', title: 'SAT Must-Solve Geometry Problems' },
+            { id: 'desmos-solutions',emoji: '🖩', title: 'Desmos Solutions for Hardest Questions' },
+            { id: 'inference',       emoji: '🧠', title: 'Inference: All Hardest Questions' },
+            { id: 'desmos-guide',    emoji: '📖', title: 'Desmos Guide' },
+            { id: 'desmos-tips',     emoji: '💡', title: '10 Desmos Tips' },
+        ];
+
+        // ===== PHOTO SECTION VIEW =====
+        let currentPhotoSubId = null;
+
+        function openPhotoSectionView() {
+            currentPhotoSubId = null;
+            document.getElementById('photo-section-title-txt').textContent = 'Problems & Solutions';
+            renderPhotoSubsectionList();
+            document.getElementById('photo-section-page').classList.add('active');
+        }
+
+        function closePhotoSectionView() {
+            if (currentPhotoSubId) {
+                // go back to list
+                currentPhotoSubId = null;
+                document.getElementById('photo-section-title-txt').textContent = 'Problems & Solutions';
+                renderPhotoSubsectionList();
+            } else {
+                document.getElementById('photo-section-page').classList.remove('active');
+            }
+        }
+
+        async function renderPhotoSubsectionList() {
+            const body = document.getElementById('photo-section-body');
+            body.innerHTML = `<div class="photo-subsection-list" id="ps-list"></div>`;
+            const list = document.getElementById('ps-list');
+
+            for (const sub of PHOTO_SUBSECTIONS) {
+                const count = await getPhotoCount(sub.id);
+                const card = document.createElement('div');
+                card.className = 'photo-sub-card';
+                card.innerHTML = `
+                    <div class="photo-sub-card-left">
+                        <div class="photo-sub-card-emoji">${sub.emoji}</div>
+                        <div>
+                            <div class="photo-sub-card-title">${sub.title}</div>
+                            <div class="photo-sub-card-count">${count} image${count !== 1 ? 's' : ''}</div>
+                        </div>
+                    </div>
+                    <div class="photo-sub-card-arrow">›</div>`;
+                card.onclick = () => openPhotoSubsection(sub.id, sub.title);
+                list.appendChild(card);
+            }
+        }
+
+        async function getPhotoCount(subId) {
+            try {
+                const { db, ref, get } = window.firebase;
+                const snap = await get(ref(db, `photo-sections/${subId}`));
+                const data = snap.val();
+                return data ? Object.keys(data).length : 0;
+            } catch { return 0; }
+        }
+
+        async function openPhotoSubsection(subId, title) {
+            currentPhotoSubId = subId;
+            document.getElementById('photo-section-title-txt').textContent = title;
+            const body = document.getElementById('photo-section-body');
+            body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;">Loading images...</div>';
+
+            const { db, ref, onValue } = window.firebase;
+            onValue(ref(db, `photo-sections/${subId}`), (snap) => {
+                const data = snap.val();
+                const photos = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                renderPhotoGrid(photos);
+            }, { onlyOnce: true });
+        }
+
+        function renderPhotoGrid(photos) {
+            const body = document.getElementById('photo-section-body');
+            if (photos.length === 0) {
+                body.innerHTML = `<div style="text-align:center;padding:80px 24px;color:#aaa;">
+                    <div style="font-size:48px;margin-bottom:16px;">🖼️</div>
+                    <div style="font-weight:700;font-size:18px;">No images yet</div>
+                    <div style="font-size:14px;margin-top:8px;">Add images via the Admin panel</div>
+                </div>`;
+                return;
+            }
+            body.innerHTML = `<div class="photo-grid">${photos.map(p => `
+                <div class="photo-card" onclick="openLightbox('${p.url.replace(/'/g,"\\'")}')">
+                    <img src="${p.url}" alt="${p.title||''}" loading="lazy" onerror="this.style.background='#f0f0f0'">
+                    <div class="photo-card-body">
+                        ${p.title ? `<div class="photo-card-title">${p.title}</div>` : ''}
+                        ${p.desc  ? `<div class="photo-card-desc">${p.desc}</div>`   : ''}
+                    </div>
+                </div>`).join('')}</div>`;
+        }
+
+        // ===== LIGHTBOX =====
+        function openLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        // ===== ADMIN PHOTO MANAGEMENT =====
+        function renderAdminPhotoSections() {
+            const container = document.getElementById('admin-photo-sections-list');
+            if (!container) return;
+            container.innerHTML = PHOTO_SUBSECTIONS.map(sub => `
+                <div class="photo-upload-section">
+                    <div class="photo-upload-section-title">${sub.emoji} ${sub.title}</div>
+                    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                        <input type="text" id="photo-url-${sub.id}" placeholder="Image URL (https://...)" style="flex:1;min-width:200px;padding:10px 12px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:13px;">
+                        <input type="text" id="photo-title-${sub.id}" placeholder="Title (optional)" style="flex:1;min-width:140px;padding:10px 12px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:13px;">
+                        <button onclick="addPhotoToSection('${sub.id}')" style="background:var(--accent);color:white;border:none;padding:10px 16px;border-radius:10px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;">+ Add</button>
+                    </div>
+                    <div id="photo-list-${sub.id}">
+                        <div style="font-size:12px;color:#bbb;text-align:center;padding:8px;">Loading...</div>
+                    </div>
+                </div>`).join('');
+
+            // Load existing photos for each subsection
+            PHOTO_SUBSECTIONS.forEach(sub => loadAdminPhotos(sub.id));
+        }
+
+        async function loadAdminPhotos(subId) {
+            const { db, ref, get } = window.firebase;
+            try {
+                const snap = await get(ref(db, `photo-sections/${subId}`));
+                const data = snap.val();
+                const photos = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                const container = document.getElementById(`photo-list-${subId}`);
+                if (!container) return;
+                if (photos.length === 0) {
+                    container.innerHTML = '<div style="font-size:12px;color:#bbb;text-align:center;padding:8px;">No images yet</div>';
+                    return;
+                }
+                container.innerHTML = photos.map(p => `
+                    <div class="photo-entry-row">
+                        <img class="photo-entry-thumb" src="${p.url}" alt="" onerror="this.style.background='#eee'">
+                        <div class="photo-entry-info">
+                            <div class="photo-entry-title">${p.title || 'Untitled'}</div>
+                            <div class="photo-entry-url">${p.url}</div>
+                        </div>
+                        <button class="word-btn-sm word-btn-del" onclick="deletePhoto('${subId}','${p.id}')">🗑️</button>
+                    </div>`).join('');
+            } catch (e) {
+                const container = document.getElementById(`photo-list-${subId}`);
+                if (container) container.innerHTML = '<div style="font-size:12px;color:#f55;padding:8px;">Error loading</div>';
+            }
+        }
+
+        async function addPhotoToSection(subId) {
+            const urlInput   = document.getElementById(`photo-url-${subId}`);
+            const titleInput = document.getElementById(`photo-title-${subId}`);
+            const url   = urlInput.value.trim();
+            const title = titleInput.value.trim();
+            if (!url) { alert('Please enter an image URL'); return; }
+
+            const { db, ref, push, set } = window.firebase;
+            const r = push(ref(db, `photo-sections/${subId}`));
+            await set(r, { url, title, addedAt: Date.now() });
+            urlInput.value   = '';
+            titleInput.value = '';
+            loadAdminPhotos(subId);
+            showSuccess('Image added! 🖼️');
+        }
+
+        async function deletePhoto(subId, photoId) {
+            const { db, ref, remove } = window.firebase;
+            await remove(ref(db, `photo-sections/${subId}/${photoId}`));
+            loadAdminPhotos(subId);
+            showSuccess('Image removed!');
+        }
+
         // ===== DEFAULT DATA =====
         const themes = [
             { id: 'beige', n: 'Beige', bg: '#FFF0DB', card: '#FFFFFF', text: '#000000', acc: '#D9B99B' },
@@ -2639,10 +2867,8 @@
         function switchTab(tab) {
             document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
             document.getElementById('edu-main').classList.add('active');
-
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(tab + '-view').classList.add('active');
-
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             document.getElementById('n-' + tab).classList.add('active');
         }
@@ -2653,6 +2879,10 @@
         }
 
         // ===== ADMIN =====
+        function handleModalOverlayClick(e) {
+            if (e.target === document.getElementById('admin-modal')) closeAdminPanel();
+        }
+
         function openAdminPanel() {
             document.getElementById('admin-modal').classList.add('active');
             loadAdminData();
@@ -2661,8 +2891,6 @@
         function closeAdminPanel() {
             document.getElementById('admin-modal').classList.remove('active');
         }
-
-        function checkPassword() { /* password removed */ }
 
         async function loadAdminData() {
             const { db, ref, get } = window.firebase;
@@ -2686,12 +2914,14 @@
             const podcasts = podcastsSnap.val() ? Object.keys(podcastsSnap.val()).map(k => ({id: k, ...podcastsSnap.val()[k]})) : [];
             displayAdminPodcasts(podcasts);
 
-            // Load new content sections
             await loadContentFolders('sat-rules');
             await loadContentFolders('sat-hacks');
             await loadContentItems('sat-rules');
             await loadContentItems('sat-hacks');
             await loadPracticeTests();
+
+            // Render photo admin sections
+            renderAdminPhotoSections();
         }
 
         function displayAdminBooks(books) {
@@ -2728,21 +2958,18 @@
                 container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No words yet</p>';
                 return;
             }
-
             const grouped = {};
             words.forEach(word => {
                 const folderName = word.folderName || 'Uncategorized';
                 if (!grouped[folderName]) grouped[folderName] = [];
                 grouped[folderName].push(word);
             });
-
             let html = '';
             Object.keys(grouped).forEach(folderName => {
                 const folderWords = grouped[folderName];
                 const folderId = folderWords[0]?.folder || '';
                 const gid = `${type}-${folderId}`;
                 const safeName = folderName.replace(/'/g, "\\'");
-
                 html += `
                 <div class="admin-folder-header">
                     <span>📁 ${folderName} <span style="opacity:0.7;font-weight:600;">(${folderWords.length} words)</span></span>
@@ -2831,7 +3058,6 @@
             undoState = null;
         }
 
-        // ===== SINGLE WORD DELETE (with undo) =====
         async function deleteSingleWord(type, id, wordText) {
             const { db, ref, get, set, remove } = window.firebase;
             const path = type === 'sat' ? 'sat-words' : 'ielts-words';
@@ -2846,7 +3072,6 @@
             });
         }
 
-        // ===== BULK WORD DELETE (with undo) =====
         async function bulkDeleteWords(gid, type) {
             const checkboxes = document.querySelectorAll(`.word-checkbox[data-group="${gid}"]:checked`);
             const ids = [...checkboxes].map(c => c.getAttribute('data-id'));
@@ -2858,33 +3083,27 @@
                 const snap = await get(ref(db, `${path}/${id}`));
                 if (snap.val()) snapshots[id] = snap.val();
             }
-            for (const id of ids) {
-                await remove(ref(db, `${path}/${id}`));
-            }
+            for (const id of ids) await remove(ref(db, `${path}/${id}`));
             loadAdminData();
             showUndoToast(`Deleted ${ids.length} word${ids.length !== 1 ? 's' : ''}`, async () => {
-                for (const [id, data] of Object.entries(snapshots)) {
-                    await set(ref(db, `${path}/${id}`), data);
-                }
+                for (const [id, data] of Object.entries(snapshots)) await set(ref(db, `${path}/${id}`), data);
                 loadAdminData();
             });
         }
 
-        // ===== ADMIN FOLDER DELETE (2-step confirm modal + undo) =====
+        // ===== ADMIN FOLDER DELETE =====
         let pendingFolderDelete = null;
 
         function adminDeleteFolder(folderId, folderName, type) {
             pendingFolderDelete = { folderId, folderName, type };
             document.getElementById('fdm-title').textContent = `Delete "${folderName}"?`;
-            document.getElementById('fdm-sub').textContent =
-                `This will permanently delete the folder and ALL words inside it. This cannot be undone without the Undo button.`;
+            document.getElementById('fdm-sub').textContent = `This will permanently delete the folder and ALL words inside it.`;
             const confirmBtn = document.getElementById('fdm-confirm-btn');
             confirmBtn.onclick = confirmFolderDelete1;
             document.getElementById('folder-del-modal').classList.add('active');
         }
 
         function confirmFolderDelete1() {
-            // second confirmation — change button text
             const confirmBtn = document.getElementById('fdm-confirm-btn');
             confirmBtn.textContent = '⚠️ I understand, delete permanently';
             confirmBtn.style.background = '#7f1d1d';
@@ -2896,62 +3115,42 @@
             if (!pendingFolderDelete) return;
             const { folderId, folderName, type } = pendingFolderDelete;
             pendingFolderDelete = null;
-
-            const { db, ref, get, set, push, remove } = window.firebase;
-            const vocabPath = type === 'sat' ? 'sat-words' : 'ielts-words';
-            const folderPath = type === 'sat' ? 'sat-folders' : 'ielts-folders';
-
-            // Snapshot all words in folder
-            const wordsSnap = await get(ref(db, vocabPath));
-            const allWords = wordsSnap.val() || {};
+            const { db, ref, get, set, remove } = window.firebase;
+            const vocabPath  = type === 'sat' ? 'sat-words'   : 'ielts-words';
+            const folderPath = type === 'sat' ? 'sat-folders'  : 'ielts-folders';
+            const wordsSnap  = await get(ref(db, vocabPath));
+            const allWords   = wordsSnap.val() || {};
             const folderWords = {};
             for (const [k, v] of Object.entries(allWords)) {
                 if (v.folder === folderId) folderWords[k] = v;
             }
-
-            // Snapshot folder record
             const folderSnap = await get(ref(db, `${folderPath}/${folderId}`));
             const folderData = folderSnap.val();
-
-            // Delete words
-            for (const id of Object.keys(folderWords)) {
-                await remove(ref(db, `${vocabPath}/${id}`));
-            }
-            // Delete folder
+            for (const id of Object.keys(folderWords)) await remove(ref(db, `${vocabPath}/${id}`));
             await remove(ref(db, `${folderPath}/${folderId}`));
-
             loadAdminData();
-
             const wordCount = Object.keys(folderWords).length;
-            showUndoToast(
-                `Deleted "${folderName}" + ${wordCount} word${wordCount !== 1 ? 's' : ''}`,
-                async () => {
-                    // Restore folder
-                    await set(ref(db, `${folderPath}/${folderId}`), folderData);
-                    // Restore words
-                    for (const [id, data] of Object.entries(folderWords)) {
-                        await set(ref(db, `${vocabPath}/${id}`), data);
-                    }
-                    loadAdminData();
-                }
-            );
+            showUndoToast(`Deleted "${folderName}" + ${wordCount} word${wordCount !== 1 ? 's' : ''}`, async () => {
+                await set(ref(db, `${folderPath}/${folderId}`), folderData);
+                for (const [id, data] of Object.entries(folderWords)) await set(ref(db, `${vocabPath}/${id}`), data);
+                loadAdminData();
+            });
         }
 
         function closeFolderDelModal() {
             document.getElementById('folder-del-modal').classList.remove('active');
-            // reset button
             const confirmBtn = document.getElementById('fdm-confirm-btn');
             confirmBtn.textContent = 'Yes, delete everything';
             confirmBtn.style.background = '';
             confirmBtn.onclick = confirmFolderDelete1;
         }
+
         function displayAdminPodcasts(podcasts) {
             const container = document.getElementById('podcast-list-admin');
             if (podcasts.length === 0) {
                 container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No podcasts yet</p>';
                 return;
             }
-
             container.innerHTML = podcasts.map((podcast) => `
                 <div class="item-entry">
                     <div class="item-info">
@@ -2963,38 +3162,32 @@
             `).join('');
         }
 
-        // ===== BOOK BUILDER (incremental) =====
+        // ===== BOOK BUILDER =====
         let currentEditingBookId = null;
-        let currentEditorBookId  = null;   // book open in the chapter editor
+        let currentEditorBookId  = null;
 
-        // ── Create book shell (no chapters required up front) ──
         async function createBookShell() {
             const title  = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
             const cover  = document.getElementById('book-cover').value.trim();
             if (!title || !author || !cover) { alert('Please fill in title, author and cover URL'); return; }
-
             const { db, ref, push, set } = window.firebase;
             const newRef = push(ref(db, 'books'));
             await set(newRef, { t: title, a: author, i: cover, pages: [], chapters: [] });
-
             document.getElementById('book-title').value  = '';
             document.getElementById('book-author').value = '';
             document.getElementById('book-cover').value  = '';
-            showSuccess(`"${title}" created! Now open it to add chapters.`);
+            showSuccess(`"${title}" created!`);
             loadAdminData();
         }
 
-        // ── Open the chapter/page editor for a book ──
         function openBookEditor(bookId) {
             currentEditorBookId = bookId;
             const book = allBooks.find(b => b.id === bookId);
             if (!book) return;
-
             document.getElementById('editor-book-title').textContent = book.t;
             refreshEditorStats(book);
             renderEditorChapters(book);
-
             document.getElementById('book-editor-panel').style.display = 'block';
             document.getElementById('book-editor-panel').scrollIntoView({ behavior: 'smooth' });
         }
@@ -3008,20 +3201,17 @@
         function refreshEditorStats(book) {
             const ch = (book.chapters || []).length;
             const pg = (book.pages    || []).length;
-            document.getElementById('editor-book-stats').textContent =
-                `${ch} chapter${ch !== 1 ? 's' : ''} • ${pg} page${pg !== 1 ? 's' : ''}`;
+            document.getElementById('editor-book-stats').textContent = `${ch} chapter${ch !== 1 ? 's' : ''} • ${pg} page${pg !== 1 ? 's' : ''}`;
         }
 
         function renderEditorChapters(book) {
             const container = document.getElementById('editor-chapters-list');
             const chapters  = book.chapters || [];
             const pages     = book.pages    || [];
-
             if (chapters.length === 0) {
-                container.innerHTML = '<p style="color:#aaa;text-align:center;padding:16px 0;">No chapters yet. Add one below.</p>';
+                container.innerHTML = '<p style="color:#aaa;text-align:center;padding:16px 0;">No chapters yet.</p>';
                 return;
             }
-
             container.innerHTML = chapters.map((ch, ci) => {
                 const pageCount = ch.endPage - ch.startPage + 1;
                 return `
@@ -3037,18 +3227,15 @@
                             <button class="word-btn-sm word-btn-del" onclick="deleteChapter(${ci})">🗑️</button>
                         </div>
                     </div>
-                    <!-- existing pages -->
                     <div id="chapter-pages-${ci}" style="margin-top:10px;display:none;">
                         ${pages.slice(ch.startPage, ch.endPage + 1).map((pg, pi) => `
                             <div style="background:#fafafa;border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;">
                                 <span style="color:#bbb;font-weight:700;min-width:24px;">p${ch.startPage + pi + 1}</span>
                                 <div style="flex:1;white-space:pre-wrap;">${pg.substring(0, 120)}${pg.length > 120 ? '…' : ''}</div>
                                 <button class="word-btn-sm word-btn-del" style="flex-shrink:0;" onclick="deletePage(${ch.startPage + pi})">🗑️</button>
-                            </div>
-                        `).join('')}
+                            </div>`).join('')}
                     </div>
                     <button onclick="toggleChapterPages(${ci})" style="background:none;border:none;color:#aaa;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;padding:0;">▼ Show pages</button>
-                    <!-- add page form (hidden) -->
                     <div id="add-page-form-${ci}" style="display:none;margin-top:12px;">
                         <textarea id="new-page-text-${ci}" placeholder="Type page text here..." style="width:100%;padding:12px;border:2px solid #D9B99B;border-radius:10px;font-family:inherit;font-size:14px;min-height:120px;resize:vertical;"></textarea>
                         <div style="display:flex;gap:8px;margin-top:8px;">
@@ -3063,13 +3250,8 @@
         function toggleChapterPages(ci) {
             const div = document.getElementById(`chapter-pages-${ci}`);
             const btn = div.nextElementSibling;
-            if (div.style.display === 'none') {
-                div.style.display = 'block';
-                btn.textContent = '▲ Hide pages';
-            } else {
-                div.style.display = 'none';
-                btn.textContent = '▼ Show pages';
-            }
+            if (div.style.display === 'none') { div.style.display = 'block'; btn.textContent = '▲ Hide pages'; }
+            else { div.style.display = 'none'; btn.textContent = '▼ Show pages'; }
         }
 
         function openAddPageForm(ci) {
@@ -3087,24 +3269,15 @@
             const { db, ref, get, set } = window.firebase;
             const text = document.getElementById(`new-page-text-${ci}`).value.trim();
             if (!text) { alert('Page text cannot be empty!'); return; }
-
             const snap = await get(ref(db, `books/${currentEditorBookId}`));
             const book = snap.val();
             const pages    = book.pages    || [];
             const chapters = book.chapters || [];
-            const ch       = chapters[ci];
-
-            // Insert page right after this chapter's last page
+            const ch = chapters[ci];
             const insertAt = ch.endPage + 1;
             pages.splice(insertAt, 0, text);
-
-            // Update chapter boundaries
             chapters[ci].endPage += 1;
-            for (let i = ci + 1; i < chapters.length; i++) {
-                chapters[i].startPage += 1;
-                chapters[i].endPage   += 1;
-            }
-
+            for (let i = ci + 1; i < chapters.length; i++) { chapters[i].startPage += 1; chapters[i].endPage += 1; }
             await set(ref(db, `books/${currentEditorBookId}`), { ...book, pages, chapters });
             closeAddPageForm(ci);
             showSuccess('Page added! ✅');
@@ -3114,25 +3287,16 @@
         async function deletePage(pageIndex) {
             if (!confirm('Delete this page?')) return;
             const { db, ref, get, set } = window.firebase;
-
             const snap = await get(ref(db, `books/${currentEditorBookId}`));
             const book = snap.val();
             const pages    = book.pages    || [];
             const chapters = book.chapters || [];
-
             pages.splice(pageIndex, 1);
-
-            // Fix chapter boundaries
             for (let i = 0; i < chapters.length; i++) {
                 const ch = chapters[i];
-                if (pageIndex < ch.startPage) {
-                    chapters[i].startPage -= 1;
-                    chapters[i].endPage   -= 1;
-                } else if (pageIndex <= ch.endPage) {
-                    chapters[i].endPage -= 1;
-                }
+                if (pageIndex < ch.startPage) { chapters[i].startPage -= 1; chapters[i].endPage -= 1; }
+                else if (pageIndex <= ch.endPage) { chapters[i].endPage -= 1; }
             }
-
             await set(ref(db, `books/${currentEditorBookId}`), { ...book, pages, chapters });
             showSuccess('Page deleted!');
             reloadEditorBook();
@@ -3141,18 +3305,13 @@
         async function addChapterToBook() {
             const title = document.getElementById('new-chapter-title').value.trim();
             if (!title) { alert('Enter a chapter title'); return; }
-
             const { db, ref, get, set } = window.firebase;
             const snap = await get(ref(db, `books/${currentEditorBookId}`));
             const book = snap.val();
             const pages    = book.pages    || [];
             const chapters = book.chapters || [];
-
-            // New chapter starts and ends at the current last page index
-            // (empty chapter — pages added after)
             const startPage = pages.length;
             chapters.push({ title, startPage, endPage: startPage - 1 });
-
             await set(ref(db, `books/${currentEditorBookId}`), { ...book, chapters });
             document.getElementById('new-chapter-title').value = '';
             showSuccess(`Chapter "${title}" added!`);
@@ -3162,23 +3321,15 @@
         async function deleteChapter(ci) {
             if (!confirm('Delete this chapter AND all its pages?')) return;
             const { db, ref, get, set } = window.firebase;
-
             const snap = await get(ref(db, `books/${currentEditorBookId}`));
             const book = snap.val();
             const pages    = book.pages    || [];
             const chapters = book.chapters || [];
-            const ch       = chapters[ci];
-
+            const ch = chapters[ci];
             const removedCount = ch.endPage - ch.startPage + 1;
             pages.splice(ch.startPage, removedCount > 0 ? removedCount : 0);
             chapters.splice(ci, 1);
-
-            // Fix subsequent chapter boundaries
-            for (let i = ci; i < chapters.length; i++) {
-                chapters[i].startPage -= removedCount;
-                chapters[i].endPage   -= removedCount;
-            }
-
+            for (let i = ci; i < chapters.length; i++) { chapters[i].startPage -= removedCount; chapters[i].endPage -= removedCount; }
             await set(ref(db, `books/${currentEditorBookId}`), { ...book, pages, chapters });
             showSuccess('Chapter deleted!');
             reloadEditorBook();
@@ -3189,7 +3340,6 @@
             const current = book?.chapters?.[ci]?.title || '';
             const newTitle = prompt('Rename chapter:', current);
             if (!newTitle || newTitle.trim() === current) return;
-
             const { db, ref, set } = window.firebase;
             await set(ref(db, `books/${currentEditorBookId}/chapters/${ci}/title`), newTitle.trim());
             showSuccess('Chapter renamed!');
@@ -3200,7 +3350,6 @@
             const { db, ref, get } = window.firebase;
             const snap = await get(ref(db, `books/${currentEditorBookId}`));
             const book = { id: currentEditorBookId, ...snap.val() };
-            // Update in allBooks cache
             const idx = allBooks.findIndex(b => b.id === currentEditorBookId);
             if (idx >= 0) allBooks[idx] = book;
             refreshEditorStats(book);
@@ -3208,28 +3357,24 @@
             loadAdminData();
         }
 
-        // ── Edit book info (title/author/cover) ──
         function editBook(id, title, author, coverUrl) {
             currentEditingBookId = id;
             document.getElementById('book-title').value  = title;
             document.getElementById('book-author').value = author;
             document.getElementById('book-cover').value  = coverUrl;
-
             const createBtn = document.querySelector('#book-create-form .btn-primary');
             createBtn.textContent = '💾 Save Changes';
-            createBtn.onclick     = updateBook;
-
+            createBtn.onclick = updateBook;
             let cancelBtn = document.getElementById('book-cancel-edit');
             if (!cancelBtn) {
                 cancelBtn = document.createElement('button');
                 cancelBtn.id = 'book-cancel-edit';
                 cancelBtn.style.cssText = 'width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;';
                 cancelBtn.textContent = '❌ Cancel Edit';
-                cancelBtn.onclick     = cancelBookEdit;
+                cancelBtn.onclick = cancelBookEdit;
                 createBtn.parentNode.appendChild(cancelBtn);
             }
             cancelBtn.style.display = 'block';
-            document.getElementById('book-create-form').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function updateBook() {
@@ -3238,7 +3383,6 @@
             const author   = document.getElementById('book-author').value.trim();
             const coverUrl = document.getElementById('book-cover').value.trim();
             if (!title || !author || !coverUrl) { alert('Please fill all fields!'); return; }
-
             const { db, ref, update } = window.firebase;
             await update(ref(db, `books/${currentEditingBookId}`), { t: title, a: author, i: coverUrl });
             showSuccess('Book updated! ✅');
@@ -3253,7 +3397,7 @@
             document.getElementById('book-cover').value  = '';
             const createBtn = document.querySelector('#book-create-form .btn-primary');
             createBtn.textContent = '➕ Create Book';
-            createBtn.onclick     = createBookShell;
+            createBtn.onclick = createBookShell;
             const cancelBtn = document.getElementById('book-cancel-edit');
             if (cancelBtn) cancelBtn.style.display = 'none';
         }
@@ -3267,26 +3411,24 @@
             loadAdminData();
         }
 
-        // Legacy — keep so old calls don't break
+        // Legacy stubs
         function setupChapters() {}
         function setupPages() {}
         async function addBook() {}
         function resetBookForm() {}
 
-        // ===== ADD SAT WORD =====
+        // ===== SAT / IELTS WORDS =====
         async function addSATWord() {
             const word     = document.getElementById('sat-word').value.trim();
             const def      = document.getElementById('sat-def').value.trim();
             const folderId = document.getElementById('sat-folder-select').value;
             if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
-
             const { db, ref, push, set, get } = window.firebase;
             const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
-
             if (editingWordId && editingWordType === 'sat') {
                 await set(ref(db, `sat-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
-                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                showSuccess(`Word updated! ✏️`);
                 cancelEdit('sat');
             } else {
                 const r = push(ref(db, 'sat-words'));
@@ -3298,20 +3440,17 @@
             loadAdminData();
         }
 
-        // ===== ADD IELTS WORD =====
         async function addIELTSWord() {
             const word     = document.getElementById('ielts-word').value.trim();
             const def      = document.getElementById('ielts-def').value.trim();
             const folderId = document.getElementById('ielts-folder-select').value;
             if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
-
             const { db, ref, push, set, get } = window.firebase;
             const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
-
             if (editingWordId && editingWordType === 'ielts') {
                 await set(ref(db, `ielts-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
-                showSuccess(`Word updated in "${folderName}"! ✏️`);
+                showSuccess(`Word updated! ✏️`);
                 cancelEdit('ielts');
             } else {
                 const r = push(ref(db, 'ielts-words'));
@@ -3323,16 +3462,13 @@
             loadAdminData();
         }
 
-        // ===== ADD PODCAST =====
         async function addPodcast() {
             const title = document.getElementById('podcast-title').value.trim();
             const url   = document.getElementById('podcast-url').value.trim();
             if (!title || !url) { alert('Please fill in all fields'); return; }
-
             let videoId = '';
-            if (url.includes('youtu.be/'))            videoId = url.split('youtu.be/')[1].split('?')[0];
+            if (url.includes('youtu.be/'))                 videoId = url.split('youtu.be/')[1].split('?')[0];
             else if (url.includes('youtube.com/watch?v=')) videoId = url.split('v=')[1].split('&')[0];
-
             const { db, ref, push, set } = window.firebase;
             const r = push(ref(db, 'podcasts'));
             await set(r, { t: title, u: url, i: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` });
@@ -3342,28 +3478,21 @@
             loadAdminData();
         }
 
-        async function deleteWord(type, id) {
-            // Legacy wrapper - now handled by deleteSingleWord
-            await deleteSingleWord(type, id, 'word');
-        }
+        async function deleteWord(type, id) { await deleteSingleWord(type, id, 'word'); }
 
         async function deletePodcast(id) {
             if (!confirm('Delete this podcast?')) return;
             const { db, ref, remove } = window.firebase;
             await remove(ref(db, `podcasts/${id}`));
-            showSuccess('Podcast deleted from cloud!');
+            showSuccess('Podcast deleted!');
             loadAdminData();
         }
 
-        // ===== COLLAPSIBLE ADMIN SECTIONS =====
         function toggleAdminSection(id) {
-            const el = document.getElementById(id);
-            el.classList.toggle('collapsed');
+            document.getElementById(id).classList.toggle('collapsed');
         }
 
         // ===== GENERIC CONTENT SYSTEM (Rules / Hacks) =====
-        // type = 'sat-rules' | 'sat-hacks'
-
         async function createContentFolder(type) {
             const input = document.getElementById(`${type}-folder-name`);
             const name  = input.value.trim();
@@ -3379,31 +3508,23 @@
         async function loadContentFolders(type) {
             const { db, ref, get } = window.firebase;
             const snap = await get(ref(db, `${type}-folders`));
-            const folders = snap.val()
-                ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] }))
-                : [];
-
+            const folders = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
             const select = document.getElementById(`${type}-folder-select`);
-            if (select) {
-                select.innerHTML = folders.length
-                    ? folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
-                    : '<option value="">No folders yet</option>';
-            }
-
+            if (select) select.innerHTML = folders.length
+                ? folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
+                : '<option value="">No folders yet</option>';
             const listEl = document.getElementById(`admin-${type}-folders-list`);
-            if (listEl) {
-                listEl.innerHTML = folders.length ? `
-                    <div style="background:white;padding:12px 15px;border-radius:12px;">
-                        <strong style="font-size:13px;">Folders:</strong>
-                        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
-                            ${folders.map(f => `
-                                <div style="background:var(--accent);color:white;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
-                                    📁 ${f.name}
-                                    <button onclick="deleteContentFolder('${type}','${f.id}')" style="background:rgba(255,255,255,0.3);border:none;color:white;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:13px;line-height:1;padding:0;">×</button>
-                                </div>`).join('')}
-                        </div>
-                    </div>` : '';
-            }
+            if (listEl) listEl.innerHTML = folders.length ? `
+                <div style="background:white;padding:12px 15px;border-radius:12px;">
+                    <strong style="font-size:13px;">Folders:</strong>
+                    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+                        ${folders.map(f => `
+                            <div style="background:var(--accent);color:white;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
+                                📁 ${f.name}
+                                <button onclick="deleteContentFolder('${type}','${f.id}')" style="background:rgba(255,255,255,0.3);border:none;color:white;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:13px;line-height:1;padding:0;">×</button>
+                            </div>`).join('')}
+                    </div>
+                </div>` : '';
         }
 
         async function deleteContentFolder(type, folderId) {
@@ -3419,33 +3540,21 @@
             const title    = document.getElementById(`${type}-title`).value.trim();
             const body     = document.getElementById(`${type}-content`).value.trim();
             if (!folderId || !title || !body) { alert('Fill in all fields and select a folder'); return; }
-
             const { db, ref, push, set, get } = window.firebase;
             const fSnap = await get(ref(db, `${type}-folders/${folderId}`));
             const folderName = fSnap.val()?.name || '';
-
-            // Collect optional quiz fields
-            const qText    = (document.getElementById(`${type}-q`)?.value       || '').trim();
-            const optA     = (document.getElementById(`${type}-a`)?.value       || '').trim();
-            const optB     = (document.getElementById(`${type}-b`)?.value       || '').trim();
-            const optC     = (document.getElementById(`${type}-c`)?.value       || '').trim();
-            const optD     = (document.getElementById(`${type}-d`)?.value       || '').trim();
-            const correct  = (document.getElementById(`${type}-correct`)?.value || '').trim();
-            const explain  = (document.getElementById(`${type}-explain`)?.value || '').trim();
-
+            const qText   = (document.getElementById(`${type}-q`)?.value       || '').trim();
+            const optA    = (document.getElementById(`${type}-a`)?.value       || '').trim();
+            const optB    = (document.getElementById(`${type}-b`)?.value       || '').trim();
+            const optC    = (document.getElementById(`${type}-c`)?.value       || '').trim();
+            const optD    = (document.getElementById(`${type}-d`)?.value       || '').trim();
+            const correct = (document.getElementById(`${type}-correct`)?.value || '').trim();
+            const explain = (document.getElementById(`${type}-explain`)?.value || '').trim();
             const item = { title, body, folder: folderId, folderName };
-            if (qText && optA && optB && correct) {
-                item.quiz = { q: qText, options: { A: optA, B: optB, C: optC, D: optD }, correct, explain };
-            }
-
+            if (qText && optA && optB && correct) item.quiz = { q: qText, options: { A: optA, B: optB, C: optC, D: optD }, correct, explain };
             const r = push(ref(db, `${type}-items`));
             await set(r, item);
-
-            // Clear all fields
-            ['title','content','q','a','b','c','d','explain'].forEach(f => {
-                const el = document.getElementById(`${type}-${f}`);
-                if (el) el.value = '';
-            });
+            ['title','content','q','a','b','c','d','explain'].forEach(f => { const el = document.getElementById(`${type}-${f}`); if (el) el.value = ''; });
             const sel = document.getElementById(`${type}-correct`);
             if (sel) sel.value = '';
             showSuccess(`Added to "${folderName}"!`);
@@ -3458,38 +3567,25 @@
         async function loadContentItems(type) {
             const { db, ref, get } = window.firebase;
             const snap  = await get(ref(db, `${type}-items`));
-            const items = snap.val()
-                ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] }))
-                : [];
-
+            const items = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
             const listEl = document.getElementById(`${type}-item-list`);
             if (!listEl) return;
-            if (items.length === 0) {
-                listEl.innerHTML = '<p style="color:#aaa;text-align:center;padding:16px;">No items yet</p>';
-                return;
-            }
-
+            if (items.length === 0) { listEl.innerHTML = '<p style="color:#aaa;text-align:center;padding:16px;">No items yet</p>'; return; }
             const grouped = {};
-            items.forEach(it => {
-                const fn = it.folderName || 'Uncategorized';
-                if (!grouped[fn]) grouped[fn] = [];
-                grouped[fn].push(it);
-            });
-
+            items.forEach(it => { const fn = it.folderName || 'Uncategorized'; if (!grouped[fn]) grouped[fn] = []; grouped[fn].push(it); });
             listEl.innerHTML = Object.entries(grouped).map(([fn, its]) => `
                 <div style="margin-top:16px;">
                     <div style="background:var(--accent);color:white;padding:8px 14px;border-radius:10px;font-weight:800;font-size:13px;margin-bottom:8px;">📁 ${fn}</div>
                     ${its.map(it => {
                         const st = (it.title||'').replace(/'/g,"\'");
                         const sb = (it.body||'').replace(/'/g,"\'");
-                        const sf = it.folder || '';
                         return `<div class="item-entry">
                             <div class="item-info">
                                 <div class="item-title">${it.title}</div>
-                                <div class="item-detail">${(it.body||'').substring(0,80)}${(it.body||'').length>80?'…':''}</div>
+                                <div class="item-detail">${(it.body||'').substring(0,80)}…</div>
                             </div>
                             <div style="display:flex;gap:6px;">
-                                <button class="btn-delete" style="background:#0078D4;" onclick="editContentItem('${type}','${it.id}','${st}','${sb}','${sf}')">✏️</button>
+                                <button class="btn-delete" style="background:#0078D4;" onclick="editContentItem('${type}','${it.id}','${st}','${sb}','${it.folder||''}')">✏️</button>
                                 <button class="btn-delete" onclick="deleteContentItem('${type}','${it.id}')">🗑️</button>
                             </div>
                         </div>`;
@@ -3500,19 +3596,12 @@
         function editContentItem(type, id, title, body, folderId) {
             editingContentId   = id;
             editingContentType = type;
-
             document.getElementById(`${type}-title`).value   = title;
             document.getElementById(`${type}-content`).value = body;
             const sel = document.getElementById(`${type}-folder-select`);
             if (sel) sel.value = folderId;
-
-            const addBtn = document.getElementById(`${type}-add-btn`) ||
-                           document.querySelector(`[onclick="addContentItem('${type}')"]`);
-            if (addBtn) {
-                addBtn.textContent = '✏️ Update';
-                addBtn.setAttribute('onclick', `saveContentEdit('${type}')`);
-            }
-            document.querySelector(`[onclick="addContentItem('${type}')"]`)?.scrollIntoView({ behavior:'smooth', block:'center' });
+            const addBtn = document.querySelector(`[onclick="addContentItem('${type}')"]`);
+            if (addBtn) { addBtn.textContent = '✏️ Update'; addBtn.setAttribute('onclick', `saveContentEdit('${type}')`); }
         }
 
         async function saveContentEdit(type) {
@@ -3521,30 +3610,16 @@
             const body     = document.getElementById(`${type}-content`).value.trim();
             const folderId = document.getElementById(`${type}-folder-select`)?.value || '';
             if (!title || !body) { alert('Fill in all fields'); return; }
-
             const { db, ref, get, set } = window.firebase;
             const fSnap = folderId ? await get(ref(db, `${type}-folders/${folderId}`)) : null;
             const folderName = fSnap?.val()?.name || '';
-
-            // Keep existing quiz data
             const existSnap = await get(ref(db, `${type}-items/${editingContentId}`));
             const existing  = existSnap.val() || {};
-
-            await set(ref(db, `${type}-items/${editingContentId}`), {
-                ...existing,
-                title, body, folder: folderId, folderName
-            });
-
+            await set(ref(db, `${type}-items/${editingContentId}`), { ...existing, title, body, folder: folderId, folderName });
             showSuccess('Updated! ✅');
-            editingContentId   = null;
-            editingContentType = null;
-
-            // Reset button
+            editingContentId = null; editingContentType = null;
             const addBtn = document.querySelector(`#as-${type.replace('-','-')} .btn-primary`);
-            if (addBtn) {
-                addBtn.textContent = type === 'sat-rules' ? 'Add Rule' : 'Add Hack';
-                addBtn.setAttribute('onclick', `addContentItem('${type}')`);
-            }
+            if (addBtn) { addBtn.textContent = type === 'sat-rules' ? 'Add Rule' : 'Add Hack'; addBtn.setAttribute('onclick', `addContentItem('${type}')`); }
             loadContentItems(type);
         }
 
@@ -3574,20 +3649,11 @@
         async function loadPracticeTests() {
             const { db, ref, get } = window.firebase;
             const snap  = await get(ref(db, 'sat-practice-tests'));
-            const tests = snap.val()
-                ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] }))
-                : [];
+            const tests = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
             const listEl = document.getElementById('sat-practice-item-list');
             if (!listEl) return;
             listEl.innerHTML = tests.length
-                ? tests.map(t => `
-                    <div class="item-entry">
-                        <div class="item-info">
-                            <div class="item-title">${t.title}</div>
-                            <div class="item-detail">${t.desc || t.url}</div>
-                        </div>
-                        <button class="btn-delete" onclick="deletePracticeTest('${t.id}')">🗑️</button>
-                    </div>`).join('')
+                ? tests.map(t => `<div class="item-entry"><div class="item-info"><div class="item-title">${t.title}</div><div class="item-detail">${t.desc || t.url}</div></div><button class="btn-delete" onclick="deletePracticeTest('${t.id}')">🗑️</button></div>`).join('')
                 : '<p style="color:#aaa;text-align:center;padding:16px;">No tests yet</p>';
         }
 
@@ -3598,16 +3664,12 @@
             loadPracticeTests();
         }
 
-        // ===== QUIZ ENGINE — Practice Test Mode =====
-        let quizState = {
-            questions: [], current: 0, score: 0,
-            answered: false, title: '', wrongIds: []
-        };
+        // ===== QUIZ ENGINE =====
+        let quizState = { questions: [], current: 0, score: 0, answered: false, title: '', wrongIds: [] };
 
         function startQuiz(items, title) {
             const shuffled = [...items].sort(() => Math.random() - 0.5);
             quizState = { questions: shuffled, current: 0, score: 0, answered: false, title, wrongIds: [] };
-
             document.getElementById('quiz-title-txt').textContent = title;
             document.getElementById('quiz-result').classList.remove('show');
             document.getElementById('quiz-body').style.display    = 'flex';
@@ -3621,64 +3683,43 @@
             const qz  = q.quiz;
             const tot = quizState.questions.length;
             const idx = quizState.current;
-
-            // Header progress
             document.getElementById('quiz-counter').textContent   = `${idx + 1} / ${tot}`;
             document.getElementById('quiz-prog-fill').style.width = `${(idx / tot) * 100}%`;
-
-            // Question card — show rule title as context
-            document.getElementById('quiz-q-label').textContent    = 'Practice Question';
+            document.getElementById('quiz-q-label').textContent   = 'Practice Question';
             const ruleRef = document.getElementById('quiz-q-rule-ref');
             if (ruleRef) ruleRef.textContent = `Rule: ${q.title}`;
-            document.getElementById('quiz-q-text').textContent     = qz.q;
-
-            // Shuffle options so correct answer isn't always same position
+            document.getElementById('quiz-q-text').textContent    = qz.q;
             const letters = ['A','B','C','D'].filter(l => qz.options[l]);
-            const optionsEl = document.getElementById('quiz-options');
-            optionsEl.innerHTML = letters.map(l => `
+            document.getElementById('quiz-options').innerHTML = letters.map(l => `
                 <button class="quiz-option" onclick="answerQuiz('${l}')" data-letter="${l}">
-                    <span class="quiz-option-letter">${l}</span>
-                    <span>${qz.options[l]}</span>
+                    <span class="quiz-option-letter">${l}</span><span>${qz.options[l]}</span>
                 </button>`).join('');
-
-            // Reset feedback
             const fb = document.getElementById('quiz-feedback');
-            fb.className  = 'quiz-feedback';
-            fb.innerHTML  = '';
+            fb.className = 'quiz-feedback'; fb.innerHTML = '';
             document.getElementById('quiz-next-btn').classList.remove('show');
             quizState.answered = false;
-
-            // Scroll to top
             document.getElementById('quiz-body').scrollTop = 0;
         }
 
         function answerQuiz(letter) {
             if (quizState.answered) return;
             quizState.answered = true;
-
-            const q       = quizState.questions[quizState.current];
+            const q = quizState.questions[quizState.current];
             const correct = q.quiz.correct;
             const isRight = letter === correct;
             if (isRight) quizState.score++;
             else quizState.wrongIds.push(quizState.current);
-
-            // Style all options
             document.querySelectorAll('.quiz-option').forEach(btn => {
                 btn.disabled = true;
                 const l = btn.getAttribute('data-letter');
-                if (l === correct)        btn.classList.add('correct');
+                if (l === correct)            btn.classList.add('correct');
                 if (l === letter && !isRight) btn.classList.add('wrong');
             });
-
-            // Feedback panel — explain the rule
             const fb = document.getElementById('quiz-feedback');
             fb.classList.add('show', isRight ? 'correct' : 'wrong');
             fb.innerHTML = isRight
-                ? `<div class="quiz-feedback-verdict">✓ Correct!</div>
-                   ${q.quiz.explain ? `<div class="quiz-feedback-explain">${q.quiz.explain}</div>` : ''}`
-                : `<div class="quiz-feedback-verdict">✗ Answer: ${correct} — ${q.quiz.options[correct]}</div>
-                   ${q.quiz.explain ? `<div class="quiz-feedback-explain">💡 ${q.quiz.explain}</div>` : ''}`;
-
+                ? `<div class="quiz-feedback-verdict">✓ Correct!</div>${q.quiz.explain ? `<div class="quiz-feedback-explain">${q.quiz.explain}</div>` : ''}`
+                : `<div class="quiz-feedback-verdict">✗ Answer: ${correct} — ${q.quiz.options[correct]}</div>${q.quiz.explain ? `<div class="quiz-feedback-explain">💡 ${q.quiz.explain}</div>` : ''}`;
             const isLast = quizState.current + 1 >= quizState.questions.length;
             document.getElementById('quiz-next-btn').textContent = isLast ? 'See Results →' : 'Next Question →';
             document.getElementById('quiz-next-btn').classList.add('show');
@@ -3686,33 +3727,26 @@
 
         function quizNext() {
             quizState.current++;
-            if (quizState.current >= quizState.questions.length) {
-                showQuizResult();
-            } else {
-                renderQuizQuestion();
-            }
+            if (quizState.current >= quizState.questions.length) showQuizResult();
+            else renderQuizQuestion();
         }
 
         function showQuizResult() {
             const tot = quizState.questions.length;
             const sc  = quizState.score;
             const pct = Math.round((sc / tot) * 100);
-
             document.getElementById('quiz-prog-fill').style.width = '100%';
             document.getElementById('quiz-body').style.display    = 'none';
-
             const result = document.getElementById('quiz-result');
             result.classList.add('show');
             document.getElementById('quiz-score-pct').textContent  = pct + '%';
             document.getElementById('quiz-score-ring').style.setProperty('--pct', pct + '%');
-
             let emoji = '🎉', title = 'Excellent work!', sub = `${sc} / ${tot} correct`;
             if      (pct === 100) { emoji = '🏆'; title = 'Perfect score!'; }
             else if (pct >= 90)   { emoji = '🌟'; title = 'Almost perfect!'; }
             else if (pct >= 75)   { emoji = '👍'; title = 'Good effort!'; }
-            else if (pct >= 50)   { emoji = '📖'; title = 'Keep practicing!'; sub += ' — review the rules and try again'; }
-            else                  { emoji = '📚'; title = 'Review needed'; sub += ' — go back and re-read the rules'; }
-
+            else if (pct >= 50)   { emoji = '📖'; title = 'Keep practicing!'; }
+            else                  { emoji = '📚'; title = 'Review needed'; }
             document.getElementById('quiz-result-emoji').textContent = emoji;
             document.getElementById('quiz-result-title').textContent = title;
             document.getElementById('quiz-result-sub').textContent   = sub;
@@ -3720,17 +3754,13 @@
 
         function retryQuiz() {
             quizState.questions = [...quizState.questions].sort(() => Math.random() - 0.5);
-            quizState.current   = 0;
-            quizState.score     = 0;
-            quizState.wrongIds  = [];
+            quizState.current = 0; quizState.score = 0; quizState.wrongIds = [];
             document.getElementById('quiz-result').classList.remove('show');
             document.getElementById('quiz-body').style.display = 'flex';
             renderQuizQuestion();
         }
 
-        function exitQuiz() {
-            document.getElementById('quiz-view').classList.remove('active');
-        }
+        function exitQuiz() { document.getElementById('quiz-view').classList.remove('active'); }
 
         function showSuccess(message) {
             const existing = document.querySelector('.success-message');
@@ -3738,22 +3768,20 @@
             const msg = document.createElement('div');
             msg.className = 'success-message';
             msg.textContent = message;
-            document.querySelector('.modal-content').insertBefore(msg, document.querySelector('.modal-content').firstChild.nextSibling);
+            const mc = document.querySelector('.modal-content');
+            if (mc) mc.insertBefore(msg, mc.firstChild.nextSibling);
             setTimeout(() => msg.remove(), 3000);
         }
 
         // ===== BOOK READER =====
         function openBook(idx) {
-            currentBookIdx = idx;
-            currentPageIdx = 0;
+            currentBookIdx = idx; currentPageIdx = 0;
             document.getElementById('reader-book-title').innerText = allBooks[idx].t;
             document.getElementById('reader-view').style.display = 'flex';
             renderPage();
         }
 
-        function closeBook() {
-            document.getElementById('reader-view').style.display = 'none';
-        }
+        function closeBook() { document.getElementById('reader-view').style.display = 'none'; }
 
         function animatePageChange(dir) {
             if (isAnimating) return;
@@ -3761,12 +3789,10 @@
             const newPage = currentPageIdx + dir;
             if (newPage < 0) { alert("Это начало книги"); return; }
             if (newPage >= book.pages.length) { alert("Книга окончена"); return; }
-
             isAnimating = true;
             const content = document.getElementById('page-content');
             content.classList.remove('page-active');
             content.classList.add(dir > 0 ? 'page-enter-left' : 'page-enter-right');
-
             setTimeout(() => {
                 currentPageIdx = newPage;
                 renderPage();
@@ -3787,14 +3813,10 @@
             const currentPage = currentPageIdx + 1;
             document.getElementById('progress-bar-fill').style.width = (currentPage / totalPages * 100) + '%';
             document.getElementById('progress-text').innerText = `Page ${currentPage} of ${totalPages}`;
-
             let chapterName = 'Reading';
             if (book.chapters && book.chapters.length > 0) {
                 for (const ch of book.chapters) {
-                    if (currentPageIdx >= ch.startPage && currentPageIdx <= ch.endPage) {
-                        chapterName = ch.title;
-                        break;
-                    }
+                    if (currentPageIdx >= ch.startPage && currentPageIdx <= ch.endPage) { chapterName = ch.title; break; }
                 }
             }
             document.getElementById('reader-chapter-name').innerText = chapterName;
@@ -3836,15 +3858,12 @@
             document.getElementById('theme-grid').innerHTML = themes.map(t => `
                 <div class="theme-btn ${t.id === curr ? 'active' : ''}" onclick="setTheme('${t.id}')">
                     <div class="color-dot" style="background:${t.bg}"></div> ${t.n}
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
-        function saveNotes() {
-            localStorage.setItem('lum_notes', document.getElementById('notes-area').value);
-        }
+        function saveNotes() { localStorage.setItem('lum_notes', document.getElementById('notes-area').value); }
 
-        // ===== FIREBASE REAL-TIME LOADERS =====
+        // ===== FIREBASE LOADERS =====
         function loadAllBooksRealtime() {
             const { db, ref, onValue } = window.firebase;
             onValue(ref(db, 'books'), (snapshot) => {
@@ -3855,10 +3874,7 @@
                     updateHeroBanner(0);
                     if (!heroIntervalId) {
                         let hIdx = 0;
-                        heroIntervalId = setInterval(() => {
-                            hIdx = (hIdx + 1) % allBooks.length;
-                            updateHeroBanner(hIdx);
-                        }, 5000);
+                        heroIntervalId = setInterval(() => { hIdx = (hIdx + 1) % allBooks.length; updateHeroBanner(hIdx); }, 5000);
                     }
                 }
             });
@@ -3891,13 +3907,11 @@
             const { db, ref, get, push, set } = window.firebase;
             const snapshot = await get(ref(db, 'sat-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
-
             if (folders.length === 0) {
                 const newFolderRef = push(ref(db, 'sat-folders'));
                 await set(newFolderRef, { name: '650 must known words | Dsat', createdAt: Date.now() });
                 return loadSATFolders();
             }
-
             renderSATFolders(folders);
         }
 
@@ -3905,24 +3919,19 @@
             const { db, ref, get, push, set } = window.firebase;
             const snapshot = await get(ref(db, 'ielts-folders'));
             const folders = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({id: k, ...snapshot.val()[k]})) : [];
-
             if (folders.length === 0) {
                 const newFolderRef = push(ref(db, 'ielts-folders'));
                 await set(newFolderRef, { name: 'Essential IELTS Vocabulary', createdAt: Date.now() });
                 return loadIELTSFolders();
             }
-
             renderIELTSFolders(folders);
         }
 
         function renderSATFolders(folders) {
-            // Update admin select dropdown
             const select = document.getElementById('sat-folder-select');
             const prevValue = select.value;
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             if (prevValue && folders.some(f => f.id === prevValue)) select.value = prevValue;
-
-            // ✅ FIXED: target the admin-specific container, not the edu one
             const adminFoldersList = document.getElementById('admin-sat-folders-list');
             adminFoldersList.innerHTML = `
                 <div style="background: white; padding: 15px; border-radius: 12px;">
@@ -3932,21 +3941,16 @@
                             <div style="background: var(--accent); color: white; padding: 8px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 📁 ${f.name}
                                 <button onclick="deleteSATFolder('${f.id}')" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
-                            </div>
-                        `).join('')}
+                            </div>`).join('')}
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         function renderIELTSFolders(folders) {
-            // Update admin select dropdown
             const select = document.getElementById('ielts-folder-select');
             const prevValue = select.value;
             select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
             if (prevValue && folders.some(f => f.id === prevValue)) select.value = prevValue;
-
-            // ✅ FIXED: target the admin-specific container, not the edu one
             const adminFoldersList = document.getElementById('admin-ielts-folders-list');
             adminFoldersList.innerHTML = `
                 <div style="background: white; padding: 15px; border-radius: 12px;">
@@ -3956,11 +3960,9 @@
                             <div style="background: var(--accent); color: white; padding: 8px 15px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 📁 ${f.name}
                                 <button onclick="deleteIELTSFolder('${f.id}')" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
-                            </div>
-                        `).join('')}
+                            </div>`).join('')}
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         async function deleteSATFolder(folderId) {
@@ -3979,10 +3981,8 @@
             loadIELTSFolders();
         }
 
-        // ===== EDIT WORD FUNCTIONS =====
         function editWord(type, id, word, definition, folderId) {
-            editingWordId = id;
-            editingWordType = type;
+            editingWordId = id; editingWordType = type;
             if (type === 'sat') {
                 document.getElementById('sat-word').value = word;
                 document.getElementById('sat-def').value = definition;
@@ -3996,12 +3996,10 @@
                 document.getElementById('ielts-add-btn').textContent = '✏️ Update Word';
                 document.getElementById('ielts-cancel-edit').style.display = 'inline-block';
             }
-            document.querySelector(`#${type}-folder-select`).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function cancelEdit(type) {
-            editingWordId = null;
-            editingWordType = null;
+            editingWordId = null; editingWordType = null;
             if (type === 'sat') {
                 document.getElementById('sat-word').value = '';
                 document.getElementById('sat-def').value = '';
@@ -4015,63 +4013,38 @@
             }
         }
 
-        // Migration is complete — all words already have folder fields.
-        // These are kept as no-ops so existing call sites don't break.
         async function migrateExistingSATWords()  { /* already migrated */ }
         async function migrateExistingIELTSWords() { /* already migrated */ }
 
-        // Cached folder lists for the edu view
         let cachedFolders_sat = [];
         let cachedFolders_ielts = [];
 
         function showPermissionError(vocabType) {
-            const ids = vocabType === 'sat'
-                ? ['edu-sat-folders-list']
-                : ['edu-ielts-folders-list'];
+            const ids = vocabType === 'sat' ? ['edu-sat-folders-list'] : ['edu-ielts-folders-list'];
             ids.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.innerHTML = `
-                    <div style="background:#fff8f0;border:2px solid #D9B99B;border-radius:16px;padding:24px;margin:10px 0;">
-                        <div style="font-weight:800;font-size:16px;margin-bottom:10px;">⚠️ Firebase Permission Denied</div>
-                        <div style="font-size:13px;color:#555;line-height:1.8;">
-                            Your database rules are blocking reads from unauthenticated users.<br>
-                            <strong>To fix:</strong> open your
-                            <a href="https://console.firebase.google.com/project/dataluminary/database/dataluminary-default-rtdb-europe-west1/rules"
-                               target="_blank" style="color:#D9B99B;font-weight:700;">Firebase Console → Rules</a>
-                            and paste:<br>
-                            <code style="display:block;background:#f5f5f5;padding:10px 14px;border-radius:8px;margin-top:8px;font-size:12px;white-space:pre;">{
-  "rules": {
-    ".read": true,
-    ".write": "auth != null"
-  }
-}</code>
-                        </div>
-                    </div>`;
+                el.innerHTML = `<div style="background:#fff8f0;border:2px solid #D9B99B;border-radius:16px;padding:24px;margin:10px 0;"><div style="font-weight:800;font-size:16px;margin-bottom:10px;">⚠️ Firebase Permission Denied</div></div>`;
             });
         }
 
         function loadVocabRealtime() {
             const { db, ref, onValue } = window.firebase;
-
             onValue(ref(db, 'sat-folders'), (snapshot) => {
                 const data = snapshot.val();
                 cachedFolders_sat = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 renderVocabList('sat');
             }, () => showPermissionError('sat'));
-
             onValue(ref(db, 'ielts-folders'), (snapshot) => {
                 const data = snapshot.val();
                 cachedFolders_ielts = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 renderVocabList('ielts');
             }, () => showPermissionError('ielts'));
-
             onValue(ref(db, 'sat-words'), (snapshot) => {
                 const data = snapshot.val();
                 cachedVocab_sat = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
                 renderVocabList('sat');
             }, () => showPermissionError('sat'));
-
             onValue(ref(db, 'ielts-words'), (snapshot) => {
                 const data = snapshot.val();
                 cachedVocab_ielts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -4090,132 +4063,75 @@
 
         function loadContentRealtime() {
             const { db, ref, onValue } = window.firebase;
-
             const renderContentItems = (containerId, items, type) => {
                 const el = document.getElementById(containerId);
                 if (!el) return;
-
                 if (items.length === 0) {
                     el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:700;font-size:16px;">Nothing here yet!</div></div>';
                     return;
                 }
-
                 const grouped = {};
-                items.forEach(it => {
-                    const fn = it.folderName || 'General';
-                    if (!grouped[fn]) grouped[fn] = [];
-                    grouped[fn].push(it);
-                });
-
+                items.forEach(it => { const fn = it.folderName || 'General'; if (!grouped[fn]) grouped[fn] = []; grouped[fn].push(it); });
                 const quizItems = items.filter(it => it.quiz && it.quiz.q);
                 const isRules   = type === 'edu-rules-sat-content';
                 const pageTitle = isRules ? 'SAT Grammar & Punctuation Rules' : 'SAT Hacks & Strategies';
                 const heroSub   = isRules ? 'Master the rules. Ace the test.' : 'Smart shortcuts to boost your score.';
                 const quizLabel = isRules ? 'Rules Practice' : 'Hacks Quiz';
                 const totalRules = items.length;
-
-                // Build page — clean title, no hero block
-                const qdata_all = quizItems.length > 0
-                    ? JSON.stringify(quizItems).replace(/"/g,'&quot;')
-                    : '';
-
+                const qdata_all = quizItems.length > 0 ? JSON.stringify(quizItems).replace(/"/g,'&quot;') : '';
                 let html = `<div class="rules-page-wrap">
                     <div class="rules-main-title">${pageTitle}</div>
                     <div class="rules-hero-sub">${heroSub} · ${totalRules} rule${totalRules!==1?'s':''}</div>
-                    ${quizItems.length > 0 ? `
-                    <button class="rules-practice-btn" onclick="startQuiz(${qdata_all},'${quizLabel}')">
-                        ✏️ Practice Questions
-                        <span class="rules-practice-btn-count">${quizItems.length} Qs</span>
-                    </button>` : ''}`;
-
+                    ${quizItems.length > 0 ? `<button class="rules-practice-btn" onclick="startQuiz(${qdata_all},'${quizLabel}')">✏️ Practice Questions<span class="rules-practice-btn-count">${quizItems.length} Qs</span></button>` : ''}`;
                 let ruleNum = 1;
                 Object.entries(grouped).forEach(([sectionName, its]) => {
                     html += `<div class="rule-section-title">${sectionName}</div>`;
-
                     its.forEach(it => {
-                        html += `<div class="rule-block">
-                            <div class="rule-headline">
-                                <span class="rule-num">${ruleNum++}.&nbsp;</span>
-                                <span class="rule-statement">${it.title}</span>
-                            </div>`;
-
+                        html += `<div class="rule-block"><div class="rule-headline"><span class="rule-num">${ruleNum++}.&nbsp;</span><span class="rule-statement">${it.title}</span></div>`;
                         if (it.body && it.body.trim()) {
                             it.body.split('\n').filter(p => p.trim()).forEach(para => {
                                 const t = para.trim();
-                                if (t.startsWith('✅') || t.startsWith('☑')) {
-                                    html += `<div class="rule-body-correct">${t.replace(/^[✅☑]\s*/u,'')}</div>`;
-                                } else if (t.startsWith('❌') || t.startsWith('✗')) {
-                                    html += `<div class="rule-body-wrong">${t.replace(/^[❌✗]\s*/u,'')}</div>`;
-                                } else if (t.startsWith('•') || t.startsWith('-') || t.startsWith('–')) {
-                                    html += `<div class="rule-body-bullet">${t.replace(/^[-–•]\s*/u,'')}</div>`;
-                                } else {
-                                    html += `<div class="rule-body-text">${t}</div>`;
-                                }
+                                if (t.startsWith('✅') || t.startsWith('☑')) html += `<div class="rule-body-correct">${t.replace(/^[✅☑]\s*/u,'')}</div>`;
+                                else if (t.startsWith('❌') || t.startsWith('✗')) html += `<div class="rule-body-wrong">${t.replace(/^[❌✗]\s*/u,'')}</div>`;
+                                else if (t.startsWith('•') || t.startsWith('-') || t.startsWith('–')) html += `<div class="rule-body-bullet">${t.replace(/^[-–•]\s*/u,'')}</div>`;
+                                else html += `<div class="rule-body-text">${t}</div>`;
                             });
                         }
-
-                        if (it.quiz && it.quiz.q) {
-                            html += `<div class="rule-has-quiz">🧠 Practice question</div>`;
-                        }
+                        if (it.quiz && it.quiz.q) html += `<div class="rule-has-quiz">🧠 Practice question</div>`;
                         html += `</div>`;
                     });
                 });
-
                 html += '</div>';
                 el.innerHTML = html;
             };
-
             onValue(ref(db, 'sat-rules-items'), (snap) => {
                 const data = snap.val();
                 const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 renderContentItems('edu-rules-sat-content', items, 'edu-rules-sat-content');
             }, () => {});
-
             onValue(ref(db, 'sat-hacks-items'), (snap) => {
                 const data = snap.val();
                 const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 renderContentItems('edu-hacks-sat-content', items, 'edu-hacks-sat-content');
             }, () => {});
-
             onValue(ref(db, 'sat-practice-tests'), (snap) => {
                 const data = snap.val();
                 const tests = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 const el = document.getElementById('edu-practice-sat-content');
                 if (!el) return;
-                if (tests.length === 0) {
-                    el.innerHTML = '<div class="sub-card" style="text-align:center;padding:40px;color:#aaa;">No practice tests yet!</div>';
-                    return;
-                }
-                el.innerHTML = tests.map(t => `
-                    <a href="${t.url}" target="_blank" style="text-decoration:none;">
-                        <div class="edu-card">
-                            <div>
-                                <div class="edu-title" style="font-size:18px;">${t.title}</div>
-                                ${t.desc ? `<div style="font-size:13px;color:#888;margin-top:6px;">${t.desc}</div>` : ''}
-                            </div>
-                            <div class="edu-icon">🔗</div>
-                        </div>
-                    </a>`).join('');
+                if (tests.length === 0) { el.innerHTML = '<div class="sub-card" style="text-align:center;padding:40px;color:#aaa;">No practice tests yet!</div>'; return; }
+                el.innerHTML = tests.map(t => `<a href="${t.url}" target="_blank" style="text-decoration:none;"><div class="edu-card"><div><div class="edu-title" style="font-size:18px;">${t.title}</div>${t.desc ? `<div style="font-size:13px;color:#888;margin-top:6px;">${t.desc}</div>` : ''}</div><div class="edu-icon">🔗</div></div></a>`).join('');
             }, () => {});
         }
-
 
         function renderVocabList(vocabType) {
             const containerId = vocabType === 'sat' ? 'edu-sat-folders-list' : 'edu-ielts-folders-list';
             const container = document.getElementById(containerId);
             if (!container) return;
-
-            const words  = vocabType === 'sat' ? cachedVocab_sat   : cachedVocab_ielts;
+            const words   = vocabType === 'sat' ? cachedVocab_sat   : cachedVocab_ielts;
             const folders = vocabType === 'sat' ? cachedFolders_sat : cachedFolders_ielts;
-
-            // Build word count per folder ID
             const countById = {};
-            words.forEach(w => {
-                const fid = w.folder || '__none__';
-                countById[fid] = (countById[fid] || 0) + 1;
-            });
-
-            // If we have folders, render from folder list (source of truth)
+            words.forEach(w => { const fid = w.folder || '__none__'; countById[fid] = (countById[fid] || 0) + 1; });
             if (folders.length > 0) {
                 container.innerHTML = folders.map(folder => {
                     const wordCount = countById[folder.id] || 0;
@@ -4223,73 +4139,43 @@
                     const hasSaved  = loadDCState(folder.id);
                     const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
                     const safeName  = folder.name.replace(/'/g, "\'");
-                    return `
-                        <div class="edu-card" onclick="openFolderPage('${folder.id}','${safeName}','${vocabType}')">
-                            <div>
-                                <div class="edu-title">📁 ${folder.name}</div>
-                                <div style="font-size:13px;color:#888;margin-top:8px;">
-                                    ${wordCount} ${wordCount === 1 ? 'word' : 'words'}
-                                    ${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}
-                                    ${hasResume ? ' • <span style="color:var(--accent);font-weight:700;">RESUME</span>' : ''}
-                                </div>
-                            </div>
-                            <div class="edu-icon">📖</div>
-                        </div>`;
+                    return `<div class="edu-card" onclick="openFolderPage('${folder.id}','${safeName}','${vocabType}')">
+                        <div>
+                            <div class="edu-title">📁 ${folder.name}</div>
+                            <div style="font-size:13px;color:#888;margin-top:8px;">${wordCount} ${wordCount === 1 ? 'word' : 'words'}${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}${hasResume ? ' • <span style="color:var(--accent);font-weight:700;">RESUME</span>' : ''}</div>
+                        </div>
+                        <div class="edu-icon">📖</div>
+                    </div>`;
                 }).join('');
                 return;
             }
-
-            // Fallback: no folders yet
-            if (words.length === 0) {
-                container.innerHTML = '<div class="sub-card" style="text-align:center;padding:30px;color:#888;">No words yet. Add some in admin!</div>';
-                return;
-            }
-
-            // Fallback: folders not loaded yet but words exist — group by folderName
+            if (words.length === 0) { container.innerHTML = '<div class="sub-card" style="text-align:center;padding:30px;color:#888;">No words yet.</div>'; return; }
             const grouped = {};
-            words.forEach(word => {
-                const fn = word.folderName || 'Uncategorized';
-                if (!grouped[fn]) grouped[fn] = { words: [], folderId: word.folder || '' };
-                grouped[fn].words.push(word);
-            });
+            words.forEach(word => { const fn = word.folderName || 'Uncategorized'; if (!grouped[fn]) grouped[fn] = { words: [], folderId: word.folder || '' }; grouped[fn].words.push(word); });
             container.innerHTML = Object.entries(grouped).map(([folderName, meta]) => {
                 const wordCount = meta.words.length;
                 const savedAcc  = meta.folderId ? localStorage.getItem(`dc_accuracy_${meta.folderId}`) : null;
                 const safeName  = folderName.replace(/'/g, "\'");
-                return `
-                    <div class="edu-card" onclick="openFolderPage('${meta.folderId}','${safeName}','${vocabType}')">
-                        <div>
-                            <div class="edu-title">📁 ${folderName}</div>
-                            <div style="font-size:13px;color:#888;margin-top:8px;">${wordCount} ${wordCount === 1 ? 'word' : 'words'}${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}</div>
-                        </div>
-                        <div class="edu-icon">📖</div>
-                    </div>`;
+                return `<div class="edu-card" onclick="openFolderPage('${meta.folderId}','${safeName}','${vocabType}')">
+                    <div><div class="edu-title">📁 ${folderName}</div><div style="font-size:13px;color:#888;margin-top:8px;">${wordCount} ${wordCount === 1 ? 'word' : 'words'}${savedAcc !== null ? ` • ${savedAcc}% accuracy` : ''}</div></div>
+                    <div class="edu-icon">📖</div>
+                </div>`;
             }).join('');
         }
+
         function openFolderPage(folderId, folderName, vocabType) {
             const allWords = vocabType === 'sat' ? cachedVocab_sat : cachedVocab_ielts;
-            // Match by folder ID (primary) or folderName (fallback)
             const folderWords = allWords.filter(w => folderId ? w.folder === folderId : (w.folderName || 'Uncategorized') === folderName);
-
             const pageId = `folder-page-${folderId}`;
             const pagesContainer = document.getElementById(`folder-pages-${vocabType}`);
             let folderPage = document.getElementById(pageId);
-
-            if (!folderPage) {
-                folderPage = document.createElement('div');
-                folderPage.id = pageId;
-                folderPage.className = 'edu-section';
-                pagesContainer.appendChild(folderPage);
-            }
-
+            if (!folderPage) { folderPage = document.createElement('div'); folderPage.id = pageId; folderPage.className = 'edu-section'; pagesContainer.appendChild(folderPage); }
             const savedAcc = folderId ? localStorage.getItem(`dc_accuracy_${folderId}`) : null;
             const hasSaved = folderId ? loadDCState(folderId) : null;
             const hasResume = (hasSaved && hasSaved.queue && hasSaved.queue.length > 0);
-
             folderPage.innerHTML = `
                 <button class="back-btn-edu" onclick="closeFolderPage('${vocabType}')">← Назад</button>
                 <div class="label">${folderName}</div>
-
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; padding: 0 20px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 14px; color: #888; font-weight: 600;">${folderWords.length} words</span>
@@ -4297,27 +4183,17 @@
                         ${hasResume ? `<span style="background:var(--accent); color:white; font-size:11px; font-weight:800; padding:4px 12px; border-radius:12px;">RESUME</span>` : ''}
                     </div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn-primary" onclick="openDuoCards('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" style="padding: 10px 20px; width: auto;">
-                            🃏 Start Cards
-                        </button>
+                        <button class="btn-primary" onclick="openDuoCards('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" style="padding: 10px 20px; width: auto;">🃏 Start Cards</button>
                         ${folderId && folderName !== 'Default' ? `
                         <button class="folder-edit-btn" onclick="editFolder('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" title="Edit folder name" style="padding: 8px 12px;">✏️</button>
                         <button class="folder-delete-btn" onclick="deleteFolder('${folderId}', '${folderName.replace(/'/g,"\\'")}', '${vocabType}')" title="Delete folder" style="padding: 8px 12px;">🗑️</button>
                         ` : ''}
                     </div>
                 </div>
-
                 <div class="vocab-list" style="display: grid; gap: 10px; padding: 0 20px;">
-                    ${folderWords.map(w => `
-                        <div class="vocab-item">
-                            <div class="v-word">${w.w}</div>
-                            <div class="v-def">${w.d}</div>
-                        </div>
-                    `).join('')}
+                    ${folderWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('')}
                 </div>
-                <div class="spacer"></div>
-            `;
-
+                <div class="spacer"></div>`;
             document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
             folderPage.classList.add('active');
         }
@@ -4325,14 +4201,12 @@
         function closeFolderPage(vocabType) {
             const pagesContainer = document.getElementById(`folder-pages-${vocabType}`);
             pagesContainer.querySelectorAll('.edu-section').forEach(p => p.classList.remove('active'));
-            const vocabSection = document.getElementById(vocabType === 'sat' ? 'edu-vocab-sat' : 'edu-vocab-ielts');
-            vocabSection.classList.add('active');
+            document.getElementById(vocabType === 'sat' ? 'edu-vocab-sat' : 'edu-vocab-ielts').classList.add('active');
         }
 
         async function editFolder(folderId, currentName, vocabType) {
             const newName = prompt(`Rename folder "${currentName}":`, currentName);
             if (!newName || newName.trim() === '' || newName === currentName) return;
-
             const { db, ref, get, set } = window.firebase;
             try {
                 const folderPath = vocabType === 'sat' ? 'sat-folders' : 'ielts-folders';
@@ -4341,44 +4215,30 @@
                 const vocabSnapshot = await get(ref(db, vocabPath));
                 const words = vocabSnapshot.val() || {};
                 for (const [key, word] of Object.entries(words)) {
-                    if (word.folder === folderId) {
-                        await set(ref(db, `${vocabPath}/${key}/folderName`), newName.trim());
-                    }
+                    if (word.folder === folderId) await set(ref(db, `${vocabPath}/${key}/folderName`), newName.trim());
                 }
                 closeFolderPage(vocabType);
                 renderVocabList(vocabType);
-                alert(`Folder renamed to "${newName.trim()}" successfully!`);
-            } catch (error) {
-                alert('Error renaming folder: ' + error.message);
-            }
+            } catch (error) { alert('Error renaming folder: ' + error.message); }
         }
 
         async function deleteFolder(folderId, folderName, vocabType) {
-            if (!confirm(`Delete folder "${folderName}"?\n\nAll words in this folder will need to be reassigned. This action cannot be undone.`)) return;
-
+            if (!confirm(`Delete folder "${folderName}"?`)) return;
             const { db, ref, get, remove } = window.firebase;
             try {
                 const vocabPath = vocabType === 'sat' ? 'sat-words' : 'ielts-words';
                 const snapshot = await get(ref(db, vocabPath));
                 const words = snapshot.val() || {};
                 let affectedCount = 0;
-                for (const word of Object.values(words)) {
-                    if (word.folder === folderId) affectedCount++;
-                }
-                if (affectedCount > 0) {
-                    alert(`Cannot delete folder: ${affectedCount} words are still in this folder. Please move or delete the words first in Admin panel.`);
-                    return;
-                }
+                for (const word of Object.values(words)) { if (word.folder === folderId) affectedCount++; }
+                if (affectedCount > 0) { alert(`Cannot delete: ${affectedCount} words still in this folder.`); return; }
                 const folderPath = vocabType === 'sat' ? 'sat-folders' : 'ielts-folders';
                 await remove(ref(db, `${folderPath}/${folderId}`));
                 localStorage.removeItem(`dc_state_${folderId}`);
                 localStorage.removeItem(`dc_accuracy_${folderId}`);
                 closeFolderPage(vocabType);
                 renderVocabList(vocabType);
-                alert(`Folder "${folderName}" deleted successfully!`);
-            } catch (error) {
-                alert('Error deleting folder: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
 
         function renderPodcastsFromData(podcasts) {
@@ -4389,20 +4249,13 @@
                 container.innerHTML = podcasts.map(p => `
                     <a href="${p.u}" target="_blank" class="podcast-item">
                         <div class="podcast-thumb" style="background-image:url('${p.i}')"></div>
-                        <div class="podcast-body">
-                            <h3>${p.t}</h3>
-                            <span>Слушать на YouTube</span>
-                        </div>
-                    </a>
-                `).join('');
+                        <div class="podcast-body"><h3>${p.t}</h3><span>Слушать на YouTube</span></div>
+                    </a>`).join('');
             }
         }
 
         // ===== INIT =====
-        window.addEventListener('firebaseReady', () => {
-            console.log('✅ App initializing with Firebase...');
-            initApp();
-        });
+        window.addEventListener('firebaseReady', () => { initApp(); });
 
         async function initApp() {
             loadAllBooksRealtime();
@@ -4410,8 +4263,6 @@
             renderThemeGrid();
             document.getElementById('notes-area').value = localStorage.getItem('lum_notes') || "";
             setTheme(localStorage.getItem('lum_theme') || 'beige');
-
-            // Start vocab listeners immediately — all data already has folder fields
             loadVocabRealtime();
             loadContentRealtime();
         }
@@ -4426,17 +4277,11 @@
         let dragState = { active: false, startX: 0, startY: 0, curX: 0, curY: 0 };
 
         function openDuoCards(folderId, folderName, type) {
-            dc.folderId = folderId;
-            dc.folderName = folderName;
-            dc.type = type;
-
+            dc.folderId = folderId; dc.folderName = folderName; dc.type = type;
             const saved = loadDCState(folderId);
             if (saved && saved.queue && saved.queue.length > 0) {
-                dc.queue = saved.queue;
-                dc.allWords = saved.allWords;
-                dc.known = saved.known;
-                dc.totalSwipes = saved.totalSwipes;
-                dc.rightSwipes = saved.rightSwipes;
+                dc.queue = saved.queue; dc.allWords = saved.allWords; dc.known = saved.known;
+                dc.totalSwipes = saved.totalSwipes; dc.rightSwipes = saved.rightSwipes;
                 startDCSession();
             } else {
                 const { db, ref, get } = window.firebase;
@@ -4445,11 +4290,8 @@
                     const data = snap.val() || {};
                     const words = Object.keys(data).map(k => ({ id: k, ...data[k] })).filter(w => w.folder === folderId);
                     if (words.length === 0) { alert('No words in this folder yet!'); return; }
-                    dc.allWords = words;
-                    dc.queue = shuffle([...words]);
-                    dc.known = 0;
-                    dc.totalSwipes = 0;
-                    dc.rightSwipes = 0;
+                    dc.allWords = words; dc.queue = shuffle([...words]);
+                    dc.known = 0; dc.totalSwipes = 0; dc.rightSwipes = 0;
                     startDCSession();
                 });
             }
@@ -4469,9 +4311,7 @@
             const word = dc.queue[0];
             const card = document.getElementById('dc-card');
             card.classList.remove('tint-right', 'tint-left', 'word-enter');
-            card.style.transition = '';
-            card.style.transform  = '';
-            card.style.opacity    = '';
+            card.style.transition = ''; card.style.transform = ''; card.style.opacity = '';
             document.getElementById('dc-card-word').textContent = word.w;
             document.getElementById('dc-card-def').textContent  = word.d;
             dc.isFlipped = false;
@@ -4493,18 +4333,16 @@
             const card    = document.getElementById('dc-card');
             const isRight = direction === 'right';
             const targetX = isRight ? window.innerWidth * 1.2 : -window.innerWidth * 1.2;
-
             card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
             card.style.transform  = `translateX(${targetX}px) rotate(${isRight ? 18 : -18}deg)`;
             card.style.opacity    = '0';
             document.getElementById('dc-hint-know').classList.toggle('show', isRight);
             document.getElementById('dc-hint-dontknow').classList.toggle('show', !isRight);
-
             setTimeout(() => {
                 const word = dc.queue.shift();
                 dc.totalSwipes++;
                 if (isRight) { dc.rightSwipes++; dc.known++; }
-                else          { dc.queue.push(word); }
+                else { dc.queue.push(word); }
                 saveDCState();
                 document.getElementById('dc-hint-know').classList.remove('show');
                 document.getElementById('dc-hint-dontknow').classList.remove('show');
@@ -4523,41 +4361,29 @@
         }
 
         function completeDCSession() {
-            const accuracy = dc.totalSwipes > 0
-                ? Math.round((dc.rightSwipes / dc.totalSwipes) * 100) : 100;
+            const accuracy = dc.totalSwipes > 0 ? Math.round((dc.rightSwipes / dc.totalSwipes) * 100) : 100;
             localStorage.setItem(`dc_accuracy_${dc.folderId}`, accuracy);
             clearDCState(dc.folderId);
             document.getElementById('dc-actions').style.display = 'none';
             document.getElementById('dc-complete').classList.add('active');
             document.getElementById('dc-accuracy-pct').textContent = accuracy + '%';
             document.getElementById('dc-accuracy-ring').style.setProperty('--pct', accuracy + '%');
-            document.getElementById('dc-complete-sub').textContent =
-                `You mastered all ${dc.allWords.length} words in this folder!`;
+            document.getElementById('dc-complete-sub').textContent = `You mastered all ${dc.allWords.length} words!`;
             refreshAccuracyBadges();
         }
 
         function exitDuoCards() {
             if (dc.queue.length > 0) {
                 saveDCState();
-                if (dc.totalSwipes > 0) {
-                    const accuracy = Math.round((dc.rightSwipes / dc.totalSwipes) * 100);
-                    localStorage.setItem(`dc_accuracy_${dc.folderId}`, accuracy);
-                }
+                if (dc.totalSwipes > 0) localStorage.setItem(`dc_accuracy_${dc.folderId}`, Math.round((dc.rightSwipes / dc.totalSwipes) * 100));
             }
             document.getElementById('duocards-view').classList.remove('active');
             unbindDCDrag();
             refreshAccuracyBadges();
         }
 
-        function saveDCState() {
-            const state = { queue: dc.queue, allWords: dc.allWords, known: dc.known,
-                            totalSwipes: dc.totalSwipes, rightSwipes: dc.rightSwipes };
-            localStorage.setItem(`dc_state_${dc.folderId}`, JSON.stringify(state));
-        }
-        function loadDCState(folderId) {
-            try { return JSON.parse(localStorage.getItem(`dc_state_${folderId}`)); }
-            catch { return null; }
-        }
+        function saveDCState() { localStorage.setItem(`dc_state_${dc.folderId}`, JSON.stringify({ queue: dc.queue, allWords: dc.allWords, known: dc.known, totalSwipes: dc.totalSwipes, rightSwipes: dc.rightSwipes })); }
+        function loadDCState(folderId) { try { return JSON.parse(localStorage.getItem(`dc_state_${folderId}`)); } catch { return null; } }
         function clearDCState(folderId) { localStorage.removeItem(`dc_state_${folderId}`); }
 
         function bindDCDrag() {
@@ -4588,8 +4414,7 @@
         function dcDragMove(e) {
             if (!dragState.active) return;
             const t = e.touches ? e.touches[0] : e;
-            dragState.curX = t.clientX;
-            dragState.curY = t.clientY;
+            dragState.curX = t.clientX; dragState.curY = t.clientY;
             const dx = dragState.curX - dragState.startX;
             const card = document.getElementById('dc-card');
             card.style.transform = `translateX(${dx}px) rotate(${dx * 0.06}deg)`;
@@ -4608,20 +4433,15 @@
             document.getElementById('dc-hint-know').classList.remove('show');
             document.getElementById('dc-hint-dontknow').classList.remove('show');
             card.classList.remove('tint-right','tint-left');
-
-            if (Math.abs(dx) > 90 && Math.abs(dy) < 90) {
-                swipeCard(dx > 0 ? 'right' : 'left');
-            } else {
-                card.style.transition = 'transform 0.3s ease';
-                card.style.transform  = '';
-            }
+            if (Math.abs(dx) > 90 && Math.abs(dy) < 90) { swipeCard(dx > 0 ? 'right' : 'left'); }
+            else { card.style.transition = 'transform 0.3s ease'; card.style.transform = ''; }
         }
 
         function refreshAccuracyBadges() {
             document.querySelectorAll('[data-folder-accuracy]').forEach(el => {
                 const fid = el.getAttribute('data-folder-accuracy');
                 const acc = localStorage.getItem(`dc_accuracy_${fid}`);
-                el.textContent   = acc !== null ? acc + '%' : '';
+                el.textContent = acc !== null ? acc + '%' : '';
                 el.style.display = acc !== null ? 'inline-flex' : 'none';
             });
             document.querySelectorAll('[data-folder-resume]').forEach(el => {
