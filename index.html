@@ -4641,7 +4641,8 @@ Rules:
 - Be concise and educational`;
 
             try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                // Calls your Firebase Cloud Function proxy (avoids CORS)
+                const response = await fetch('https://us-central1-dataluminary.cloudfunctions.net/claudeProxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
