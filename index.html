@@ -2156,7 +2156,15 @@
                             </div>
                             <div class="form-group">
                                 <label>Definition</label>
-                                <textarea id="sat-def" placeholder="e.g., Well meaning and kindly"></textarea>
+                                <textarea id="sat-def" placeholder="e.g., Well meaning and kindly" style="min-height:60px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Antonym(s) <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                                <input type="text" id="sat-antonym" placeholder="e.g., Malevolent, Hostile">
+                            </div>
+                            <div class="form-group">
+                                <label>Example Sentence <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                                <textarea id="sat-sentence" placeholder="e.g., The benevolent teacher stayed after class to help struggling students." style="min-height:60px;"></textarea>
                             </div>
                             <button class="btn-primary" id="sat-add-btn" onclick="addSATWord()">Add SAT Word</button>
                             <button id="sat-cancel-edit" onclick="cancelEdit('sat')" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;display:none;">Cancel Edit</button>
@@ -2300,7 +2308,9 @@
                                 </select>
                             </div>
                             <div class="form-group"><label>Word</label><input type="text" id="ielts-word" placeholder="e.g., Coherent"></div>
-                            <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g., Logical and consistent"></textarea></div>
+                            <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g., Logical and consistent" style="min-height:60px;"></textarea></div>
+                            <div class="form-group"><label>Antonym(s) <span style="font-weight:400;color:#aaa;">(optional)</span></label><input type="text" id="ielts-antonym" placeholder="e.g., Incoherent, Illogical"></div>
+                            <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#aaa;">(optional)</span></label><textarea id="ielts-sentence" placeholder="e.g., Her coherent argument convinced the entire panel." style="min-height:60px;"></textarea></div>
                             <button class="btn-primary" id="ielts-add-btn" onclick="addIELTSWord()">Add IELTS Word</button>
                             <button id="ielts-cancel-edit" onclick="cancelEdit('ielts')" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #ff4444;background:none;font-family:inherit;font-weight:700;cursor:pointer;color:#ff4444;display:none;">Cancel Edit</button>
                         </div>
@@ -2319,6 +2329,51 @@
                         <div class="form-group"><label>YouTube URL</label><input type="text" id="podcast-url" placeholder="https://youtu.be/..."></div>
                         <button class="btn-primary" onclick="addPodcast()">Add Podcast</button>
                         <div class="item-list" id="podcast-list-admin"></div>
+                    </div>
+                </div>
+
+                <!-- ── AI ASSISTANT ── -->
+                <div class="admin-section collapsed" id="as-ai">
+                    <div class="admin-section-header" onclick="toggleAdminSection('as-ai')">
+                        <h3>🤖 AI Word Assistant</h3>
+                        <span class="admin-section-toggle">▼</span>
+                    </div>
+                    <div class="admin-section-body">
+                        <div style="background:linear-gradient(135deg,#1a85c8,#7c3aed);border-radius:16px;padding:20px;margin-bottom:16px;color:white;">
+                            <div style="font-weight:800;font-size:16px;margin-bottom:6px;">✨ Claude AI Assistant</div>
+                            <div style="font-size:13px;opacity:0.9;line-height:1.5;">Ask me to generate antonyms, example sentences, word lists, or bulk-add words directly to any folder. I can also edit existing words, suggest SAT/IELTS vocabulary, and publish everything to Firebase.</div>
+                        </div>
+
+                        <!-- Chat area -->
+                        <div id="ai-chat-messages" style="background:#f8f9fa;border-radius:14px;padding:16px;min-height:200px;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;">
+                            <div class="ai-msg ai-msg-bot" style="background:white;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;box-shadow:0 1px 6px rgba(0,0,0,0.06);max-width:90%;">
+                                👋 Hi! I'm your AI word assistant. I can:<br>
+                                • <b>Generate antonyms & sentences</b> for any word<br>
+                                • <b>Suggest new vocabulary</b> for SAT or IELTS<br>
+                                • <b>Bulk-create word lists</b> and publish to Firebase<br>
+                                • <b>Edit existing words</b> — just ask!<br><br>
+                                Try: <i>"Generate 5 SAT words with definitions, antonyms and sentences"</i> or <i>"Add antonyms for Benevolent"</i>
+                            </div>
+                        </div>
+
+                        <!-- Folder selector for AI publishing -->
+                        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+                            <div style="font-size:12px;font-weight:700;color:#666;white-space:nowrap;">Publish to:</div>
+                            <select id="ai-target-type" onchange="updateAIFolderSelect()" style="padding:8px 10px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:13px;background:white;flex:1;">
+                                <option value="sat">SAT Vocabulary</option>
+                                <option value="ielts">IELTS Vocabulary</option>
+                            </select>
+                            <select id="ai-target-folder" style="padding:8px 10px;border:2px solid rgba(0,0,0,0.1);border-radius:10px;font-family:inherit;font-size:13px;background:white;flex:1;">
+                                <option value="">Loading folders...</option>
+                            </select>
+                        </div>
+
+                        <!-- Input row -->
+                        <div style="display:flex;gap:8px;">
+                            <textarea id="ai-chat-input" placeholder="Ask me anything about vocabulary..." style="flex:1;padding:12px 14px;border:2px solid rgba(0,0,0,0.1);border-radius:12px;font-family:inherit;font-size:14px;resize:none;min-height:54px;max-height:120px;line-height:1.5;background:white;outline:none;transition:border-color 0.2s;" onkeydown="aiChatKeydown(event)"></textarea>
+                            <button onclick="sendAIMessage()" id="ai-send-btn" style="background:linear-gradient(135deg,#1a85c8,#7c3aed);border:none;color:white;width:54px;height:54px;border-radius:12px;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">→</button>
+                        </div>
+                        <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:center;">Powered by Claude · Words publish directly to Firebase</div>
                     </div>
                 </div>
 
@@ -2984,16 +3039,20 @@
                         <button class="bulk-del-btn" id="bulk-del-${gid}" onclick="bulkDeleteWords('${gid}','${type}')">🗑️ Delete selected</button>
                     </div>
                     ${folderWords.map(word => {
-                        const sw = (word.w||'').replace(/'/g,"\\'");
-                        const sd = (word.d||'').replace(/'/g,"\\'");
+                        const sw   = (word.w||'').replace(/'/g,"\\'");
+                        const sd   = (word.d||'').replace(/'/g,"\\'");
+                        const sant = (word.ant||'').replace(/'/g,"\\'");
+                        const sex  = (word.ex||'').replace(/'/g,"\\'");
                         return `<div class="word-item-row" id="row-${word.id}" data-group="${gid}" data-id="${word.id}">
                             <input type="checkbox" class="word-checkbox" data-group="${gid}" data-id="${word.id}" onchange="updateBulkBar('${gid}')">
                             <div class="word-item-info">
                                 <div class="word-item-word">${word.w}</div>
                                 <div class="word-item-def">${word.d}</div>
+                                ${word.ant ? `<div style="font-size:11px;color:#1a85c8;margin-top:2px;">↔ ${word.ant}</div>` : ''}
+                                ${word.ex  ? `<div style="font-size:11px;color:#888;margin-top:2px;font-style:italic;">"${word.ex.substring(0,60)}${word.ex.length>60?'…':''}"</div>` : ''}
                             </div>
                             <div class="word-item-actions">
-                                <button class="word-btn-sm word-btn-edit" onclick="editWord('${type}','${word.id}','${sw}','${sd}','${word.folder}')">✏️</button>
+                                <button class="word-btn-sm word-btn-edit" onclick="editWord('${type}','${word.id}','${sw}','${sd}','${word.folder}','${sant}','${sex}')">✏️</button>
                                 <button class="word-btn-sm word-btn-del" onclick="deleteSingleWord('${type}','${word.id}','${sw}')">🗑️</button>
                             </div>
                         </div>`;
@@ -3421,44 +3480,58 @@
         async function addSATWord() {
             const word     = document.getElementById('sat-word').value.trim();
             const def      = document.getElementById('sat-def').value.trim();
+            const antonym  = document.getElementById('sat-antonym').value.trim();
+            const sentence = document.getElementById('sat-sentence').value.trim();
             const folderId = document.getElementById('sat-folder-select').value;
-            if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
+            if (!word || !def || !folderId) { alert('Please fill in Word, Definition and select a folder'); return; }
             const { db, ref, push, set, get } = window.firebase;
             const folderSnap = await get(ref(db, `sat-folders/${folderId}`));
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
+            const payload = { w: word, d: def, folder: folderId, folderName };
+            if (antonym)  payload.ant = antonym;
+            if (sentence) payload.ex  = sentence;
             if (editingWordId && editingWordType === 'sat') {
-                await set(ref(db, `sat-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
+                await set(ref(db, `sat-words/${editingWordId}`), payload);
                 showSuccess(`Word updated! ✏️`);
                 cancelEdit('sat');
             } else {
                 const r = push(ref(db, 'sat-words'));
-                await set(r, { w: word, d: def, folder: folderId, folderName });
+                await set(r, payload);
                 showSuccess(`Word added to "${folderName}"! ☁️`);
             }
-            document.getElementById('sat-word').value = '';
-            document.getElementById('sat-def').value  = '';
+            document.getElementById('sat-word').value     = '';
+            document.getElementById('sat-def').value      = '';
+            document.getElementById('sat-antonym').value  = '';
+            document.getElementById('sat-sentence').value = '';
             loadAdminData();
         }
 
         async function addIELTSWord() {
             const word     = document.getElementById('ielts-word').value.trim();
             const def      = document.getElementById('ielts-def').value.trim();
+            const antonym  = document.getElementById('ielts-antonym').value.trim();
+            const sentence = document.getElementById('ielts-sentence').value.trim();
             const folderId = document.getElementById('ielts-folder-select').value;
-            if (!word || !def || !folderId) { alert('Please fill in all fields and select a folder'); return; }
+            if (!word || !def || !folderId) { alert('Please fill in Word, Definition and select a folder'); return; }
             const { db, ref, push, set, get } = window.firebase;
             const folderSnap = await get(ref(db, `ielts-folders/${folderId}`));
             const folderName = folderSnap.val()?.name || 'Unknown Folder';
+            const payload = { w: word, d: def, folder: folderId, folderName };
+            if (antonym)  payload.ant = antonym;
+            if (sentence) payload.ex  = sentence;
             if (editingWordId && editingWordType === 'ielts') {
-                await set(ref(db, `ielts-words/${editingWordId}`), { w: word, d: def, folder: folderId, folderName });
+                await set(ref(db, `ielts-words/${editingWordId}`), payload);
                 showSuccess(`Word updated! ✏️`);
                 cancelEdit('ielts');
             } else {
                 const r = push(ref(db, 'ielts-words'));
-                await set(r, { w: word, d: def, folder: folderId, folderName });
+                await set(r, payload);
                 showSuccess(`Word added to "${folderName}"! ☁️`);
             }
-            document.getElementById('ielts-word').value = '';
-            document.getElementById('ielts-def').value  = '';
+            document.getElementById('ielts-word').value     = '';
+            document.getElementById('ielts-def').value      = '';
+            document.getElementById('ielts-antonym').value  = '';
+            document.getElementById('ielts-sentence').value = '';
             loadAdminData();
         }
 
@@ -3981,17 +4054,21 @@
             loadIELTSFolders();
         }
 
-        function editWord(type, id, word, definition, folderId) {
+        function editWord(type, id, word, definition, folderId, antonym, sentence) {
             editingWordId = id; editingWordType = type;
             if (type === 'sat') {
-                document.getElementById('sat-word').value = word;
-                document.getElementById('sat-def').value = definition;
+                document.getElementById('sat-word').value     = word;
+                document.getElementById('sat-def').value      = definition;
+                document.getElementById('sat-antonym').value  = antonym  || '';
+                document.getElementById('sat-sentence').value = sentence || '';
                 document.getElementById('sat-folder-select').value = folderId;
                 document.getElementById('sat-add-btn').textContent = '✏️ Update Word';
                 document.getElementById('sat-cancel-edit').style.display = 'inline-block';
             } else {
-                document.getElementById('ielts-word').value = word;
-                document.getElementById('ielts-def').value = definition;
+                document.getElementById('ielts-word').value     = word;
+                document.getElementById('ielts-def').value      = definition;
+                document.getElementById('ielts-antonym').value  = antonym  || '';
+                document.getElementById('ielts-sentence').value = sentence || '';
                 document.getElementById('ielts-folder-select').value = folderId;
                 document.getElementById('ielts-add-btn').textContent = '✏️ Update Word';
                 document.getElementById('ielts-cancel-edit').style.display = 'inline-block';
@@ -4001,13 +4078,17 @@
         function cancelEdit(type) {
             editingWordId = null; editingWordType = null;
             if (type === 'sat') {
-                document.getElementById('sat-word').value = '';
-                document.getElementById('sat-def').value = '';
+                document.getElementById('sat-word').value     = '';
+                document.getElementById('sat-def').value      = '';
+                document.getElementById('sat-antonym').value  = '';
+                document.getElementById('sat-sentence').value = '';
                 document.getElementById('sat-add-btn').textContent = 'Add SAT Word';
                 document.getElementById('sat-cancel-edit').style.display = 'none';
             } else {
-                document.getElementById('ielts-word').value = '';
-                document.getElementById('ielts-def').value = '';
+                document.getElementById('ielts-word').value     = '';
+                document.getElementById('ielts-def').value      = '';
+                document.getElementById('ielts-antonym').value  = '';
+                document.getElementById('ielts-sentence').value = '';
                 document.getElementById('ielts-add-btn').textContent = 'Add IELTS Word';
                 document.getElementById('ielts-cancel-edit').style.display = 'none';
             }
@@ -4191,7 +4272,12 @@
                     </div>
                 </div>
                 <div class="vocab-list" style="display: grid; gap: 10px; padding: 0 20px;">
-                    ${folderWords.map(w => `<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div></div>`).join('')}
+                    ${folderWords.map(w => `<div class="vocab-item">
+                        <div class="v-word">${w.w}</div>
+                        <div class="v-def">${w.d}</div>
+                        ${w.ant ? `<div style="font-size:13px;color:#1a85c8;margin-top:6px;font-weight:700;">↔ ${w.ant}</div>` : ''}
+                        ${w.ex  ? `<div style="font-size:13px;color:#777;margin-top:4px;font-style:italic;line-height:1.5;">"${w.ex}"</div>` : ''}
+                    </div>`).join('')}
                 </div>
                 <div class="spacer"></div>`;
             document.querySelectorAll('.edu-section').forEach(x => x.classList.remove('active'));
@@ -4314,6 +4400,18 @@
             card.style.transition = ''; card.style.transform = ''; card.style.opacity = '';
             document.getElementById('dc-card-word').textContent = word.w;
             document.getElementById('dc-card-def').textContent  = word.d;
+            // Antonym + sentence
+            let extra = document.getElementById('dc-card-extra');
+            if (!extra) {
+                extra = document.createElement('div');
+                extra.id = 'dc-card-extra';
+                extra.style.cssText = 'width:100%;margin-top:14px;padding-top:14px;border-top:1px solid rgba(217,185,155,0.2);display:flex;flex-direction:column;gap:8px;';
+                document.getElementById('dc-card').appendChild(extra);
+            }
+            extra.innerHTML = '';
+            if (word.ant) extra.innerHTML += `<div style="font-size:13px;color:#1a85c8;font-weight:700;text-align:center;">↔ ${word.ant}</div>`;
+            if (word.ex)  extra.innerHTML += `<div style="font-size:12px;color:#888;text-align:center;font-style:italic;line-height:1.5;">"${word.ex}"</div>`;
+            extra.style.display = (word.ant || word.ex) ? 'flex' : 'none';
             dc.isFlipped = false;
             setTimeout(() => { card.classList.add('word-enter'); }, 50);
             setTimeout(() => { card.classList.remove('word-enter'); }, 600);
@@ -4458,6 +4556,182 @@
             }
             return arr;
         }
+
+        // ===== AI ASSISTANT ENGINE =====
+        let aiChatHistory = [];
+        let aiIsLoading   = false;
+
+        async function updateAIFolderSelect() {
+            const type = document.getElementById('ai-target-type')?.value || 'sat';
+            const { db, ref, get } = window.firebase;
+            const snap = await get(ref(db, `${type}-folders`));
+            const folders = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
+            const sel = document.getElementById('ai-target-folder');
+            if (!sel) return;
+            sel.innerHTML = folders.length
+                ? folders.map(f => `<option value="${f.id}" data-name="${f.name}">${f.name}</option>`).join('')
+                : '<option value="">No folders yet</option>';
+        }
+
+        function aiChatKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
+        }
+
+        function appendAIMessage(role, html) {
+            const box = document.getElementById('ai-chat-messages');
+            if (!box) return null;
+            const div = document.createElement('div');
+            div.style.cssText = role === 'user'
+                ? 'background:#1a85c8;color:white;border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.6;align-self:flex-end;max-width:85%;margin-left:auto;word-break:break-word;'
+                : 'background:white;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;box-shadow:0 1px 6px rgba(0,0,0,0.06);max-width:92%;word-break:break-word;';
+            div.innerHTML = html;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            return div;
+        }
+
+        async function sendAIMessage() {
+            if (aiIsLoading) return;
+            const input = document.getElementById('ai-chat-input');
+            const msg   = (input?.value || '').trim();
+            if (!msg) return;
+            input.value = '';
+            appendAIMessage('user', msg.replace(/</g,'&lt;').replace(/\n/g,'<br>'));
+
+            const type      = document.getElementById('ai-target-type')?.value || 'sat';
+            const folderSel = document.getElementById('ai-target-folder');
+            const folderId  = folderSel?.value || '';
+            const folderName = folderSel?.options[folderSel.selectedIndex]?.getAttribute('data-name') || '';
+
+            let existingWords = [];
+            if (folderId) {
+                try {
+                    const { db, ref, get } = window.firebase;
+                    const snap = await get(ref(db, `${type}-words`));
+                    const data = snap.val() || {};
+                    existingWords = Object.values(data).filter(w => w.folder === folderId).map(w => w.w);
+                } catch(e) {}
+            }
+
+            aiChatHistory.push({ role: 'user', content: msg });
+
+            // Typing indicator
+            const typingDiv = appendAIMessage('bot', '<span style="opacity:0.5;font-size:18px;">✦ ✦ ✦</span>');
+            aiIsLoading = true;
+            const sendBtn = document.getElementById('ai-send-btn');
+            if (sendBtn) sendBtn.style.opacity = '0.5';
+
+            const systemPrompt = `You are an expert SAT/IELTS vocabulary assistant inside an education app called Luminary. You help admins build and manage word lists.
+
+Target: ${type.toUpperCase()} vocabulary, folder: "${folderName || 'none selected'}"
+Words already in folder (avoid duplicates): ${existingWords.length > 0 ? existingWords.slice(0,40).join(', ') : 'none yet'}
+
+When the user asks you to generate/add/create/suggest words to publish, output them in this exact block:
+
+<WORDS_JSON>
+[{"w":"Word","d":"Definition here.","ant":"Antonym1, Antonym2","ex":"Example sentence."},...]
+</WORDS_JSON>
+
+Rules:
+- w = word (required), d = definition (required), ant = antonyms (optional, comma-separated), ex = example sentence (optional)
+- Write clear, SAT/IELTS-level definitions (1–2 sentences)
+- Include antonyms and sentences whenever possible — they're valuable for learning
+- Only output the JSON block when the user wants to publish/generate words
+- For conversations, explanations, or edits — respond naturally
+- Be concise and educational`;
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 2000,
+                        system: systemPrompt,
+                        messages: aiChatHistory.slice(-14)
+                    })
+                });
+                const data = await response.json();
+                const fullText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+                aiChatHistory.push({ role: 'assistant', content: fullText });
+
+                typingDiv?.remove();
+
+                // Parse words JSON
+                const jsonMatch = fullText.match(/<WORDS_JSON>([\s\S]*?)<\/WORDS_JSON>/);
+                let words = [];
+                let displayText = fullText;
+                if (jsonMatch) {
+                    try { words = JSON.parse(jsonMatch[1].trim()); } catch(e) { words = []; }
+                    displayText = fullText.replace(/<WORDS_JSON>[\s\S]*?<\/WORDS_JSON>/, '').trim();
+                }
+
+                const safeText = displayText
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+                    .replace(/\*(.*?)\*/g,'<i>$1</i>')
+                    .replace(/`(.*?)`/g,'<code style="background:#f0f0f0;padding:1px 4px;border-radius:4px;font-size:13px;">$1</code>')
+                    .replace(/\n/g,'<br>');
+
+                let botHTML = safeText || '';
+
+                if (words.length > 0) {
+                    const safeWords = JSON.stringify(words).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+                    const safeFolderName = folderName.replace(/'/g,"\\'");
+                    botHTML += `
+                    <div style="margin-top:14px;background:#f0fdf4;border:1.5px solid #22c55e;border-radius:12px;padding:14px;">
+                        <div style="font-weight:800;font-size:13px;color:#166534;margin-bottom:10px;">📦 ${words.length} word${words.length!==1?'s':''} ready → <b>${folderName || 'folder'}</b></div>
+                        <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                        ${words.map(w=>`
+                        <div style="background:white;border-radius:8px;padding:9px 12px;font-size:13px;">
+                            <b>${w.w}</b> — ${w.d}
+                            ${w.ant ? `<div style="color:#1a85c8;font-size:12px;margin-top:2px;">↔ ${w.ant}</div>` : ''}
+                            ${w.ex  ? `<div style="color:#888;font-size:12px;margin-top:2px;font-style:italic;">"${w.ex}"</div>` : ''}
+                        </div>`).join('')}
+                        </div>
+                        ${folderId
+                            ? `<button onclick="publishAIWords(JSON.parse(this.dataset.words),'${folderId}','${type}','${safeFolderName}')" data-words="${safeWords}" style="background:#22c55e;color:white;border:none;padding:11px 20px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;width:100%;transition:all 0.2s;">✅ Publish all ${words.length} words to Firebase</button>`
+                            : `<div style="color:#f59e0b;font-size:13px;font-weight:700;">⚠️ Select a folder above to publish</div>`}
+                    </div>`;
+                }
+
+                appendAIMessage('bot', botHTML || '(empty response)');
+
+            } catch(err) {
+                typingDiv?.remove();
+                appendAIMessage('bot', `<span style="color:#ef4444;">⚠️ Error: ${err.message}</span>`);
+            }
+
+            aiIsLoading = false;
+            if (sendBtn) sendBtn.style.opacity = '1';
+        }
+
+        async function publishAIWords(words, folderId, type, folderName) {
+            if (!folderId) { alert('No folder selected!'); return; }
+            const btn = event?.target;
+            if (btn) { btn.textContent = 'Publishing...'; btn.disabled = true; }
+            const { db, ref, push, set } = window.firebase;
+            const path = type === 'sat' ? 'sat-words' : 'ielts-words';
+            let count = 0;
+            for (const word of words) {
+                if (!word.w || !word.d) continue;
+                const payload = { w: word.w, d: word.d, folder: folderId, folderName };
+                if (word.ant) payload.ant = word.ant;
+                if (word.ex)  payload.ex  = word.ex;
+                await set(push(ref(db, path)), payload);
+                count++;
+            }
+            if (btn) btn.parentElement.innerHTML = `<div style="background:#dcfce7;border-radius:10px;padding:12px;text-align:center;font-weight:800;color:#166534;font-size:14px;">✅ ${count} words published to "${folderName}"!</div>`;
+            appendAIMessage('bot', `<b style="color:#166534;">✅ Done!</b> ${count} words are now live in <b>"${folderName}"</b>.`);
+            loadAdminData();
+        }
+
+        // Init AI folder select when panel first opens
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiHeader = document.querySelector('#as-ai .admin-section-header');
+            if (aiHeader) aiHeader.addEventListener('click', () => setTimeout(updateAIFolderSelect, 150));
+            document.getElementById('ai-target-type')?.addEventListener('change', updateAIFolderSelect);
+        });
     </script>
 </body>
 </html>
