@@ -11,83 +11,85 @@
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
 
 /* NAV */
-.nav{position:fixed;top:0;left:0;width:100%;height:70px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 2px 16px rgba(0,0,0,0.05);z-index:1000;gap:10px;}
-.logo{font-weight:800;font-size:22px;color:var(--acc);cursor:pointer;letter-spacing:-1px;flex-shrink:0;}
+.nav{position:fixed;top:0;left:0;width:100%;height:clamp(56px,8vh,70px);background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(10px,3vw,16px);box-shadow:0 2px 16px rgba(0,0,0,0.05);z-index:1000;gap:8px;}
+.logo{font-weight:800;font-size:clamp(16px,4vw,22px);color:var(--acc);cursor:pointer;letter-spacing:-1px;flex-shrink:0;}
 .nav-links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;}
 .nav-links::-webkit-scrollbar{display:none;}
-.nav-btn{background:none;border:none;font-family:inherit;font-size:12px;font-weight:700;color:var(--txt);opacity:.45;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border-radius:10px;white-space:nowrap;transition:.2s;flex-shrink:0;}
-.nav-btn svg{width:18px;height:18px;fill:currentColor;}
+.nav-btn{background:none;border:none;font-family:inherit;font-size:clamp(10px,2.5vw,12px);font-weight:700;color:var(--txt);opacity:.45;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px clamp(5px,2vw,8px);border-radius:10px;white-space:nowrap;transition:.2s;flex-shrink:0;}
+.nav-btn svg{width:clamp(15px,4vw,18px);height:clamp(15px,4vw,18px);fill:currentColor;}
 .nav-btn.active{opacity:1;color:var(--acc);}
-.admin-btn{background:var(--acc);color:#fff;border:none;padding:7px 12px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;flex-shrink:0;}
+.admin-btn{background:var(--acc);color:#fff;border:none;padding:6px clamp(8px,2vw,12px);border-radius:10px;font-family:inherit;font-size:clamp(10px,2.5vw,12px);font-weight:800;cursor:pointer;flex-shrink:0;}
 
 /* CONTAINER */
-.container{max-width:900px;margin:0 auto;padding:82px 14px 100px;}
+.container{max-width:900px;margin:0 auto;padding:calc(clamp(56px,8vh,70px) + 12px) clamp(10px,3vw,14px) 100px;}
 .view{display:none;animation:fadeUp .3s ease;}
 .view.active{display:block;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* CARDS */
-.card{background:var(--card);border-radius:20px;padding:22px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.05);}
-.section-title{font-size:22px;font-weight:800;margin:22px 0 12px 2px;}
-.edu-card{background:var(--card);border-radius:18px;padding:22px 24px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.05);transition:.25s;}
+.card{background:var(--card);border-radius:clamp(14px,4vw,20px);padding:clamp(14px,4vw,22px);margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.05);}
+.section-title{font-size:clamp(17px,5vw,22px);font-weight:800;margin:clamp(14px,4vw,22px) 0 12px 2px;}
+.edu-card{background:var(--card);border-radius:clamp(13px,3.5vw,18px);padding:clamp(14px,4vw,22px) clamp(16px,4vw,24px);margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.05);transition:.25s;}
 .edu-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.1);}
-.edu-card-title{font-size:20px;font-weight:800;}
-.edu-icon{font-size:26px;opacity:.5;}
-.back-btn{background:none;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;opacity:.7;margin-bottom:16px;padding:4px 0;}
+.edu-card-title{font-size:clamp(15px,4.5vw,20px);font-weight:800;}
+.edu-icon{font-size:clamp(20px,5vw,26px);opacity:.5;}
+.back-btn{background:none;border:none;font-family:inherit;font-size:clamp(12px,3.5vw,14px);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;opacity:.7;margin-bottom:16px;padding:4px 0;}
 
-/* HERO */
-.hero{width:100%;height:320px;border-radius:24px;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;color:#fff;margin-bottom:22px;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.1);}
+/* HERO — responsive height */
+.hero{width:100%;height:clamp(180px,40vw,320px);border-radius:clamp(16px,4vw,24px);background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(16px,4vw,28px);color:#fff;margin-bottom:clamp(14px,4vw,22px);position:relative;overflow:hidden;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.1);}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);}
 .hero-text{position:relative;z-index:2;}
-.hero-text h2{font-size:28px;font-weight:800;}
-.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;}
-.book-card{aspect-ratio:2/3;border-radius:16px;background-size:cover;background-position:center;cursor:pointer;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.hero-text h2{font-size:clamp(18px,5vw,28px);font-weight:800;}
+
+/* BOOK GRID — responsive */
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(90px,22vw,130px),1fr));gap:clamp(8px,2vw,14px);}
+.book-card{aspect-ratio:2/3;border-radius:clamp(10px,3vw,16px);background-size:cover;background-position:center;cursor:pointer;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.1);}
 .book-card:hover{transform:translateY(-6px);}
-.search-bar{background:#fff;border-radius:16px;height:48px;display:flex;align-items:center;padding:0 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);}
-.search-bar input{background:none;border:none;width:100%;outline:none;font-size:15px;font-family:inherit;}
+.search-bar{background:#fff;border-radius:clamp(11px,3vw,16px);height:clamp(42px,10vw,48px);display:flex;align-items:center;padding:0 clamp(12px,4vw,18px);margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);}
+.search-bar input{background:none;border:none;width:100%;outline:none;font-size:clamp(13px,3.5vw,15px);font-family:inherit;}
 
 /* VOCAB */
-.vocab-item{background:#fff;border-radius:14px;padding:14px 18px;margin-bottom:8px;box-shadow:0 1px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);}
-.v-word{font-weight:800;font-size:17px;margin-bottom:3px;}
-.v-def{font-size:13px;color:#444;line-height:1.45;}
+.vocab-item{background:#fff;border-radius:clamp(10px,3vw,14px);padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px);margin-bottom:8px;box-shadow:0 1px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);}
+.v-word{font-weight:800;font-size:clamp(14px,4vw,17px);margin-bottom:3px;}
+.v-def{font-size:clamp(12px,3vw,13px);color:#444;line-height:1.45;}
 .v-ant{font-size:12px;color:#1a85c8;font-weight:700;margin-top:5px;}
 .v-ex{font-size:12px;color:#888;font-style:italic;margin-top:3px;line-height:1.4;}
 
 /* PODCAST */
-.podcast-item{display:flex;background:#fff;border-radius:20px;overflow:hidden;text-decoration:none;color:var(--txt);margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);transition:.25s;}
+.podcast-item{display:flex;background:#fff;border-radius:clamp(14px,4vw,20px);overflow:hidden;text-decoration:none;color:var(--txt);margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);transition:.25s;}
 .podcast-item:hover{transform:translateX(4px);}
-.podcast-thumb{width:120px;height:120px;background-size:cover;flex-shrink:0;}
-.podcast-body{padding:16px;display:flex;flex-direction:column;justify-content:center;}
-.podcast-body h3{font-size:15px;margin-bottom:6px;}
+.podcast-thumb{width:clamp(80px,22vw,120px);height:clamp(80px,22vw,120px);background-size:cover;flex-shrink:0;}
+.podcast-body{padding:clamp(10px,3vw,16px);display:flex;flex-direction:column;justify-content:center;}
+.podcast-body h3{font-size:clamp(13px,3.5vw,15px);margin-bottom:6px;}
 
 /* THEMES */
-.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
-.theme-btn{padding:12px;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;border:2px solid rgba(0,0,0,.06);transition:.2s;}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(110px,28vw,130px),1fr));gap:10px;}
+.theme-btn{padding:12px;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:clamp(11px,3vw,13px);border:2px solid rgba(0,0,0,.06);transition:.2s;}
 .theme-btn.active{border-color:var(--acc);}
 .color-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.1);}
 
 /* FOOTER */
 .home-footer{text-align:center;padding:24px;background:#fff;border-radius:20px;max-width:280px;margin:60px auto 0;box-shadow:0 2px 12px rgba(0,0,0,.04);}
 .soc-row{display:flex;justify-content:center;gap:10px;margin-top:12px;}
-.soc-circle{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;transition:.25s;}
+.soc-circle{width:clamp(38px,10vw,48px);height:clamp(38px,10vw,48px);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;transition:.25s;}
 .soc-circle:hover{transform:translateY(-3px);}
-.soc-circle svg{width:24px;height:24px;fill:currentColor;}
+.soc-circle svg{width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);fill:currentColor;}
 .tg-c{background:#26A5E4;}.ig-c{background:radial-gradient(circle at 30% 107%,#fdf497,#fd5949 45%,#d6249f 60%,#285AEB);}
 .yt-c{background:#FF0000;}
 
 /* MODAL — scrollable overlay */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(8px,3vw,16px);}
 .modal-overlay.active{display:block;}
-.modal-box{background:#fff;border-radius:22px;padding:28px;max-width:680px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-box{background:#fff;border-radius:clamp(14px,4vw,22px);padding:clamp(16px,4vw,28px);max-width:680px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid rgba(0,0,0,.06);}
-.modal-title{font-size:24px;font-weight:800;}
+.modal-title{font-size:clamp(18px,5vw,24px);font-weight:800;}
 .close-btn{width:36px;height:36px;border:none;background:rgba(0,0,0,.07);border-radius:50%;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;}
 .close-btn:hover{background:rgba(0,0,0,.13);transform:rotate(90deg);}
 
 /* ADMIN SECTIONS */
 .admin-sec{background:var(--bg);border-radius:16px;margin-bottom:14px;overflow:hidden;}
 .admin-sec-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;}
-.admin-sec-head h3{font-size:16px;font-weight:800;margin:0;}
+.admin-sec-head h3{font-size:clamp(13px,3.5vw,16px);font-weight:800;margin:0;}
 .admin-sec-arrow{font-size:14px;color:var(--acc);transition:.3s;}
 .admin-sec.collapsed .admin-sec-arrow{transform:rotate(-90deg);}
 .admin-sec-body{padding:0 20px 20px;overflow:hidden;transition:max-height .3s,opacity .3s,padding .3s;max-height:9999px;opacity:1;}
@@ -119,63 +121,63 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 /* READER */
 .reader{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;}
 .reader.active{display:flex;}
-.reader-head{background:#fff;padding:14px 18px;box-shadow:0 2px 10px rgba(0,0,0,.04);}
+.reader-head{background:#fff;padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px);box-shadow:0 2px 10px rgba(0,0,0,.04);}
 .reader-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.icon-btn{width:38px;height:38px;background:rgba(0,0,0,.05);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.icon-btn svg{width:20px;height:20px;fill:currentColor;}
+.icon-btn{width:clamp(32px,9vw,38px);height:clamp(32px,9vw,38px);background:rgba(0,0,0,.05);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon-btn svg{width:clamp(16px,4.5vw,20px);height:clamp(16px,4.5vw,20px);fill:currentColor;}
 .prog-bar{height:6px;background:rgba(0,0,0,.06);border-radius:10px;overflow:hidden;}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:10px;transition:width .4s;}
 .prog-txt{font-size:11px;color:#888;font-weight:600;text-align:center;margin-top:4px;}
-.reader-body{flex:1;overflow-y:auto;padding:32px 20px;display:flex;justify-content:center;}
-.page-txt{max-width:580px;width:100%;font-size:18px;line-height:1.85;text-align:justify;}
+.reader-body{flex:1;overflow-y:auto;padding:clamp(18px,5vw,32px) clamp(12px,4vw,20px);display:flex;justify-content:center;}
+.page-txt{max-width:580px;width:100%;font-size:clamp(15px,4vw,18px);line-height:1.85;text-align:justify;}
 .touch-l,.touch-r{position:absolute;top:0;width:30%;height:100%;cursor:pointer;z-index:5;}
 .touch-l{left:0;}.touch-r{right:0;}
 
 /* DUOCARDS */
 .duoview{position:fixed;inset:0;background:var(--bg);z-index:4000;display:none;flex-direction:column;}
 .duoview.active{display:flex;}
-.duo-head{background:#fff;padding:16px 18px 12px;box-shadow:0 2px 10px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:8px;}
+.duo-head{background:#fff;padding:clamp(12px,3.5vw,16px) clamp(12px,4vw,18px) 12px;box-shadow:0 2px 10px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:8px;}
 .duo-top{display:flex;align-items:center;gap:12px;}
-.duo-arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+.duo-arena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(12px,4vw,20px);position:relative;overflow:hidden;}
 .duo-hint{position:absolute;top:36px;padding:7px 16px;border-radius:16px;font-weight:800;font-size:14px;opacity:0;transform:scale(.8);transition:.15s;pointer-events:none;z-index:10;}
 .duo-hint.know{right:24px;background:#4CAF50;color:#fff;}
 .duo-hint.dontknow{left:24px;background:#f44336;color:#fff;}
 .duo-hint.show{opacity:1;transform:scale(1);}
-.duo-card{width:100%;max-width:400px;min-height:240px;background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;user-select:none;touch-action:none;position:relative;transition:border .15s;}
-.duo-word{font-size:30px;font-weight:800;text-align:center;color:var(--acc);margin-bottom:16px;line-height:1.2;}
-.duo-def{font-size:15px;color:#555;text-align:center;line-height:1.6;padding-top:16px;border-top:2px solid rgba(217,185,155,.2);}
+.duo-card{width:100%;max-width:min(400px,90vw);min-height:clamp(180px,40vw,240px);background:#fff;border-radius:clamp(16px,5vw,24px);box-shadow:0 12px 40px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,5vw,32px) clamp(16px,5vw,24px);user-select:none;touch-action:none;position:relative;transition:border .15s;}
+.duo-word{font-size:clamp(22px,6vw,30px);font-weight:800;text-align:center;color:var(--acc);margin-bottom:16px;line-height:1.2;}
+.duo-def{font-size:clamp(13px,3.5vw,15px);color:#555;text-align:center;line-height:1.6;padding-top:16px;border-top:2px solid rgba(217,185,155,.2);}
 .duo-ant{font-size:12px;color:#1a85c8;font-weight:700;text-align:center;margin-top:8px;}
 .duo-ex{font-size:12px;color:#999;font-style:italic;text-align:center;margin-top:4px;line-height:1.4;}
 .duo-card.tint-r{border:3px solid #4CAF50;}.duo-card.tint-l{border:3px solid #f44336;}
-.duo-actions{display:flex;gap:14px;padding:16px 20px 28px;}
-.duo-btn{flex:1;padding:14px;border-radius:16px;border:none;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.duo-actions{display:flex;gap:14px;padding:clamp(10px,3vw,16px) clamp(14px,4vw,20px) clamp(18px,4vw,28px);}
+.duo-btn{flex:1;padding:clamp(10px,3vw,14px);border-radius:16px;border:none;font-family:inherit;font-size:clamp(12px,3.5vw,14px);font-weight:800;cursor:pointer;}
 .duo-btn.dont{background:#fde8e8;color:#e53935;}.duo-btn.know{background:#e8f5e9;color:#388E3C;}
 .duo-complete{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;z-index:20;}
 .duo-complete.active{display:flex;}
-.accuracy-ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(#4CAF50 0% var(--pct),#e0e0e0 var(--pct));display:flex;align-items:center;justify-content:center;margin:16px auto 24px;box-shadow:0 4px 20px rgba(76,175,80,.25);}
-.accuracy-inner{width:88px;height:88px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.accuracy-ring{width:clamp(90px,24vw,120px);height:clamp(90px,24vw,120px);border-radius:50%;background:conic-gradient(#4CAF50 0% var(--pct),#e0e0e0 var(--pct));display:flex;align-items:center;justify-content:center;margin:16px auto 24px;box-shadow:0 4px 20px rgba(76,175,80,.25);}
+.accuracy-inner{width:66%;height:66%;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 
 /* QUIZ ENGINE */
 .quizview{position:fixed;inset:0;background:#fffdf7;z-index:5000;display:none;flex-direction:column;}
 .quizview.active{display:flex;}
-.quiz-head{background:#fff;padding:14px 18px 11px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:8px;}
+.quiz-head{background:#fff;padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px) 11px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:8px;}
 .quiz-top{display:flex;align-items:center;gap:12px;}
-.quiz-title{font-weight:800;font-size:16px;flex:1;}
+.quiz-title{font-weight:800;font-size:clamp(13px,3.5vw,16px);flex:1;}
 .quiz-counter{font-size:12px;font-weight:700;color:var(--acc);}
-.quiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;}
-.quiz-qcard{width:100%;max-width:540px;background:#fff;border-radius:16px;padding:20px;border-left:4px solid #1e6fa8;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.quiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(14px,4vw,20px) clamp(10px,3vw,16px) 24px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.quiz-qcard{width:100%;max-width:540px;background:#fff;border-radius:16px;padding:clamp(14px,4vw,20px);border-left:4px solid #1e6fa8;box-shadow:0 2px 10px rgba(0,0,0,.06);}
 .quiz-qlabel{font-size:10px;font-weight:800;color:#1e6fa8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
 .quiz-qtype{font-size:11px;color:#bbb;font-weight:600;margin-bottom:8px;}
-.quiz-qtext{font-size:16px;font-weight:700;line-height:1.5;color:#111;}
+.quiz-qtext{font-size:clamp(14px,4vw,16px);font-weight:700;line-height:1.5;color:#111;}
 .quiz-options{width:100%;max-width:540px;display:flex;flex-direction:column;gap:9px;}
-.quiz-opt{background:#fff;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;padding:13px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:10px;line-height:1.5;transition:.15s;}
+.quiz-opt{background:#fff;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;padding:clamp(10px,3vw,13px) clamp(12px,4vw,16px);font-family:inherit;font-size:clamp(13px,3.5vw,14px);font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:10px;line-height:1.5;transition:.15s;}
 .quiz-opt:hover:not(:disabled){border-color:#1e6fa8;background:#f0f7ff;}
 .quiz-opt.correct{border-color:#22c55e;background:#f0fdf4;color:#166534;}
 .quiz-opt.wrong{border-color:#ef4444;background:#fef2f2;color:#b91c1c;}
 .quiz-opt-letter{width:24px;height:24px;border-radius:6px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
 .quiz-opt.correct .quiz-opt-letter{background:#22c55e;color:#fff;}
 .quiz-opt.wrong .quiz-opt-letter{background:#ef4444;color:#fff;}
-.quiz-fb{width:100%;max-width:540px;padding:14px 16px;border-radius:12px;font-size:14px;line-height:1.6;display:none;border-left:4px solid;}
+.quiz-fb{width:100%;max-width:540px;padding:clamp(10px,3vw,14px) clamp(12px,4vw,16px);border-radius:12px;font-size:clamp(12px,3.5vw,14px);line-height:1.6;display:none;border-left:4px solid;}
 .quiz-fb.show{display:block;}
 .quiz-fb.correct{background:#f0fdf4;color:#166534;border-color:#22c55e;}
 .quiz-fb.wrong{background:#fff8f0;color:#7c3900;border-color:#f59e0b;}
@@ -185,7 +187,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
 /* MATCHING QUIZ */
 .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:540px;}
-.match-item{background:#fff;border:2px solid rgba(0,0,0,.1);border-radius:12px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:.2s;min-height:50px;display:flex;align-items:center;justify-content:center;line-height:1.3;}
+.match-item{background:#fff;border:2px solid rgba(0,0,0,.1);border-radius:12px;padding:clamp(8px,2.5vw,12px);font-size:clamp(11px,3vw,13px);font-weight:700;cursor:pointer;text-align:center;transition:.2s;min-height:50px;display:flex;align-items:center;justify-content:center;line-height:1.3;}
 .match-item.selected{border-color:var(--acc);background:#fff8f0;}
 .match-item.matched{border-color:#22c55e;background:#f0fdf4;color:#166534;cursor:default;}
 .match-item.wrong-flash{border-color:#ef4444;background:#fef2f2;animation:wrongFlash .4s ease;}
@@ -199,39 +201,48 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 /* QUIZ RESULT */
 .quiz-result{display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;flex:1;}
 .quiz-result.show{display:flex;}
-.result-ring{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--acc) 0% var(--pct),#e5e7eb var(--pct));display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 4px 20px rgba(217,185,155,.3);}
-.result-inner{width:90px;height:90px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.result-ring{width:clamp(90px,24vw,120px);height:clamp(90px,24vw,120px);border-radius:50%;background:conic-gradient(var(--acc) 0% var(--pct),#e5e7eb var(--pct));display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 4px 20px rgba(217,185,155,.3);}
+.result-inner{width:75%;height:75%;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 
 /* RULES PAGE */
-.rules-wrap{background:#fef9ed;padding:24px 20px 80px;max-width:660px;margin:0 auto;font-family:'Schoolbell',cursive;}
-.rules-main-title{font-size:20px;color:#1a85c8;text-align:center;margin-bottom:4px;}
-.rules-sub{font-size:13px;color:#aaa;text-align:center;margin-bottom:24px;}
-.rule-practice-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#1a85c8;color:#fff;border:none;padding:13px 20px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:28px;width:100%;transition:.2s;}
+.rules-wrap{background:#fef9ed;padding:clamp(14px,4vw,24px) clamp(12px,4vw,20px) 80px;max-width:660px;margin:0 auto;font-family:'Schoolbell',cursive;}
+.rules-main-title{font-size:clamp(15px,4.5vw,20px);color:#1a85c8;text-align:center;margin-bottom:4px;}
+.rules-sub{font-size:clamp(11px,3vw,13px);color:#aaa;text-align:center;margin-bottom:24px;}
+.rule-practice-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#1a85c8;color:#fff;border:none;padding:clamp(10px,3vw,13px) 20px;border-radius:12px;font-family:inherit;font-size:clamp(12px,3.5vw,14px);font-weight:800;cursor:pointer;margin-bottom:14px;width:100%;transition:.2s;}
 .rule-practice-btn:hover{background:#1672ae;transform:translateY(-1px);}
 .rule-cnt{background:rgba(255,255,255,.6);padding:2px 10px;border-radius:16px;font-size:12px;font-weight:900;}
-.rule-sec-title{font-size:18px;color:#1a1a1a;margin:28px 0 6px;}
+.rule-sec-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:28px 0 8px;}
+.rule-sec-title{font-size:clamp(15px,4.5vw,18px);color:#1a1a1a;}
+.rule-folder-quiz-btn{background:#1a85c8;color:#fff;border:none;padding:6px 13px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;transition:.2s;}
+.rule-folder-quiz-btn:hover{background:#1672ae;}
 .rule-block{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #f0f0f0;}
 .rule-block:last-child{border-bottom:none;}
-.rule-num{font-size:18px;color:#1a1a1a;}
-.rule-stmt{font-size:17px;color:#1a85c8;}
-.rule-body{font-size:14px;color:#333;line-height:1.8;margin:4px 0;}
+.rule-num{font-size:clamp(14px,4vw,18px);color:#1a1a1a;}
+.rule-stmt{font-size:clamp(14px,4vw,17px);color:#1a85c8;}
+.rule-body{font-size:clamp(12px,3.5vw,14px);color:#333;line-height:1.8;margin:4px 0;}
 .rule-ok{color:#1a7a4a;}.rule-bad{color:#cc2200;}
 .rule-bullet{padding-left:16px;position:relative;}.rule-bullet::before{content:'✓';color:#1a7a4a;position:absolute;left:0;}
 .rule-quiz-badge{font-size:11px;color:#1a85c8;display:inline-flex;align-items:center;gap:3px;background:#e8f4fd;padding:3px 10px;border-radius:16px;margin-top:10px;}
 
+/* TEXT BLOCK in photo sections */
+.text-block{background:#fff;border-radius:clamp(12px,3.5vw,16px);padding:clamp(14px,4vw,18px);margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.05);}
+.text-block-tag{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--acc);margin-bottom:8px;}
+.text-block-title{font-size:clamp(15px,4vw,17px);font-weight:800;margin-bottom:6px;}
+.text-block-body{font-size:clamp(13px,3.5vw,14px);color:#444;line-height:1.7;white-space:pre-wrap;}
+
 /* PHOTO GALLERY */
 .photo-page{position:fixed;inset:0;background:var(--bg);z-index:4500;display:none;flex-direction:column;}
 .photo-page.active{display:flex;}
-.photo-head{background:#fff;padding:14px 18px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.photo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px;}
-.photo-sub-card{background:#fff;border-radius:18px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.05);transition:.25s;}
+.photo-head{background:#fff;padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px);box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.photo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(12px,3.5vw,18px);}
+.photo-sub-card{background:#fff;border-radius:clamp(13px,4vw,18px);padding:clamp(14px,4vw,20px) clamp(16px,4vw,22px);display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.05);transition:.25s;}
 .photo-sub-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;max-width:860px;margin:0 auto;}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(200px,40vw,260px),1fr));gap:14px;max-width:860px;margin:0 auto;}
 .photo-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.07);cursor:pointer;transition:.25s;}
 .photo-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12);}
 .photo-card img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;background:#f0f0f0;}
 .photo-card-body{padding:10px 13px;}
-.photo-card-title{font-weight:800;font-size:13px;}
+.photo-card-title{font-weight:800;font-size:clamp(11px,3vw,13px);}
 .photo-card-desc{font-size:11px;color:#999;margin-top:2px;}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9900;display:none;align-items:center;justify-content:center;}
 .lightbox.active{display:flex;}
@@ -239,23 +250,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .lb-close{position:absolute;top:14px;right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
 /* AI VIEW */
-#ai-view{display:none;flex-direction:column;height:calc(100vh - 70px);padding:0;}
+#ai-view{display:none;flex-direction:column;height:calc(100vh - clamp(56px,8vh,70px));padding:0;}
 #ai-view.active{display:flex;}
-.ai-header{padding:16px 18px 10px;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
-.ai-title{font-size:22px;font-weight:800;}
+.ai-header{padding:clamp(10px,3vw,16px) clamp(12px,4vw,18px) 10px;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.ai-title{font-size:clamp(17px,5vw,22px);font-weight:800;}
 .ai-sub{font-size:12px;color:#999;font-weight:600;margin-top:2px;}
-.ai-keybtn{border:none;padding:7px 12px;border-radius:16px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:.2s;white-space:nowrap;}
-.ai-chips{display:flex;gap:7px;overflow-x:auto;padding:4px 18px 10px;scrollbar-width:none;flex-shrink:0;}
+.ai-keybtn{border:none;padding:7px clamp(8px,2.5vw,12px);border-radius:16px;font-family:inherit;font-size:clamp(10px,3vw,12px);font-weight:800;cursor:pointer;transition:.2s;white-space:nowrap;}
+.ai-chips{display:flex;gap:7px;overflow-x:auto;padding:4px clamp(12px,4vw,18px) 10px;scrollbar-width:none;flex-shrink:0;}
 .ai-chips::-webkit-scrollbar{display:none;}
-.ai-chip{background:#fff;border:1.5px solid rgba(0,0,0,.07);border-radius:18px;padding:7px 13px;font-family:inherit;font-size:12px;font-weight:700;color:#555;cursor:pointer;white-space:nowrap;transition:.2s;flex-shrink:0;}
+.ai-chip{background:#fff;border:1.5px solid rgba(0,0,0,.07);border-radius:18px;padding:7px 13px;font-family:inherit;font-size:clamp(11px,3vw,12px);font-weight:700;color:#555;cursor:pointer;white-space:nowrap;transition:.2s;flex-shrink:0;}
 .ai-chip:hover{background:var(--acc);color:#fff;border-color:var(--acc);}
-.ai-ctx{display:flex;gap:7px;padding:0 18px 10px;flex-shrink:0;align-items:center;flex-wrap:wrap;}
+.ai-ctx{display:flex;gap:7px;padding:0 clamp(12px,4vw,18px) 10px;flex-shrink:0;align-items:center;flex-wrap:wrap;}
 .ai-ctx-label{font-size:12px;font-weight:700;color:#aaa;white-space:nowrap;}
 .ai-ctx select{padding:6px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;background:#fff;flex:1;min-width:90px;outline:none;}
-.ai-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 14px;display:flex;flex-direction:column;gap:12px;}
+.ai-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 clamp(10px,3vw,14px) 14px;display:flex;flex-direction:column;gap:12px;}
 .ai-row{display:flex;align-items:flex-end;gap:7px;}
 .ai-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#b8905e);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
-.ai-bubble{max-width:88%;border-radius:16px;padding:12px 15px;font-size:14px;line-height:1.65;word-break:break-word;animation:bubIn .2s ease;}
+.ai-bubble{max-width:88%;border-radius:16px;padding:clamp(9px,3vw,12px) clamp(11px,3.5vw,15px);font-size:clamp(13px,3.5vw,14px);line-height:1.65;word-break:break-word;animation:bubIn .2s ease;}
 @keyframes bubIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .ai-user{background:var(--acc);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
 .ai-bot{background:#fff;color:var(--txt);box-shadow:0 1px 8px rgba(0,0,0,.07);border-bottom-left-radius:4px;}
@@ -264,10 +275,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .ai-dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc);animation:dot 1.2s infinite ease-in-out;margin:0 2px;}
 .ai-dots span:nth-child(2){animation-delay:.2s;}.ai-dots span:nth-child(3){animation-delay:.4s;}
 @keyframes dot{0%,60%,100%{transform:scale(1);opacity:.4}30%{transform:scale(1.4);opacity:1}}
-.ai-input-bar{padding:10px 14px 18px;background:var(--bg);flex-shrink:0;display:flex;gap:9px;align-items:flex-end;}
+.ai-input-bar{padding:clamp(8px,2vw,10px) clamp(10px,3vw,14px) clamp(14px,4vw,18px);background:var(--bg);flex-shrink:0;display:flex;gap:9px;align-items:flex-end;}
 .ai-input-wrap{flex:1;background:#fff;border-radius:20px;border:2px solid rgba(0,0,0,.08);display:flex;align-items:flex-end;padding:9px 14px;transition:.2s;}
 .ai-input-wrap:focus-within{border-color:var(--acc);}
-.ai-input-wrap textarea{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;resize:none;min-height:22px;max-height:110px;line-height:1.45;color:var(--txt);width:100%;}
+.ai-input-wrap textarea{flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:clamp(13px,4vw,15px);resize:none;min-height:22px;max-height:110px;line-height:1.45;color:var(--txt);width:100%;}
 .ai-send{width:44px;height:44px;border-radius:50%;border:none;background:var(--acc);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 12px rgba(217,185,155,.4);transition:.2s;}
 .ai-send:hover{background:var(--acc2);transform:scale(1.08);}
 .ai-send:disabled{opacity:.4;transform:none;cursor:default;}
@@ -301,6 +312,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
 /* SOCIAL */
 .spacer{height:80px;}
+
+/* RESPONSIVE FIXES */
+@media(max-width:480px){
+ .duo-actions{gap:8px;}
+ .match-grid{gap:5px;}
+ .modal-box{padding:14px;}
+}
 </style>
 </head>
 <body>
@@ -435,6 +453,16 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
      <div class="form-group"><label>Create Folder</label><input id="rules-folder-name" placeholder="e.g. Grammar Rules"></div>
      <button class="btn-primary" onclick="createContentFolder('rules')" style="margin-bottom:14px;">➕ Create Folder</button>
      <div id="rules-folders-admin"></div>
+     <!-- PER-FOLDER QUIZ SECTION -->
+     <div style="background:#fff;padding:16px;border-radius:13px;margin-top:12px;border-left:3px solid #1a85c8;">
+      <div style="font-weight:800;font-size:13px;color:#1a85c8;margin-bottom:10px;">🧩 Folder Quiz (Attach quiz to a folder)</div>
+      <div class="form-group"><label>Folder</label><select id="rules-fq-folder-sel"><option value="">Select folder...</option></select></div>
+      <div class="form-group"><label>Quiz Name</label><input id="rules-fq-name" placeholder="e.g. Grammar Folder Test"></div>
+      <div class="form-group"><label>Questions (JSON)</label>
+       <textarea id="rules-fq-data" style="min-height:100px;font-size:12px;font-family:monospace;" placeholder='[{"q":"Which is correct?","options":{"A":"...","B":"...","C":"...","D":"..."},"correct":"A","explain":"..."}]'></textarea>
+      </div>
+      <button class="btn-primary" onclick="saveFolderQuiz('rules')">💾 Attach Quiz to Folder</button>
+     </div>
      <div style="background:#fff;padding:16px;border-radius:13px;margin-top:12px;">
       <div style="font-weight:800;font-size:14px;margin-bottom:12px;">Add Rule</div>
       <div class="form-group"><label>Folder</label><select id="rules-folder-sel"><option value="">Select...</option></select></div>
@@ -459,13 +487,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
    </div>
 
-   <!-- HACKS / PROBLEMS / SOLUTIONS (photo upload) -->
+   <!-- HACKS / PROBLEMS / SOLUTIONS (photo + text upload) -->
    <div class="admin-sec collapsed" id="as-hacks-photos">
     <div class="admin-sec-head" onclick="toggleSec('as-hacks-photos')">
      <h3>🖼️ Hacks / Problems / Solutions</h3><span class="admin-sec-arrow">▼</span>
     </div>
     <div class="admin-sec-body">
-     <p style="font-size:13px;color:#888;margin-bottom:14px;">Upload images for each section. Click "Upload" to pick a photo from your device.</p>
+     <p style="font-size:13px;color:#888;margin-bottom:14px;">Upload images or add text content for each section.</p>
      <div id="admin-photo-sections"></div>
     </div>
    </div>
@@ -557,13 +585,11 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
 
  <!-- EDUCATION -->
  <div id="edu-view" class="view">
-  <!-- Main edu menu -->
   <div id="edu-main" class="edu-sec-view active-edu">
    <div class="section-title">Направления</div>
    <div class="edu-card" onclick="openEdu('edu-sat')"><div class="edu-card-title">SAT Prep</div><div class="edu-icon">📚</div></div>
    <div class="edu-card" onclick="openEdu('edu-ielts')"><div class="edu-card-title">IELTS</div><div class="edu-icon">🎓</div></div>
   </div>
-  <!-- SAT -->
   <div id="edu-sat" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-main')">← Назад</button>
    <div class="edu-card" onclick="openEdu('edu-sat-vocab')"><div class="edu-card-title">Vocab</div><div class="edu-icon">📖</div></div>
@@ -572,42 +598,35 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
    <div class="edu-card" onclick="openEdu('edu-sat-practice')"><div class="edu-card-title">Practice Tests</div><div class="edu-icon">📝</div></div>
    <div class="edu-card" onclick="openEdu('edu-sat-quizzes')"><div class="edu-card-title">Quizzes & Tests</div><div class="edu-icon">🧩</div></div>
   </div>
-  <!-- IELTS -->
   <div id="edu-ielts" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-main')">← Назад</button>
    <div class="edu-card" onclick="openEdu('edu-ielts-vocab')"><div class="edu-card-title">Vocabulary</div><div class="edu-icon">📖</div></div>
   </div>
-  <!-- SAT VOCAB -->
   <div id="edu-sat-vocab" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-sat')">← Назад</button>
    <div class="section-title">SAT Vocab</div>
    <div id="sat-folder-cards"></div>
    <div id="sat-folder-pages"></div>
   </div>
-  <!-- SAT RULES -->
   <div id="edu-sat-rules" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-sat')" style="padding:14px 14px 0;">← Назад</button>
    <div id="sat-rules-content"><div style="text-align:center;padding:48px;color:#bbb;">Loading...</div></div>
   </div>
-  <!-- SAT HACKS (photos) -->
   <div id="edu-sat-hacks" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-sat')">← Назад</button>
    <div class="section-title">Hacks / Problems / Solutions</div>
    <div id="edu-photo-list"></div>
   </div>
-  <!-- SAT PRACTICE -->
   <div id="edu-sat-practice" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-sat')">← Назад</button>
    <div class="section-title">Practice Tests</div>
    <div id="edu-practice-list"></div>
   </div>
-  <!-- SAT QUIZZES -->
   <div id="edu-sat-quizzes" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-sat')">← Назад</button>
    <div class="section-title">Quizzes & Tests</div>
    <div id="edu-quiz-list"></div>
   </div>
-  <!-- IELTS VOCAB -->
   <div id="edu-ielts-vocab" class="edu-sec-view" style="display:none;">
    <button class="back-btn" onclick="openEdu('edu-ielts')">← Назад</button>
    <div class="section-title">IELTS Vocab</div>
@@ -624,7 +643,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
   <div class="spacer"></div>
  </div>
 
- <!-- AI (flex column, no container padding-top) -->
+ <!-- AI -->
  <div id="ai-view" class="view">
   <div class="ai-header">
    <div><div class="ai-title">✦ Luminary AI</div><div class="ai-sub">Репетитор SAT &amp; IELTS</div></div>
@@ -657,7 +676,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
  <!-- USER -->
  <div id="user-view" class="view">
   <div class="section-title">Мои заметки</div>
-  <div class="card"><textarea style="width:100%;min-height:130px;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;resize:none;" id="notes" oninput="saveNotes()" placeholder="Пиши тут..."></textarea></div>
+  <div class="card"><textarea style="width:100%;min-height:130px;border:none;outline:none;background:transparent;font-family:inherit;font-size:clamp(13px,4vw,15px);resize:none;" id="notes" oninput="saveNotes()" placeholder="Пиши тут..."></textarea></div>
   <div class="section-title">Темы</div>
   <div class="theme-grid" id="theme-grid"></div>
   <div class="spacer"></div>
@@ -670,7 +689,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
  <div class="reader-head">
   <div class="reader-top">
    <button class="icon-btn" onclick="closeReader()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
-   <div><div id="r-chapter" style="font-size:12px;font-weight:700;color:var(--acc);"></div><div id="r-book" style="font-weight:800;font-size:15px;"></div></div>
+   <div><div id="r-chapter" style="font-size:12px;font-weight:700;color:var(--acc);"></div><div id="r-book" style="font-weight:800;font-size:clamp(13px,4vw,15px);"></div></div>
   </div>
   <div class="prog-bar"><div class="prog-fill" id="r-prog" style="width:0%"></div></div>
   <div class="prog-txt" id="r-prog-txt">Page 1 of 1</div>
@@ -687,7 +706,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
  <div class="duo-head">
   <div class="duo-top">
    <button class="icon-btn" onclick="exitDuo()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
-   <div class="duo-folder" id="duo-folder" style="font-weight:800;font-size:16px;flex:1;"></div>
+   <div class="duo-folder" id="duo-folder" style="font-weight:800;font-size:clamp(14px,4vw,16px);flex:1;"></div>
    <div id="duo-stats" style="font-size:12px;font-weight:700;color:var(--acc);"></div>
   </div>
   <div class="prog-bar"><div class="prog-fill" id="duo-prog" style="width:0%;background:linear-gradient(90deg,#4CAF50,#81C784);"></div></div>
@@ -701,11 +720,11 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
    <div id="duo-extra" style="width:100%;display:none;"></div>
   </div>
   <div class="duo-complete" id="duo-complete">
-   <div style="font-size:60px;margin-bottom:12px;">🎉</div>
-   <div style="font-size:26px;font-weight:800;margin-bottom:6px;">Complete!</div>
-   <div id="duo-complete-sub" style="color:#777;margin-bottom:20px;"></div>
+   <div style="font-size:clamp(40px,12vw,60px);margin-bottom:12px;">🎉</div>
+   <div style="font-size:clamp(20px,6vw,26px);font-weight:800;margin-bottom:6px;">Complete!</div>
+   <div id="duo-complete-sub" style="color:#777;margin-bottom:20px;font-size:clamp(13px,3.5vw,15px);"></div>
    <div class="accuracy-ring" id="duo-acc-ring" style="--pct:0%">
-    <div class="accuracy-inner"><div id="duo-acc-pct" style="font-size:24px;font-weight:800;"></div><div style="font-size:10px;color:#aaa;font-weight:700;">ACCURACY</div></div>
+    <div class="accuracy-inner"><div id="duo-acc-pct" style="font-size:clamp(18px,5vw,24px);font-weight:800;"></div><div style="font-size:10px;color:#aaa;font-weight:700;">ACCURACY</div></div>
    </div>
    <button class="btn-primary" onclick="exitDuo()" style="max-width:220px;">Back to Vocab</button>
   </div>
@@ -726,15 +745,13 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
   </div>
   <div class="prog-bar"><div class="prog-fill" id="qz-prog" style="width:0%"></div></div>
  </div>
- <div class="quiz-body" id="qz-body">
-  <!-- rendered by JS -->
- </div>
+ <div class="quiz-body" id="qz-body"></div>
  <div class="quiz-result" id="qz-result">
-  <div style="font-size:56px;margin-bottom:12px;" id="qz-res-emoji">🎉</div>
-  <div style="font-size:24px;font-weight:800;margin-bottom:6px;" id="qz-res-title">Great job!</div>
-  <div style="color:#888;margin-bottom:20px;" id="qz-res-sub"></div>
+  <div style="font-size:clamp(40px,12vw,56px);margin-bottom:12px;" id="qz-res-emoji">🎉</div>
+  <div style="font-size:clamp(18px,5vw,24px);font-weight:800;margin-bottom:6px;" id="qz-res-title">Great job!</div>
+  <div style="color:#888;margin-bottom:20px;font-size:clamp(13px,3.5vw,15px);" id="qz-res-sub"></div>
   <div class="result-ring" id="qz-res-ring" style="--pct:0%">
-   <div class="result-inner"><div style="font-size:22px;font-weight:800;" id="qz-res-pct">0%</div><div style="font-size:10px;color:#aaa;font-weight:700;">SCORE</div></div>
+   <div class="result-inner"><div style="font-size:clamp(17px,5vw,22px);font-weight:800;" id="qz-res-pct">0%</div><div style="font-size:10px;color:#aaa;font-weight:700;">SCORE</div></div>
   </div>
   <button class="btn-primary" onclick="retryQuiz()" style="max-width:220px;margin-bottom:10px;">🔁 Retry</button>
   <button onclick="exitQuiz()" style="background:none;border:2px solid rgba(0,0,0,.1);padding:12px 28px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Exit</button>
@@ -745,7 +762,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
 <div class="photo-page" id="photo-page">
  <div class="photo-head">
   <button class="icon-btn" onclick="closePhotoPage()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
-  <div style="font-weight:800;font-size:17px;" id="photo-page-title">Photos</div>
+  <div style="font-weight:800;font-size:clamp(15px,4.5vw,17px);" id="photo-page-title">Photos</div>
  </div>
  <div class="photo-body" id="photo-page-body"></div>
 </div>
@@ -844,29 +861,22 @@ function showSuccess(msg){
 
 async function loadAdminAll(){
  const{db,ref,get}=window.fb;
- // Books
  const bs=await get(ref(db,'books'));
  allBooks=bs.val()?Object.keys(bs.val()).map(k=>({id:k,...bs.val()[k]})):[];
  renderAdminBooks();
  renderHomeBooks();
- // Folders + words
  await loadFolders('sat');
  await loadFolders('ielts');
  await loadAdminWords('sat');
  await loadAdminWords('ielts');
- // Rules
  await loadContentFolders('rules');
  await loadContentItems('rules');
- // Practice tests
  await loadPracticeTests();
- // Quizzes
  await loadQuizzes();
- // Podcasts
  const ps=await get(ref(db,'podcasts'));
  const pods=ps.val()?Object.keys(ps.val()).map(k=>({id:k,...ps.val()[k]})):[];
  renderAdminPodcasts(pods);
  renderPodcasts(pods);
- // Photo sections admin
  renderAdminPhotoSections();
 }
 
@@ -1107,13 +1117,10 @@ async function loadFolders(type){
  const snap=await get(ref(db,`${type}-folders`));
  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
  if(type==='sat'){cachedSATFolders=folders;}else{cachedIELTSFolders=folders;}
- // Update select
  const sel=document.getElementById(`${type}-folder-sel`);
  if(sel) sel.innerHTML=folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
- // Admin folder list
  const el=document.getElementById(`${type}-folders-admin`);
  if(el) el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><strong style="font-size:13px;">Folders:</strong><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="deleteFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;padding:0;">×</button></div>`).join('')}</div></div>`:'';
- // Render edu folder cards
  renderVocabFolders(type);
 }
 async function deleteFolder(type,id){
@@ -1137,7 +1144,6 @@ function renderAdminWords(type,words){
  const el=document.getElementById(`${type}-words-list`);
  if(!el)return;
  if(!words.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:14px;font-size:13px;">No words yet</p>';return;}
- const folders=type==='sat'?cachedSATFolders:cachedIELTSFolders;
  const grouped={};
  words.forEach(w=>{const fn=w.folderName||'Uncategorized';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(w);});
  el.innerHTML=Object.entries(grouped).map(([fn,ws])=>{
@@ -1250,7 +1256,6 @@ async function adminDeleteFolder2(fid,fname,type){
  });
 }
 
-// Bulk select
 function updateBulk(gid){
  const cbs=[...document.querySelectorAll(`.wchk[data-grp="${gid}"]`)];
  const checked=cbs.filter(c=>c.checked);
@@ -1310,8 +1315,11 @@ async function loadContentFolders(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-folders`));
  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
- const sel=document.getElementById(`${type}-folder-sel`);
- if(sel)sel.innerHTML=folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+ // Update all selects for this type
+ ['rules-folder-sel','rules-fq-folder-sel'].forEach(selId=>{
+  const sel=document.getElementById(selId);
+  if(sel)sel.innerHTML=`<option value="">Select...</option>`+folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+ });
  const el=document.getElementById(`${type}-folders-admin`);
  if(el)el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><div style="display:flex;flex-wrap:wrap;gap:7px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="delContentFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;padding:0;">×</button></div>`).join('')}</div></div>`:'';
 }
@@ -1320,6 +1328,27 @@ async function delContentFolder(type,id){
  await window.fb.remove(window.fb.ref(window.fb.db,`${type}-folders/${id}`));
  showSuccess('Deleted!');await loadContentFolders(type);
 }
+
+// =============================================
+//  PER-FOLDER QUIZ (Rules)  ← NEW
+// =============================================
+async function saveFolderQuiz(type){
+ const fid=document.getElementById(`${type}-fq-folder-sel`).value;
+ const name=document.getElementById(`${type}-fq-name`).value.trim();
+ const raw=document.getElementById(`${type}-fq-data`).value.trim();
+ if(!fid||!name||!raw){alert('Fill folder, name and questions');return;}
+ let questions;
+ try{questions=JSON.parse(raw);}catch(e){alert('Invalid JSON: '+e.message);return;}
+ const{db,ref,set}=window.fb;
+ // Store quiz keyed by folder id under rules-folder-quizzes
+ await set(ref(db,`${type}-folder-quizzes/${fid}`),{name,questions,updatedAt:Date.now()});
+ document.getElementById(`${type}-fq-name`).value='';
+ document.getElementById(`${type}-fq-data`).value='';
+ showSuccess('Folder quiz saved! ✅');
+ // Re-render rules page to show updated quiz buttons
+ await loadContentItems(type);
+}
+
 async function saveContentItem(type){
  const fid=document.getElementById(`${type}-folder-sel`).value;
  const title=document.getElementById(`${type}-title`).value.trim();
@@ -1353,6 +1382,9 @@ async function loadContentItems(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-items`));
  const items=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+ // Also load folder quizzes
+ const fqSnap=await get(ref(db,`${type}-folder-quizzes`));
+ const folderQuizzes=fqSnap.val()||{};
  const el=document.getElementById(`${type}-items-list`);
  if(!el)return;
  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No items yet</p>';return;}
@@ -1360,7 +1392,10 @@ async function loadContentItems(type){
  items.forEach(it=>{const fn=it.folderName||'General';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(it);});
  el.innerHTML=Object.entries(grouped).map(([fn,its])=>`
   <div style="margin-top:13px;">
-   <div style="background:var(--acc);color:#fff;padding:7px 12px;border-radius:9px;font-weight:800;font-size:12px;margin-bottom:7px;">📁 ${fn}</div>
+   <div style="background:var(--acc);color:#fff;padding:7px 12px;border-radius:9px;font-weight:800;font-size:12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;">
+    <span>📁 ${fn}</span>
+    ${its[0]?.folder&&folderQuizzes[its[0].folder]?`<span style="background:rgba(255,255,255,.25);padding:2px 8px;border-radius:5px;font-size:10px;">🧩 Quiz attached</span>`:''}
+   </div>
    ${its.map(it=>`<div class="item-row">
     <div class="item-row-info">
      <div class="item-row-title">${it.title}</div>
@@ -1372,8 +1407,7 @@ async function loadContentItems(type){
     </div>
    </div>`).join('')}
   </div>`).join('');
- // Render in edu
- if(type==='rules') renderRulesPage(items);
+ if(type==='rules') renderRulesPage(items, folderQuizzes);
 }
 async function startEditContent(type,id){
  const{db,ref,get}=window.fb;
@@ -1405,9 +1439,9 @@ async function delContentItem(type,id){
 }
 
 // =============================================
-//  RULES RENDERING
+//  RULES RENDERING  (with per-folder quiz btns)
 // =============================================
-function renderRulesPage(items){
+function renderRulesPage(items, folderQuizzes={}){
  const el=document.getElementById('sat-rules-content');
  if(!el)return;
  if(!items.length){el.innerHTML='<div style="text-align:center;padding:48px;color:#bbb;font-size:15px;">No rules yet</div>';return;}
@@ -1417,11 +1451,17 @@ function renderRulesPage(items){
  const qdataStr=JSON.stringify(quizItems).replace(/"/g,'&quot;');
  let n=1;
  let html=`<div class="rules-wrap">
-  <div class="rules-main-title">SAT Grammar & Punctuation Rules</div>
+  <div class="rules-main-title">SAT Grammar &amp; Punctuation Rules</div>
   <div class="rules-sub">Master the rules. Ace the test. · ${items.length} rules</div>
-  ${quizItems.length?`<button class="rule-practice-btn" onclick='startQuiz(${qdataStr},"Rules Practice","mc")'>✏️ Practice Questions <span class="rule-cnt">${quizItems.length} Qs</span></button>`:''}`;
+  ${quizItems.length?`<button class="rule-practice-btn" onclick='startQuiz(${qdataStr},"Rules Practice","mc")'>✏️ Practice All Questions <span class="rule-cnt">${quizItems.length} Qs</span></button>`:''}`;
  for(const[sec,its]of Object.entries(grouped)){
-  html+=`<div class="rule-sec-title">${sec}</div>`;
+  const fid=its[0]?.folder||'';
+  const fq=fid&&folderQuizzes[fid]?folderQuizzes[fid]:null;
+  const fqData=fq?JSON.stringify(fq.questions).replace(/"/g,'&quot;'):'';
+  html+=`<div class="rule-sec-header">
+   <div class="rule-sec-title">${sec}</div>
+   ${fq?`<button class="rule-folder-quiz-btn" onclick='startQuiz(${fqData},"${esc(fq.name)}","mc")'>🧩 ${fq.name} <span style="opacity:.7;font-size:10px;">(${fq.questions.length})</span></button>`:''}
+  </div>`;
   for(const it of its){
    html+=`<div class="rule-block"><div style="display:flex;align-items:baseline;gap:3px;margin-bottom:12px;"><span class="rule-num">${n++}.&nbsp;</span><span class="rule-stmt">${it.title}</span></div>`;
    if(it.body)(it.body.split('\n')).filter(p=>p.trim()).forEach(p=>{
@@ -1470,7 +1510,7 @@ function renderPracticeList(tests){
  if(!tests||!tests.length){
   el.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">No practice tests yet</div>';return;
  }
- el.innerHTML=tests.map(t=>`<a href="${t.url}" target="_blank" style="text-decoration:none;"><div class="edu-card"><div><div class="edu-card-title" style="font-size:17px;">${t.title}</div>${t.desc?`<div style="font-size:13px;color:#888;margin-top:5px;">${t.desc}</div>`:''}</div><div class="edu-icon">🔗</div></div></a>`).join('');
+ el.innerHTML=tests.map(t=>`<a href="${t.url}" target="_blank" style="text-decoration:none;"><div class="edu-card"><div><div class="edu-card-title" style="font-size:clamp(14px,4vw,17px);">${t.title}</div>${t.desc?`<div style="font-size:clamp(11px,3vw,13px);color:#888;margin-top:5px;">${t.desc}</div>`:''}</div><div class="edu-icon">🔗</div></div></a>`).join('');
 }
 
 // =============================================
@@ -1513,7 +1553,7 @@ function renderQuizList(quizzes){
  if(!el)return;
  if(!quizzes||!quizzes.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">No quizzes yet</div>';return;}
  const TYPE_LABELS={mc:'📝 Multiple Choice',match:'🔗 Matching Pairs',open:'💬 Open Questions',real:'🎯 Real Exam Practice'};
- el.innerHTML=quizzes.map(q=>`<div class="edu-card" onclick="launchQuiz('${q.id}')"><div><div class="edu-card-title" style="font-size:18px;">${q.name}</div><div style="font-size:13px;color:#888;margin-top:4px;">${TYPE_LABELS[q.type]||q.type} · ${(q.questions||[]).length} questions</div></div><div class="edu-icon">▶</div></div>`).join('');
+ el.innerHTML=quizzes.map(q=>`<div class="edu-card" onclick="launchQuiz('${q.id}')"><div><div class="edu-card-title" style="font-size:clamp(15px,4.5vw,18px);">${q.name}</div><div style="font-size:clamp(11px,3vw,13px);color:#888;margin-top:4px;">${TYPE_LABELS[q.type]||q.type} · ${(q.questions||[]).length} questions</div></div><div class="edu-icon">▶</div></div>`).join('');
 }
 
 // =============================================
@@ -1697,7 +1737,7 @@ function retryQuiz(){
 }
 
 // =============================================
-//  PHOTO SECTIONS (file upload → base64)
+//  PHOTO SECTIONS — IMAGES + TEXT  ← AMENDED
 // =============================================
 function renderAdminPhotoSections(){
  const el=document.getElementById('admin-photo-sections');
@@ -1705,17 +1745,61 @@ function renderAdminPhotoSections(){
  el.innerHTML=PHOTO_SUBS.map(sub=>`
   <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:12px;border:1.5px solid rgba(217,185,155,.25);">
    <div style="font-weight:800;font-size:13px;margin-bottom:10px;">${sub.emoji} ${sub.title}</div>
+
+   <!-- TEXT CONTENT BLOCK -->
+   <div style="background:#f8f8f8;border-radius:10px;padding:12px;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:7px;text-transform:uppercase;letter-spacing:1px;">✍️ Add Text Block</div>
+    <input type="text" id="text-title-${sub.id}" placeholder="Title (optional)" style="width:100%;padding:8px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:6px;">
+    <textarea id="text-body-${sub.id}" placeholder="Write text content here..." style="width:100%;padding:9px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;min-height:72px;resize:vertical;outline:none;"></textarea>
+    <button onclick="addTextBlock('${sub.id}')" style="margin-top:7px;background:var(--acc);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;width:100%;">✍️ Add Text</button>
+   </div>
+
+   <!-- PHOTO UPLOAD BLOCK -->
    <div style="display:flex;gap:8px;margin-bottom:9px;align-items:flex-end;flex-wrap:wrap;">
-    <input type="text" id="photo-title-${sub.id}" placeholder="Caption (optional)" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:9px;font-family:inherit;font-size:13px;outline:none;">
-    <label style="background:var(--acc);color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-     📤 Upload
+    <input type="text" id="photo-title-${sub.id}" placeholder="Image caption (optional)" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:9px;font-family:inherit;font-size:13px;outline:none;">
+    <label style="background:#6c757d;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+     📷 Upload
      <input type="file" accept="image/*" style="display:none;" onchange="uploadPhoto(this,'${sub.id}')">
     </label>
    </div>
    <div id="admin-photos-${sub.id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+   <div id="admin-texts-${sub.id}" style="margin-top:8px;"></div>
   </div>`).join('');
- PHOTO_SUBS.forEach(sub=>loadAdminPhotos(sub.id));
+ PHOTO_SUBS.forEach(sub=>{loadAdminPhotos(sub.id);loadAdminTexts(sub.id);});
 }
+
+async function addTextBlock(subId){
+ const title=(document.getElementById(`text-title-${subId}`)?.value||'').trim();
+ const body=(document.getElementById(`text-body-${subId}`)?.value||'').trim();
+ if(!body){alert('Write some text first');return;}
+ const{db,ref,push,set}=window.fb;
+ await set(push(ref(db,`photo-sections-text/${subId}`)),{title,body,addedAt:Date.now()});
+ document.getElementById(`text-title-${subId}`).value='';
+ document.getElementById(`text-body-${subId}`).value='';
+ loadAdminTexts(subId);
+}
+
+async function loadAdminTexts(subId){
+ try{
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`photo-sections-text/${subId}`));
+  const texts=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  const el=document.getElementById(`admin-texts-${subId}`);
+  if(!el)return;
+  if(!texts.length){el.innerHTML='';return;}
+  el.innerHTML=`<div style="font-size:11px;color:#aaa;font-weight:700;margin-bottom:5px;">TEXT BLOCKS (${texts.length})</div>`+
+   texts.map(t=>`<div style="background:#fff8f0;border:1px solid var(--acc);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:12px;display:flex;align-items:flex-start;gap:8px;">
+    <div style="flex:1;"><b>${t.title||'(No title)'}</b><div style="color:#666;margin-top:2px;">${(t.body||'').substring(0,80)}${t.body&&t.body.length>80?'…':''}</div></div>
+    <button onclick="deleteTextBlock('${subId}','${t.id}')" style="background:#ff4444;border:none;color:#fff;width:18px;height:18px;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+   </div>`).join('');
+ }catch(e){}
+}
+
+async function deleteTextBlock(subId, textId){
+ await window.fb.remove(window.fb.ref(window.fb.db,`photo-sections-text/${subId}/${textId}`));
+ loadAdminTexts(subId);
+}
+
 async function uploadPhoto(input,subId){
  const file=input.files[0];if(!file)return;
  const title=document.getElementById(`photo-title-${subId}`).value.trim();
@@ -1749,19 +1833,20 @@ async function deletePhoto(subId,photoId){
  loadAdminPhotos(subId);
 }
 
-// Photo page in edu
+// Photo page in edu — now shows both text and images
 function renderPhotoSubList(){
  const el=document.getElementById('edu-photo-list');
  if(!el)return;
  el.innerHTML=PHOTO_SUBS.map(sub=>`
   <div class="photo-sub-card" onclick="openPhotoSub('${sub.id}','${sub.title}')">
    <div style="display:flex;align-items:center;gap:14px;">
-    <div style="font-size:26px;">${sub.emoji}</div>
-    <div><div style="font-weight:800;font-size:16px;">${sub.title}</div></div>
+    <div style="font-size:clamp(20px,6vw,26px);">${sub.emoji}</div>
+    <div><div style="font-weight:800;font-size:clamp(14px,4vw,16px);">${sub.title}</div></div>
    </div>
    <div style="font-size:20px;color:#ccc;">›</div>
   </div>`).join('');
 }
+
 async function openPhotoSub(subId,title){
  curPhotoSubId=subId;
  document.getElementById('photo-page-title').textContent=title;
@@ -1769,10 +1854,51 @@ async function openPhotoSub(subId,title){
  el.innerHTML='<div style="text-align:center;padding:48px;color:#bbb;">Loading...</div>';
  document.getElementById('photo-page').classList.add('active');
  const{db,ref,get}=window.fb;
- const snap=await get(ref(db,`photo-sections/${subId}`));
- const photos=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
- if(!photos.length){el.innerHTML='<div style="text-align:center;padding:60px;color:#aaa;"><div style="font-size:48px;margin-bottom:14px;">🖼️</div><div style="font-weight:700;">No images yet</div><div style="font-size:13px;margin-top:6px;">Add via Admin panel</div></div>';return;}
- el.innerHTML=`<div class="photo-grid">${photos.map(p=>`<div class="photo-card" onclick="openLightbox('${p.data}')"><img src="${p.data}" alt="${p.title||''}"><div class="photo-card-body">${p.title?`<div class="photo-card-title">${p.title}</div>`:''}</div></div>`).join('')}</div>`;
+
+ // Load both photos and text blocks in parallel
+ const[photoSnap,textSnap]=await Promise.all([
+  get(ref(db,`photo-sections/${subId}`)),
+  get(ref(db,`photo-sections-text/${subId}`))
+ ]);
+ const photos=photoSnap.val()?Object.keys(photoSnap.val()).map(k=>({id:k,type:'photo',...photoSnap.val()[k]})):[];
+ const texts=textSnap.val()?Object.keys(textSnap.val()).map(k=>({id:k,type:'text',...textSnap.val()[k]})):[];
+
+ // Merge and sort by addedAt
+ const allItems=[...photos,...texts].sort((a,b)=>(a.addedAt||0)-(b.addedAt||0));
+
+ if(!allItems.length){
+  el.innerHTML='<div style="text-align:center;padding:60px;color:#aaa;"><div style="font-size:48px;margin-bottom:14px;">📄</div><div style="font-weight:700;">No content yet</div><div style="font-size:13px;margin-top:6px;">Add via Admin panel</div></div>';
+  return;
+ }
+
+ // Render: text blocks full-width, photos in grid
+ const photoItems=allItems.filter(i=>i.type==='photo');
+ const textItems=allItems.filter(i=>i.type==='text');
+
+ let html='<div style="max-width:860px;margin:0 auto;padding-bottom:20px;">';
+
+ // Text blocks (full width, rendered in order)
+ if(textItems.length){
+  textItems.forEach(t=>{
+   html+=`<div class="text-block">
+    ${t.title?`<div class="text-block-title">${t.title}</div>`:''}
+    <div class="text-block-body">${t.body||''}</div>
+   </div>`;
+  });
+ }
+
+ // Photos grid
+ if(photoItems.length){
+  if(textItems.length)html+=`<div style="font-size:11px;font-weight:800;color:#aaa;letter-spacing:1px;margin:18px 0 10px;text-transform:uppercase;">📷 Images</div>`;
+  html+=`<div class="photo-grid">`;
+  photoItems.forEach(p=>{
+   html+=`<div class="photo-card" onclick="openLightbox('${p.data}')"><img src="${p.data}" alt="${p.title||''}"><div class="photo-card-body">${p.title?`<div class="photo-card-title">${p.title}</div>`:''}</div></div>`;
+  });
+  html+=`</div>`;
+ }
+
+ html+='</div>';
+ el.innerHTML=html;
 }
 function closePhotoPage(){document.getElementById('photo-page').classList.remove('active');}
 function openLightbox(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('active');}
@@ -1809,7 +1935,6 @@ function openFolderPage(fid,fname,type){
   </div>
   <div>${words.map(w=>`<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div>${w.ant?`<div class="v-ant">↔ ${w.ant}</div>`:''} ${w.ex?`<div class="v-ex">"${w.ex}"</div>`:''}</div>`).join('')}</div>
   <div class="spacer"></div>`;
- // Hide folder list, show page
  document.getElementById(`${type}-folder-cards`).style.display='none';
  document.querySelectorAll(`#${type}-folder-pages > div`).forEach(d=>d.style.display='none');
  pg.style.display='block';
@@ -2036,7 +2161,7 @@ function renderThemeGrid(){
 function saveNotes(){localStorage.setItem('notes',document.getElementById('notes').value);}
 
 // =============================================
-//  AI ENGINE (OpenRouter)
+//  AI ENGINE
 // =============================================
 const AI_MODEL='meta-llama/llama-3.3-70b-instruct:free';
 const AI_SYS=`You are Luminary AI — a smart, friendly SAT & IELTS tutor. Speak Russian unless user writes English. Be helpful, warm, concise.
@@ -2214,21 +2339,27 @@ function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.ra
 //  INIT
 // =============================================
 window.addEventListener('fbReady',async()=>{
- // Load everything
  await loadAdminAll();
- // Realtime listeners
  const{db,ref,onValue}=window.fb;
  onValue(ref(db,'books'),s=>{const d=s.val();allBooks=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderHomeBooks();renderAdminBooks();});
  onValue(ref(db,'podcasts'),s=>{const d=s.val();const pods=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderPodcasts(pods);});
  onValue(ref(db,'sat-words'),s=>{const d=s.val();cachedSATWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderVocabFolders('sat');});
  onValue(ref(db,'ielts-words'),s=>{const d=s.val();cachedIELTSWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderVocabFolders('ielts');});
- onValue(ref(db,'rules-items'),s=>{const d=s.val();const items=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderRulesPage(items);});
+ onValue(ref(db,'rules-items'),async s=>{
+  const d=s.val();const items=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  const fqSnap=await window.fb.get(ref(db,'rules-folder-quizzes'));
+  renderRulesPage(items,fqSnap.val()||{});
+ });
+ onValue(ref(db,'rules-folder-quizzes'),async s=>{
+  const fqs=s.val()||{};
+  const iSnap=await window.fb.get(ref(db,'rules-items'));
+  const d=iSnap.val();const items=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  renderRulesPage(items,fqs);
+ });
  onValue(ref(db,'practice-tests'),s=>{const d=s.val();const tests=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderPracticeList(tests);});
  onValue(ref(db,'quizzes'),s=>{const d=s.val();const qzs=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderQuizList(qzs);});
- // Theme + notes
  setTheme(localStorage.getItem('theme')||'beige');
  document.getElementById('notes').value=localStorage.getItem('notes')||'';
- // AI folders pre-load
  setTimeout(loadAIFolders,600);
  document.getElementById('ai-type')?.addEventListener('change',loadAIFolders);
 });
