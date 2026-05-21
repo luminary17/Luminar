@@ -310,13 +310,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .bulk-del-btn{padding:4px 10px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;display:none;}
 .bulk-del-btn.vis{display:inline-flex;align-items:center;gap:3px;}
 
-/* ── FIX: Admin word-group inner scroll ── */
-.admin-word-group-inner{
- max-height:420px;
- overflow-y:auto;
- -webkit-overflow-scrolling:touch;
- padding-right:2px;
-}
+/* Admin word group scroll */
+.admin-word-group-inner{max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;}
 .admin-word-group-inner::-webkit-scrollbar{width:4px;}
 .admin-word-group-inner::-webkit-scrollbar-thumb{background:var(--acc);border-radius:4px;}
 
@@ -418,7 +413,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
       </div>
       <div class="form-group"><label>Word</label><input id="sat-word" placeholder="e.g. Benevolent"></div>
       <div class="form-group"><label>Definition</label><textarea id="sat-def" placeholder="e.g. Well meaning and kindly"></textarea></div>
-      <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="sat-ant" placeholder="e.g. Benign, Kind"></div>
+      <div class="form-group"><label>Antonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="sat-ant" placeholder="e.g. Malevolent, Hostile"></div>
       <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="sat-ex" placeholder="e.g. The benevolent teacher..."></textarea></div>
       <button class="btn-primary" id="sat-word-btn" onclick="saveWord('sat')">Add Word</button>
       <button class="btn-cancel" id="sat-word-cancel" onclick="cancelWord('sat')" style="display:none;">Cancel Edit</button>
@@ -443,7 +438,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
       </div>
       <div class="form-group"><label>Word</label><input id="ielts-word" placeholder="e.g. Coherent"></div>
       <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g. Logical and consistent"></textarea></div>
-      <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="ielts-ant" placeholder="e.g. Unified, Clear"></div>
+      <div class="form-group"><label>Antonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="ielts-ant" placeholder="e.g. Incoherent"></div>
       <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="ielts-ex" placeholder="e.g. Her coherent argument..."></textarea></div>
       <button class="btn-primary" id="ielts-word-btn" onclick="saveWord('ielts')">Add Word</button>
       <button class="btn-cancel" id="ielts-word-cancel" onclick="cancelWord('ielts')" style="display:none;">Cancel Edit</button>
@@ -803,10 +798,13 @@ function debounce(key,fn,ms){
  clearTimeout(_debTimers[key]);
  _debTimers[key]=setTimeout(fn,ms||300);
 }
+// Hash to skip re-render when data unchanged
 let _lastWordsHash={sat:'',ielts:''};
 function _wordsHash(arr){
  if(!arr||!arr.length)return '';
- return arr.length+'|'+arr.slice(0,5).map(w=>w.id).join(',');
+ const first=arr[0]?.id||'';
+ const last=arr[arr.length-1]?.id||'';
+ return arr.length+'|'+first+'|'+last;
 }
 
 // =============================================
@@ -833,6 +831,9 @@ let cachedSATFolders=[], cachedIELTSFolders=[];
 let cachedSATWords=[], cachedIELTSWords=[];
 let editingWordId=null, editingWordType=null;
 let editingBookId=null, editorBookId=null;
+const _wordStore={};
+function _storeWord(type,w){_wordStore[type+':'+w.id]=w;}
+function _getWord(type,id){return _wordStore[type+':'+id]||null;}
 let editingContentId=null, editingContentType=null;
 let undoState=null, undoTimer=null;
 let curPhotoSubId=null;
@@ -1148,13 +1149,14 @@ async function deleteFolder(type,id){
 }
 
 // =============================================
-//  VOCAB WORDS — OPTIMISED
+//  VOCAB WORDS — OPTIMISED (no lag)
 // =============================================
 async function loadAdminWords(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-words`));
  const words=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
  if(type==='sat')cachedSATWords=words;else cachedIELTSWords=words;
+ // Defer DOM work to next frame to keep UI responsive
  requestAnimationFrame(()=>{
   renderAdminWords(type,words);
   renderVocabFolders(type);
@@ -1164,6 +1166,7 @@ async function loadAdminWords(type){
 function renderAdminWords(type,words){
  const el=document.getElementById(`${type}-words-list`);
  if(!el)return;
+ // Skip re-render if data hash unchanged
  const h=_wordsHash(words);
  if(_lastWordsHash[type]===h)return;
  _lastWordsHash[type]=h;
@@ -1172,14 +1175,14 @@ function renderAdminWords(type,words){
   el.innerHTML='<p style="color:#aaa;text-align:center;padding:14px;font-size:13px;">No words yet</p>';
   return;
  }
+ words.forEach(w=>_storeWord(type,w));
  const grouped={};
  words.forEach(w=>{const fn=w.folderName||'Uncategorized';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(w);});
-
  el.innerHTML=Object.entries(grouped).map(([fn,ws])=>{
   const fid=ws[0]?.folder||'';
   const gid=`${type}-${fid}`;
   return`<div style="margin-bottom:14px;">
-   <div style="background:var(--acc);color:#fff;padding:8px 13px;border-radius:9px 9px 0 0;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;">
+   <div style="background:var(--acc);color:#fff;padding:8px 13px;border-radius:9px 9px 0 0;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center;">
     <span>📁 ${fn} (${ws.length})</span>
     <button class="btn-del" style="font-size:11px;padding:4px 9px;" onclick="adminDeleteFolder2('${fid}','${fn}','${type}')">🗑️ Folder</button>
    </div>
@@ -1192,19 +1195,19 @@ function renderAdminWords(type,words){
      <button class="bulk-del-btn" id="bdel-${gid}" onclick="bulkDel('${gid}','${type}')">🗑️ Delete</button>
     </div>
     <div class="admin-word-group-inner">
-     ${ws.map(w=>`
-      <div class="word-row" id="wr-${w.id}">
-       <input type="checkbox" class="wchk" data-grp="${gid}" data-id="${w.id}" onchange="updateBulk('${gid}')">
-       <div class="word-info">
-        <div class="word-w">${w.w}</div>
-        <div class="word-d">${w.d}</div>
-        ${w.ant?`<div class="word-ant-tag">≈ ${w.ant}</div>`:''}
-       </div>
-       <div class="word-actions">
-        <button class="btn-edit" onclick="startEditWord('${type}','${w.id}','${esc(w.w)}','${esc(w.d)}','${w.folder||''}','${esc(w.ant||'')}','${esc(w.ex||'')}')">✏️</button>
-        <button class="btn-del" onclick="delWord('${type}','${w.id}','${esc(w.w)}')">🗑️</button>
-       </div>
-      </div>`).join('')}
+    ${ws.map(w=>`
+     <div class="word-row" id="wr-${w.id}">
+      <input type="checkbox" class="wchk" data-grp="${gid}" data-id="${w.id}" onchange="updateBulk('${gid}')">
+      <div class="word-info">
+       <div class="word-w">${w.w}</div>
+       <div class="word-d">${w.d}</div>
+       ${w.ant?`<div class="word-ant-tag">↔ ${w.ant}</div>`:''}
+      </div>
+      <div class="word-actions">
+       <button class="btn-edit" data-type="${type}" data-wid="${w.id}" onclick="startEditWordById(this)">✏️</button>
+       <button class="btn-del" data-type="${type}" data-wid="${w.id}" onclick="delWordById(this)">🗑️</button>
+      </div>
+     </div>`).join('')}
     </div>
    </div>
   </div>`;
@@ -1213,12 +1216,18 @@ function renderAdminWords(type,words){
 function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
 
 async function saveWord(type){
+ const saveBtn=document.getElementById(`${type}-word-btn`);
+ if(saveBtn&&saveBtn.disabled)return;
+ if(saveBtn){saveBtn.disabled=true;saveBtn.style.opacity='.55';}
  const w=document.getElementById(`${type}-word`).value.trim();
  const d=document.getElementById(`${type}-def`).value.trim();
  const ant=document.getElementById(`${type}-ant`).value.trim();
  const ex=document.getElementById(`${type}-ex`).value.trim();
  const fid=document.getElementById(`${type}-folder-sel`).value;
- if(!w||!d||!fid){alert('Fill word, definition and select folder');return;}
+ if(!w||!d||!fid){
+  if(saveBtn){saveBtn.disabled=false;saveBtn.style.opacity='';}
+  alert('Fill word, definition and select folder');return;
+ }
  const{db,ref,get,set,push}=window.fb;
  const fs=await get(ref(db,`${type}-folders/${fid}`));
  const folderName=fs.val()?.name||'';
@@ -1232,24 +1241,39 @@ async function saveWord(type){
   await set(push(ref(db,`${type}-words`)),payload);
   showSuccess('Word added! ✅');
  }
+ // Clear form fields
  document.getElementById(`${type}-word`).value='';
  document.getElementById(`${type}-def`).value='';
  document.getElementById(`${type}-ant`).value='';
  document.getElementById(`${type}-ex`).value='';
+ // Force re-render and reload only words (not full admin)
  _lastWordsHash[type]='';
  await loadAdminWords(type);
+ if(saveBtn){saveBtn.disabled=false;saveBtn.style.opacity='';}
 }
 function startEditWord(type,id,w,d,fid,ant,ex){
  editingWordId=id;editingWordType=type;
- document.getElementById(`${type}-word`).value=w;
- document.getElementById(`${type}-def`).value=d;
- document.getElementById(`${type}-ant`).value=ant;
- document.getElementById(`${type}-ex`).value=ex;
- document.getElementById(`${type}-folder-sel`).value=fid;
- document.getElementById(`${type}-word-btn`).textContent='✏️ Update Word';
+ document.getElementById(`${type}-word`).value=w||'';
+ document.getElementById(`${type}-def`).value=d||'';
+ document.getElementById(`${type}-ant`).value=ant||'';
+ document.getElementById(`${type}-ex`).value=ex||'';
+ document.getElementById(`${type}-folder-sel`).value=fid||'';
+ const wb=document.getElementById(`${type}-word-btn`);
+ wb.textContent='✏️ Update Word';wb.disabled=false;wb.style.opacity='';
  document.getElementById(`${type}-word-cancel`).style.display='block';
- document.getElementById(`as-${type==='sat'?'sat':'ielts'}-vocab`).classList.remove('collapsed');
- document.querySelector(`#as-${type==='sat'?'sat':'ielts'}-vocab .admin-sec-body`).scrollIntoView({behavior:'smooth'});
+ const sec=`as-${type==='sat'?'sat':'ielts'}-vocab`;
+ document.getElementById(sec).classList.remove('collapsed');
+ document.querySelector(`#${sec} .admin-sec-body`).scrollIntoView({behavior:'smooth'});
+}
+function startEditWordById(btn){
+ const type=btn.dataset.type,id=btn.dataset.wid;
+ const w=_getWord(type,id);if(!w)return;
+ startEditWord(type,id,w.w,w.d,w.folder||'',w.ant||'',w.ex||'');
+}
+function delWordById(btn){
+ const type=btn.dataset.type,id=btn.dataset.wid;
+ const w=_getWord(type,id);if(!w)return;
+ delWord(type,id,w.w);
 }
 function cancelWord(type){
  editingWordId=null;editingWordType=null;
@@ -1947,7 +1971,7 @@ function openFolderPage(fid,fname,type){
    <span style="font-size:13px;color:#aaa;font-weight:600;">${words.length} words</span>
    <button class="btn-primary" style="width:auto;padding:9px 18px;font-size:13px;" onclick="startDuo('${fid}','${esc(fname)}','${type}')">🃏 Start Cards</button>
   </div>
-  <div>${words.map(w=>`<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div>${w.ant?`<div class="v-ant">≈ ${w.ant}</div>`:''} ${w.ex?`<div class="v-ex">"${w.ex}"</div>`:''}</div>`).join('')}</div>
+  <div>${words.map(w=>`<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div>${w.ant?`<div class="v-ant">↔ ${w.ant}</div>`:''} ${w.ex?`<div class="v-ex">"${w.ex}"</div>`:''}</div>`).join('')}</div>
   <div class="spacer"></div>`;
  document.getElementById(`${type}-folder-cards`).style.display='none';
  document.querySelectorAll(`#${type}-folder-pages > div`).forEach(d=>d.style.display='none');
@@ -1986,7 +2010,7 @@ function showDuoCard(){
  document.getElementById('duo-def').textContent=w.d;
  const ex=document.getElementById('duo-extra');
  ex.innerHTML='';
- if(w.ant)ex.innerHTML+=`<div class="duo-ant">≈ ${w.ant}</div>`;
+ if(w.ant)ex.innerHTML+=`<div class="duo-ant">↔ ${w.ant}</div>`;
  if(w.ex)ex.innerHTML+=`<div class="duo-ex">"${w.ex}"</div>`;
  ex.style.display=(w.ant||w.ex)?'block':'none';
  updateDuoProg();
@@ -2185,7 +2209,7 @@ You can: explain SAT/IELTS rules, generate vocabulary, check essays, answer stud
 When user asks to GENERATE/ADD words (дай, добавь, создай, generate, add words), output ONLY this block:
 
 <WORDS_JSON>
-[{"w":"Word","d":"Definition.","ant":"Synonym1, Synonym2","ex":"Example sentence."}]
+[{"w":"Word","d":"Definition.","ant":"Antonym1, Antonym2","ex":"Example sentence."}]
 </WORDS_JSON>
 
 Rules: w and d required. Include ant and ex always. SAT/IELTS level definitions. Natural sentences. Output WORDS_JSON only when publishing words. Otherwise reply conversationally.`;
@@ -2198,7 +2222,7 @@ function initAI(){
  const msgs=document.getElementById('ai-msgs');
  msgs.innerHTML='';
  const hasKey=!!localStorage.getItem('luminary_ai_key');
- aiBubble('bot',`👋 Привет! Я <b>Luminary AI</b> — твой персональный репетитор.<br><br>Я могу:<br>• Объяснять правила SAT и IELTS<br>• Создавать слова с синонимами и примерами<br>• Проверять твои эссе<br>• Добавлять слова в словарь<br><br>${hasKey?'Всё готово! 🚀':'⚠️ Добавь OpenRouter ключ — нажми <b>⚙️ добавить ключ</b> вверху.'}`);
+ aiBubble('bot',`👋 Привет! Я <b>Luminary AI</b> — твой персональный репетитор.<br><br>Я могу:<br>• Объяснять правила SAT и IELTS<br>• Создавать слова с антонимами и примерами<br>• Проверять твои эссе<br>• Добавлять слова в словарь<br><br>${hasKey?'Всё готово! 🚀':'⚠️ Добавь OpenRouter ключ — нажми <b>⚙️ добавить ключ</b> вверху.'}`);
 }
 async function loadAIFolders(){
  const type=document.getElementById('ai-type')?.value||'sat';
@@ -2276,7 +2300,7 @@ async function aiSend(){
    const sf=esc(fname);
    html+=`<div class="ai-pub-card"><div class="ai-pub-title">📦 ${words.length} слов готово${fid?` → «${fname}»`:''}</div>
     <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:9px;">
-     ${words.map(w=>`<div class="ai-word-prev"><b>${w.w}</b> — ${w.d}${w.ant?`<div style="color:#1a85c8;font-size:12px;margin-top:2px;">≈ ${w.ant}</div>`:''} ${w.ex?`<div style="color:#aaa;font-size:12px;font-style:italic;">"${w.ex}"</div>`:''}</div>`).join('')}
+     ${words.map(w=>`<div class="ai-word-prev"><b>${w.w}</b> — ${w.d}${w.ant?`<div style="color:#1a85c8;font-size:12px;margin-top:2px;">↔ ${w.ant}</div>`:''} ${w.ex?`<div style="color:#aaa;font-size:12px;font-style:italic;">"${w.ex}"</div>`:''}</div>`).join('')}
     </div>
     ${fid?`<button class="ai-pub-btn" onclick="aiPublish('${sw}','${fid}','${vtype}','${sf}',this)">✅ Добавить ${words.length} слов в «${fname}»</button>`:`<div style="font-size:12px;color:#f59e0b;font-weight:700;">⚠️ Выбери папку чтобы опубликовать</div>`}
    </div>`;
@@ -2302,6 +2326,7 @@ async function aiPublish(enc,fid,type,fname,btn){
  }
  btn.parentElement.innerHTML=`<div style="background:#dcfce7;border-radius:9px;padding:11px;text-align:center;font-weight:800;color:#166534;">✅ ${cnt} слов добавлено в «${fname}»!</div>`;
  aiBubble('bot',`🎉 <b>${cnt} слов</b> теперь в папке «<b>${fname}</b>»!`);
+ // Only reload words, not full admin
  _lastWordsHash[type]='';
  await loadAdminWords(type);
  renderVocabFolders(type);
@@ -2365,6 +2390,7 @@ window.addEventListener('fbReady',async()=>{
   const d=s.val();const pods=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
   renderPodcasts(pods);
  });
+ // Debounced to prevent lag on rapid writes (e.g. bulk word adds)
  onValue(ref(db,'sat-words'),s=>{
   const d=s.val();cachedSATWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
   debounce('sat-vocab-render',()=>{
