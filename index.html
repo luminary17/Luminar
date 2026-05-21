@@ -35,13 +35,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .edu-icon{font-size:clamp(20px,5vw,26px);opacity:.5;}
 .back-btn{background:none;border:none;font-family:inherit;font-size:clamp(12px,3.5vw,14px);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;opacity:.7;margin-bottom:16px;padding:4px 0;}
 
-/* HERO — responsive height */
+/* HERO */
 .hero{width:100%;height:clamp(180px,40vw,320px);border-radius:clamp(16px,4vw,24px);background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(16px,4vw,28px);color:#fff;margin-bottom:clamp(14px,4vw,22px);position:relative;overflow:hidden;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,0.1);}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);}
 .hero-text{position:relative;z-index:2;}
 .hero-text h2{font-size:clamp(18px,5vw,28px);font-weight:800;}
 
-/* BOOK GRID — responsive */
+/* BOOK GRID */
 .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(90px,22vw,130px),1fr));gap:clamp(8px,2vw,14px);}
 .book-card{aspect-ratio:2/3;border-radius:clamp(10px,3vw,16px);background-size:cover;background-position:center;cursor:pointer;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.1);}
 .book-card:hover{transform:translateY(-6px);}
@@ -77,7 +77,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .tg-c{background:#26A5E4;}.ig-c{background:radial-gradient(circle at 30% 107%,#fdf497,#fd5949 45%,#d6249f 60%,#285AEB);}
 .yt-c{background:#FF0000;}
 
-/* MODAL — scrollable overlay */
+/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(8px,3vw,16px);}
 .modal-overlay.active{display:block;}
 .modal-box{background:#fff;border-radius:clamp(14px,4vw,22px);padding:clamp(16px,4vw,28px);max-width:680px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -224,7 +224,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .rule-bullet{padding-left:16px;position:relative;}.rule-bullet::before{content:'✓';color:#1a7a4a;position:absolute;left:0;}
 .rule-quiz-badge{font-size:11px;color:#1a85c8;display:inline-flex;align-items:center;gap:3px;background:#e8f4fd;padding:3px 10px;border-radius:16px;margin-top:10px;}
 
-/* TEXT BLOCK in photo sections */
+/* TEXT BLOCK */
 .text-block{background:#fff;border-radius:clamp(12px,3.5vw,16px);padding:clamp(14px,4vw,18px);margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.05);}
 .text-block-tag{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--acc);margin-bottom:8px;}
 .text-block-title{font-size:clamp(15px,4vw,17px);font-weight:800;margin-bottom:6px;}
@@ -294,7 +294,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .undo-toast.show{transform:translateX(-50%) translateY(0);}
 .undo-btn{background:var(--acc);border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:800;padding:5px 12px;border-radius:7px;cursor:pointer;}
 
-/* WORD ROW in admin */
+/* WORD ROW */
 .word-row{background:#fff;padding:11px 13px;border-radius:11px;margin-bottom:7px;display:flex;align-items:center;gap:9px;border:2px solid transparent;transition:.15s;}
 .word-row.sel{border-color:var(--acc);background:#fff8f0;}
 .wchk{width:18px;height:18px;border:2px solid #ddd;border-radius:5px;cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;background:#fff;position:relative;transition:.15s;}
@@ -310,10 +310,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .bulk-del-btn{padding:4px 10px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;display:none;}
 .bulk-del-btn.vis{display:inline-flex;align-items:center;gap:3px;}
 
-/* SOCIAL */
+/* ── FIX: Admin word-group inner scroll ── */
+.admin-word-group-inner{
+ max-height:420px;
+ overflow-y:auto;
+ -webkit-overflow-scrolling:touch;
+ padding-right:2px;
+}
+.admin-word-group-inner::-webkit-scrollbar{width:4px;}
+.admin-word-group-inner::-webkit-scrollbar-thumb{background:var(--acc);border-radius:4px;}
+
 .spacer{height:80px;}
 
-/* RESPONSIVE FIXES */
 @media(max-width:480px){
  .duo-actions{gap:8px;}
  .match-grid{gap:5px;}
@@ -410,7 +418,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
       </div>
       <div class="form-group"><label>Word</label><input id="sat-word" placeholder="e.g. Benevolent"></div>
       <div class="form-group"><label>Definition</label><textarea id="sat-def" placeholder="e.g. Well meaning and kindly"></textarea></div>
-      <div class="form-group"><label>Antonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="sat-ant" placeholder="e.g. Malevolent, Hostile"></div>
+      <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="sat-ant" placeholder="e.g. Benign, Kind"></div>
       <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="sat-ex" placeholder="e.g. The benevolent teacher..."></textarea></div>
       <button class="btn-primary" id="sat-word-btn" onclick="saveWord('sat')">Add Word</button>
       <button class="btn-cancel" id="sat-word-cancel" onclick="cancelWord('sat')" style="display:none;">Cancel Edit</button>
@@ -435,7 +443,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
       </div>
       <div class="form-group"><label>Word</label><input id="ielts-word" placeholder="e.g. Coherent"></div>
       <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g. Logical and consistent"></textarea></div>
-      <div class="form-group"><label>Antonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="ielts-ant" placeholder="e.g. Incoherent"></div>
+      <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="ielts-ant" placeholder="e.g. Unified, Clear"></div>
       <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="ielts-ex" placeholder="e.g. Her coherent argument..."></textarea></div>
       <button class="btn-primary" id="ielts-word-btn" onclick="saveWord('ielts')">Add Word</button>
       <button class="btn-cancel" id="ielts-word-cancel" onclick="cancelWord('ielts')" style="display:none;">Cancel Edit</button>
@@ -453,7 +461,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
      <div class="form-group"><label>Create Folder</label><input id="rules-folder-name" placeholder="e.g. Grammar Rules"></div>
      <button class="btn-primary" onclick="createContentFolder('rules')" style="margin-bottom:14px;">➕ Create Folder</button>
      <div id="rules-folders-admin"></div>
-     <!-- PER-FOLDER QUIZ SECTION -->
      <div style="background:#fff;padding:16px;border-radius:13px;margin-top:12px;border-left:3px solid #1a85c8;">
       <div style="font-weight:800;font-size:13px;color:#1a85c8;margin-bottom:10px;">🧩 Folder Quiz (Attach quiz to a folder)</div>
       <div class="form-group"><label>Folder</label><select id="rules-fq-folder-sel"><option value="">Select folder...</option></select></div>
@@ -487,7 +494,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
    </div>
 
-   <!-- HACKS / PROBLEMS / SOLUTIONS (photo + text upload) -->
+   <!-- HACKS / PROBLEMS / SOLUTIONS -->
    <div class="admin-sec collapsed" id="as-hacks-photos">
     <div class="admin-sec-head" onclick="toggleSec('as-hacks-photos')">
      <h3>🖼️ Hacks / Problems / Solutions</h3><span class="admin-sec-arrow">▼</span>
@@ -498,7 +505,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
    </div>
 
-   <!-- SAT PRACTICE TESTS (links) -->
+   <!-- SAT PRACTICE TESTS -->
    <div class="admin-sec collapsed" id="as-practice">
     <div class="admin-sec-head" onclick="toggleSec('as-practice')">
      <h3>📝 SAT Practice Tests</h3><span class="admin-sec-arrow">▼</span>
@@ -532,10 +539,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
        </select>
       </div>
       <div class="form-group"><label>Questions (JSON format)</label>
-       <textarea id="qz-data" style="min-height:120px;font-size:12px;font-family:monospace;" placeholder='For MC: [{"q":"Question?","options":{"A":"...","B":"...","C":"...","D":"..."},"correct":"A","explain":"..."}]
-For Match: [{"term":"Word","def":"Definition"}]
-For Open: [{"q":"Explain...","hint":"Think about..."}]
-For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
+       <textarea id="qz-data" style="min-height:120px;font-size:12px;font-family:monospace;" placeholder='For MC: [{"q":"Question?","options":{"A":"...","B":"...","C":"...","D":"..."},"correct":"A","explain":"..."}]'></textarea>
       </div>
       <button class="btn-primary" onclick="saveQuiz()">Save Quiz</button>
      </div>
@@ -556,7 +560,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
     </div>
    </div>
 
-  </div><!-- /admin-body -->
+  </div>
  </div>
 </div>
 
@@ -682,7 +686,7 @@ For Real: same as MC with "section":"Reading/Math/Writing"'></textarea>
   <div class="spacer"></div>
  </div>
 
-</div><!-- /container -->
+</div>
 
 <!-- READER -->
 <div class="reader" id="reader">
@@ -792,6 +796,20 @@ window.dispatchEvent(new Event('fbReady'));
 
 <script>
 // =============================================
+//  PERFORMANCE: DEBOUNCE + RENDER CACHE
+// =============================================
+let _debTimers={};
+function debounce(key,fn,ms){
+ clearTimeout(_debTimers[key]);
+ _debTimers[key]=setTimeout(fn,ms||300);
+}
+let _lastWordsHash={sat:'',ielts:''};
+function _wordsHash(arr){
+ if(!arr||!arr.length)return '';
+ return arr.length+'|'+arr.slice(0,5).map(w=>w.id).join(',');
+}
+
+// =============================================
 //  GLOBALS
 // =============================================
 const THEMES=[
@@ -883,9 +901,9 @@ async function loadAdminAll(){
 // =============================================
 //  IMAGE UPLOAD (base64)
 // =============================================
-function previewImg(input, previewId, dataId){
+function previewImg(input,previewId,dataId){
  const file=input.files[0];
- if(!file) return;
+ if(!file)return;
  const reader=new FileReader();
  reader.onload=e=>{
   const data=e.target.result;
@@ -979,7 +997,7 @@ function refreshEditorStats(b){
 }
 function renderEditorChapters(b){
  const el=document.getElementById('be-chapters');
- const chs=b.chapters||[], pgs=b.pages||[];
+ const chs=b.chapters||[],pgs=b.pages||[];
  if(!chs.length){el.innerHTML='<p style="color:#aaa;padding:10px 0;font-size:13px;">No chapters yet</p>';return;}
  el.innerHTML=chs.map((ch,ci)=>{
   const cnt=ch.endPage-ch.startPage+1;
@@ -1030,7 +1048,7 @@ async function savePage(ci){
  const{db,ref,get,set}=window.fb;
  const snap=await get(ref(db,`books/${editorBookId}`));
  const b=snap.val();
- const pgs=b.pages||[], chs=b.chapters||[];
+ const pgs=b.pages||[],chs=b.chapters||[];
  const ch=chs[ci];
  const ins=ch.endPage+1;
  pgs.splice(ins,0,txt);
@@ -1045,7 +1063,7 @@ async function deletePage(pi){
  const{db,ref,get,set}=window.fb;
  const snap=await get(ref(db,`books/${editorBookId}`));
  const b=snap.val();
- const pgs=b.pages||[], chs=b.chapters||[];
+ const pgs=b.pages||[],chs=b.chapters||[];
  pgs.splice(pi,1);
  for(let i=0;i<chs.length;i++){
   if(pi<chs[i].startPage){chs[i].startPage-=1;chs[i].endPage-=1;}
@@ -1060,7 +1078,7 @@ async function addChapter(){
  const{db,ref,get,set}=window.fb;
  const snap=await get(ref(db,`books/${editorBookId}`));
  const b=snap.val();
- const pgs=b.pages||[], chs=b.chapters||[];
+ const pgs=b.pages||[],chs=b.chapters||[];
  const sp=pgs.length;
  chs.push({title:t,startPage:sp,endPage:sp-1});
  await set(ref(db,`books/${editorBookId}`),{...b,chapters:chs});
@@ -1072,7 +1090,7 @@ async function deleteChapter(ci){
  const{db,ref,get,set}=window.fb;
  const snap=await get(ref(db,`books/${editorBookId}`));
  const b=snap.val();
- const pgs=b.pages||[], chs=b.chapters||[];
+ const pgs=b.pages||[],chs=b.chapters||[];
  const ch=chs[ci];
  const cnt=ch.endPage-ch.startPage+1;
  pgs.splice(ch.startPage,Math.max(0,cnt));
@@ -1118,9 +1136,9 @@ async function loadFolders(type){
  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
  if(type==='sat'){cachedSATFolders=folders;}else{cachedIELTSFolders=folders;}
  const sel=document.getElementById(`${type}-folder-sel`);
- if(sel) sel.innerHTML=folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+ if(sel)sel.innerHTML=folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
  const el=document.getElementById(`${type}-folders-admin`);
- if(el) el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><strong style="font-size:13px;">Folders:</strong><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="deleteFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;padding:0;">×</button></div>`).join('')}</div></div>`:'';
+ if(el)el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><strong style="font-size:13px;">Folders:</strong><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="deleteFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;padding:0;">×</button></div>`).join('')}</div></div>`:'';
  renderVocabFolders(type);
 }
 async function deleteFolder(type,id){
@@ -1130,27 +1148,38 @@ async function deleteFolder(type,id){
 }
 
 // =============================================
-//  VOCAB WORDS
+//  VOCAB WORDS — OPTIMISED
 // =============================================
 async function loadAdminWords(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-words`));
  const words=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
  if(type==='sat')cachedSATWords=words;else cachedIELTSWords=words;
- renderAdminWords(type,words);
- renderVocabFolders(type);
+ requestAnimationFrame(()=>{
+  renderAdminWords(type,words);
+  renderVocabFolders(type);
+ });
 }
+
 function renderAdminWords(type,words){
  const el=document.getElementById(`${type}-words-list`);
  if(!el)return;
- if(!words.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:14px;font-size:13px;">No words yet</p>';return;}
+ const h=_wordsHash(words);
+ if(_lastWordsHash[type]===h)return;
+ _lastWordsHash[type]=h;
+
+ if(!words.length){
+  el.innerHTML='<p style="color:#aaa;text-align:center;padding:14px;font-size:13px;">No words yet</p>';
+  return;
+ }
  const grouped={};
  words.forEach(w=>{const fn=w.folderName||'Uncategorized';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(w);});
+
  el.innerHTML=Object.entries(grouped).map(([fn,ws])=>{
   const fid=ws[0]?.folder||'';
   const gid=`${type}-${fid}`;
   return`<div style="margin-bottom:14px;">
-   <div style="background:var(--acc);color:#fff;padding:8px 13px;border-radius:9px 9px 0 0;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center;">
+   <div style="background:var(--acc);color:#fff;padding:8px 13px;border-radius:9px 9px 0 0;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;">
     <span>📁 ${fn} (${ws.length})</span>
     <button class="btn-del" style="font-size:11px;padding:4px 9px;" onclick="adminDeleteFolder2('${fid}','${fn}','${type}')">🗑️ Folder</button>
    </div>
@@ -1162,19 +1191,21 @@ function renderAdminWords(type,words){
      </div>
      <button class="bulk-del-btn" id="bdel-${gid}" onclick="bulkDel('${gid}','${type}')">🗑️ Delete</button>
     </div>
-    ${ws.map(w=>`
-     <div class="word-row" id="wr-${w.id}">
-      <input type="checkbox" class="wchk" data-grp="${gid}" data-id="${w.id}" onchange="updateBulk('${gid}')">
-      <div class="word-info">
-       <div class="word-w">${w.w}</div>
-       <div class="word-d">${w.d}</div>
-       ${w.ant?`<div class="word-ant-tag">↔ ${w.ant}</div>`:''}
-      </div>
-      <div class="word-actions">
-       <button class="btn-edit" onclick="startEditWord('${type}','${w.id}','${esc(w.w)}','${esc(w.d)}','${w.folder||''}','${esc(w.ant||'')}','${esc(w.ex||'')}')">✏️</button>
-       <button class="btn-del" onclick="delWord('${type}','${w.id}','${esc(w.w)}')">🗑️</button>
-      </div>
-     </div>`).join('')}
+    <div class="admin-word-group-inner">
+     ${ws.map(w=>`
+      <div class="word-row" id="wr-${w.id}">
+       <input type="checkbox" class="wchk" data-grp="${gid}" data-id="${w.id}" onchange="updateBulk('${gid}')">
+       <div class="word-info">
+        <div class="word-w">${w.w}</div>
+        <div class="word-d">${w.d}</div>
+        ${w.ant?`<div class="word-ant-tag">≈ ${w.ant}</div>`:''}
+       </div>
+       <div class="word-actions">
+        <button class="btn-edit" onclick="startEditWord('${type}','${w.id}','${esc(w.w)}','${esc(w.d)}','${w.folder||''}','${esc(w.ant||'')}','${esc(w.ex||'')}')">✏️</button>
+        <button class="btn-del" onclick="delWord('${type}','${w.id}','${esc(w.w)}')">🗑️</button>
+       </div>
+      </div>`).join('')}
+    </div>
    </div>
   </div>`;
  }).join('');
@@ -1205,6 +1236,7 @@ async function saveWord(type){
  document.getElementById(`${type}-def`).value='';
  document.getElementById(`${type}-ant`).value='';
  document.getElementById(`${type}-ex`).value='';
+ _lastWordsHash[type]='';
  await loadAdminWords(type);
 }
 function startEditWord(type,id,w,d,fid,ant,ex){
@@ -1231,9 +1263,11 @@ async function delWord(type,id,wordText){
  const data=snap.val();
  if(!data)return;
  await remove(ref(db,`${type}-words/${id}`));
+ _lastWordsHash[type]='';
  await loadAdminWords(type);
  showUndoToast(`Deleted "${wordText}"`,async()=>{
   await set(ref(db,`${type}-words/${id}`),data);
+  _lastWordsHash[type]='';
   await loadAdminWords(type);
  });
 }
@@ -1243,15 +1277,17 @@ async function adminDeleteFolder2(fid,fname,type){
  const ws=await get(ref(db,`${type}-words`));
  const all=ws.val()||{};
  const toDelete={};
- for(const[k,v]of Object.entries(all)) if(v.folder===fid)toDelete[k]=v;
+ for(const[k,v]of Object.entries(all))if(v.folder===fid)toDelete[k]=v;
  const fs=await get(ref(db,`${type}-folders/${fid}`));
  const fd=fs.val();
- for(const k of Object.keys(toDelete)) await remove(ref(db,`${type}-words/${k}`));
+ for(const k of Object.keys(toDelete))await remove(ref(db,`${type}-words/${k}`));
  await remove(ref(db,`${type}-folders/${fid}`));
+ _lastWordsHash[type]='';
  await loadAdminAll();
  showUndoToast(`Deleted "${fname}" + ${Object.keys(toDelete).length} words`,async()=>{
   await set(ref(db,`${type}-folders/${fid}`),fd);
-  for(const[k,v]of Object.entries(toDelete)) await set(ref(db,`${type}-words/${k}`),v);
+  for(const[k,v]of Object.entries(toDelete))await set(ref(db,`${type}-words/${k}`),v);
+  _lastWordsHash[type]='';
   await loadAdminAll();
  });
 }
@@ -1276,9 +1312,11 @@ async function bulkDel(gid,type){
  const snaps={};
  for(const id of ids){const s=await get(ref(db,`${type}-words/${id}`));if(s.val())snaps[id]=s.val();}
  for(const id of ids)await remove(ref(db,`${type}-words/${id}`));
+ _lastWordsHash[type]='';
  await loadAdminWords(type);
  showUndoToast(`Deleted ${ids.length} word${ids.length!==1?'s':''}`,async()=>{
-  for(const[id,d]of Object.entries(snaps)) await set(ref(db,`${type}-words/${id}`),d);
+  for(const[id,d]of Object.entries(snaps))await set(ref(db,`${type}-words/${id}`),d);
+  _lastWordsHash[type]='';
   await loadAdminWords(type);
  });
 }
@@ -1315,7 +1353,6 @@ async function loadContentFolders(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-folders`));
  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
- // Update all selects for this type
  ['rules-folder-sel','rules-fq-folder-sel'].forEach(selId=>{
   const sel=document.getElementById(selId);
   if(sel)sel.innerHTML=`<option value="">Select...</option>`+folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
@@ -1330,7 +1367,7 @@ async function delContentFolder(type,id){
 }
 
 // =============================================
-//  PER-FOLDER QUIZ (Rules)  ← NEW
+//  PER-FOLDER QUIZ (Rules)
 // =============================================
 async function saveFolderQuiz(type){
  const fid=document.getElementById(`${type}-fq-folder-sel`).value;
@@ -1340,12 +1377,10 @@ async function saveFolderQuiz(type){
  let questions;
  try{questions=JSON.parse(raw);}catch(e){alert('Invalid JSON: '+e.message);return;}
  const{db,ref,set}=window.fb;
- // Store quiz keyed by folder id under rules-folder-quizzes
  await set(ref(db,`${type}-folder-quizzes/${fid}`),{name,questions,updatedAt:Date.now()});
  document.getElementById(`${type}-fq-name`).value='';
  document.getElementById(`${type}-fq-data`).value='';
  showSuccess('Folder quiz saved! ✅');
- // Re-render rules page to show updated quiz buttons
  await loadContentItems(type);
 }
 
@@ -1382,7 +1417,6 @@ async function loadContentItems(type){
  const{db,ref,get}=window.fb;
  const snap=await get(ref(db,`${type}-items`));
  const items=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
- // Also load folder quizzes
  const fqSnap=await get(ref(db,`${type}-folder-quizzes`));
  const folderQuizzes=fqSnap.val()||{};
  const el=document.getElementById(`${type}-items-list`);
@@ -1407,7 +1441,7 @@ async function loadContentItems(type){
     </div>
    </div>`).join('')}
   </div>`).join('');
- if(type==='rules') renderRulesPage(items, folderQuizzes);
+ if(type==='rules')renderRulesPage(items,folderQuizzes);
 }
 async function startEditContent(type,id){
  const{db,ref,get}=window.fb;
@@ -1439,9 +1473,9 @@ async function delContentItem(type,id){
 }
 
 // =============================================
-//  RULES RENDERING  (with per-folder quiz btns)
+//  RULES RENDERING
 // =============================================
-function renderRulesPage(items, folderQuizzes={}){
+function renderRulesPage(items,folderQuizzes={}){
  const el=document.getElementById('sat-rules-content');
  if(!el)return;
  if(!items.length){el.innerHTML='<div style="text-align:center;padding:48px;color:#bbb;font-size:15px;">No rules yet</div>';return;}
@@ -1507,9 +1541,7 @@ async function delPracticeTest(id){
 function renderPracticeList(tests){
  const el=document.getElementById('edu-practice-list');
  if(!el)return;
- if(!tests||!tests.length){
-  el.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">No practice tests yet</div>';return;
- }
+ if(!tests||!tests.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">No practice tests yet</div>';return;}
  el.innerHTML=tests.map(t=>`<a href="${t.url}" target="_blank" style="text-decoration:none;"><div class="edu-card"><div><div class="edu-card-title" style="font-size:clamp(14px,4vw,17px);">${t.title}</div>${t.desc?`<div style="font-size:clamp(11px,3vw,13px);color:#888;margin-top:5px;">${t.desc}</div>`:''}</div><div class="edu-icon">🔗</div></div></a>`).join('');
 }
 
@@ -1694,7 +1726,7 @@ function matchClick(type,idx,val){
    document.getElementById(`${type}-${idx}`).classList.add('matched');
    document.getElementById(`${s.type}-${s.idx}`).classList.remove('selected');
    document.getElementById(`${s.type}-${s.idx}`).classList.add('matched');
-   if(ms.matched.length/2>=ms.pairs.length) setTimeout(showQuizResult,600);
+   if(ms.matched.length/2>=ms.pairs.length)setTimeout(showQuizResult,600);
    else document.getElementById('qz-prog').style.width=`${(ms.matched.length/2/ms.pairs.length)*100}%`;
   } else {
    ms.wrong++;
@@ -1737,7 +1769,7 @@ function retryQuiz(){
 }
 
 // =============================================
-//  PHOTO SECTIONS — IMAGES + TEXT  ← AMENDED
+//  PHOTO SECTIONS — IMAGES + TEXT
 // =============================================
 function renderAdminPhotoSections(){
  const el=document.getElementById('admin-photo-sections');
@@ -1745,16 +1777,12 @@ function renderAdminPhotoSections(){
  el.innerHTML=PHOTO_SUBS.map(sub=>`
   <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:12px;border:1.5px solid rgba(217,185,155,.25);">
    <div style="font-weight:800;font-size:13px;margin-bottom:10px;">${sub.emoji} ${sub.title}</div>
-
-   <!-- TEXT CONTENT BLOCK -->
    <div style="background:#f8f8f8;border-radius:10px;padding:12px;margin-bottom:10px;">
     <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:7px;text-transform:uppercase;letter-spacing:1px;">✍️ Add Text Block</div>
     <input type="text" id="text-title-${sub.id}" placeholder="Title (optional)" style="width:100%;padding:8px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:6px;">
     <textarea id="text-body-${sub.id}" placeholder="Write text content here..." style="width:100%;padding:9px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;min-height:72px;resize:vertical;outline:none;"></textarea>
     <button onclick="addTextBlock('${sub.id}')" style="margin-top:7px;background:var(--acc);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;width:100%;">✍️ Add Text</button>
    </div>
-
-   <!-- PHOTO UPLOAD BLOCK -->
    <div style="display:flex;gap:8px;margin-bottom:9px;align-items:flex-end;flex-wrap:wrap;">
     <input type="text" id="photo-title-${sub.id}" placeholder="Image caption (optional)" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:9px;font-family:inherit;font-size:13px;outline:none;">
     <label style="background:#6c757d;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
@@ -1795,7 +1823,7 @@ async function loadAdminTexts(subId){
  }catch(e){}
 }
 
-async function deleteTextBlock(subId, textId){
+async function deleteTextBlock(subId,textId){
  await window.fb.remove(window.fb.ref(window.fb.db,`photo-sections-text/${subId}/${textId}`));
  loadAdminTexts(subId);
 }
@@ -1833,7 +1861,6 @@ async function deletePhoto(subId,photoId){
  loadAdminPhotos(subId);
 }
 
-// Photo page in edu — now shows both text and images
 function renderPhotoSubList(){
  const el=document.getElementById('edu-photo-list');
  if(!el)return;
@@ -1854,30 +1881,20 @@ async function openPhotoSub(subId,title){
  el.innerHTML='<div style="text-align:center;padding:48px;color:#bbb;">Loading...</div>';
  document.getElementById('photo-page').classList.add('active');
  const{db,ref,get}=window.fb;
-
- // Load both photos and text blocks in parallel
  const[photoSnap,textSnap]=await Promise.all([
   get(ref(db,`photo-sections/${subId}`)),
   get(ref(db,`photo-sections-text/${subId}`))
  ]);
  const photos=photoSnap.val()?Object.keys(photoSnap.val()).map(k=>({id:k,type:'photo',...photoSnap.val()[k]})):[];
  const texts=textSnap.val()?Object.keys(textSnap.val()).map(k=>({id:k,type:'text',...textSnap.val()[k]})):[];
-
- // Merge and sort by addedAt
  const allItems=[...photos,...texts].sort((a,b)=>(a.addedAt||0)-(b.addedAt||0));
-
  if(!allItems.length){
   el.innerHTML='<div style="text-align:center;padding:60px;color:#aaa;"><div style="font-size:48px;margin-bottom:14px;">📄</div><div style="font-weight:700;">No content yet</div><div style="font-size:13px;margin-top:6px;">Add via Admin panel</div></div>';
   return;
  }
-
- // Render: text blocks full-width, photos in grid
  const photoItems=allItems.filter(i=>i.type==='photo');
  const textItems=allItems.filter(i=>i.type==='text');
-
  let html='<div style="max-width:860px;margin:0 auto;padding-bottom:20px;">';
-
- // Text blocks (full width, rendered in order)
  if(textItems.length){
   textItems.forEach(t=>{
    html+=`<div class="text-block">
@@ -1886,8 +1903,6 @@ async function openPhotoSub(subId,title){
    </div>`;
   });
  }
-
- // Photos grid
  if(photoItems.length){
   if(textItems.length)html+=`<div style="font-size:11px;font-weight:800;color:#aaa;letter-spacing:1px;margin:18px 0 10px;text-transform:uppercase;">📷 Images</div>`;
   html+=`<div class="photo-grid">`;
@@ -1896,7 +1911,6 @@ async function openPhotoSub(subId,title){
   });
   html+=`</div>`;
  }
-
  html+='</div>';
  el.innerHTML=html;
 }
@@ -1933,7 +1947,7 @@ function openFolderPage(fid,fname,type){
    <span style="font-size:13px;color:#aaa;font-weight:600;">${words.length} words</span>
    <button class="btn-primary" style="width:auto;padding:9px 18px;font-size:13px;" onclick="startDuo('${fid}','${esc(fname)}','${type}')">🃏 Start Cards</button>
   </div>
-  <div>${words.map(w=>`<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div>${w.ant?`<div class="v-ant">↔ ${w.ant}</div>`:''} ${w.ex?`<div class="v-ex">"${w.ex}"</div>`:''}</div>`).join('')}</div>
+  <div>${words.map(w=>`<div class="vocab-item"><div class="v-word">${w.w}</div><div class="v-def">${w.d}</div>${w.ant?`<div class="v-ant">≈ ${w.ant}</div>`:''} ${w.ex?`<div class="v-ex">"${w.ex}"</div>`:''}</div>`).join('')}</div>
   <div class="spacer"></div>`;
  document.getElementById(`${type}-folder-cards`).style.display='none';
  document.querySelectorAll(`#${type}-folder-pages > div`).forEach(d=>d.style.display='none');
@@ -1972,7 +1986,7 @@ function showDuoCard(){
  document.getElementById('duo-def').textContent=w.d;
  const ex=document.getElementById('duo-extra');
  ex.innerHTML='';
- if(w.ant)ex.innerHTML+=`<div class="duo-ant">↔ ${w.ant}</div>`;
+ if(w.ant)ex.innerHTML+=`<div class="duo-ant">≈ ${w.ant}</div>`;
  if(w.ex)ex.innerHTML+=`<div class="duo-ex">"${w.ex}"</div>`;
  ex.style.display=(w.ant||w.ex)?'block':'none';
  updateDuoProg();
@@ -2171,7 +2185,7 @@ You can: explain SAT/IELTS rules, generate vocabulary, check essays, answer stud
 When user asks to GENERATE/ADD words (дай, добавь, создай, generate, add words), output ONLY this block:
 
 <WORDS_JSON>
-[{"w":"Word","d":"Definition.","ant":"Antonym1, Antonym2","ex":"Example sentence."}]
+[{"w":"Word","d":"Definition.","ant":"Synonym1, Synonym2","ex":"Example sentence."}]
 </WORDS_JSON>
 
 Rules: w and d required. Include ant and ex always. SAT/IELTS level definitions. Natural sentences. Output WORDS_JSON only when publishing words. Otherwise reply conversationally.`;
@@ -2184,7 +2198,7 @@ function initAI(){
  const msgs=document.getElementById('ai-msgs');
  msgs.innerHTML='';
  const hasKey=!!localStorage.getItem('luminary_ai_key');
- aiBubble('bot',`👋 Привет! Я <b>Luminary AI</b> — твой персональный репетитор.<br><br>Я могу:<br>• Объяснять правила SAT и IELTS<br>• Создавать слова с антонимами и примерами<br>• Проверять твои эссе<br>• Добавлять слова в словарь<br><br>${hasKey?'Всё готово! 🚀':'⚠️ Добавь OpenRouter ключ — нажми <b>⚙️ добавить ключ</b> вверху.'}`);
+ aiBubble('bot',`👋 Привет! Я <b>Luminary AI</b> — твой персональный репетитор.<br><br>Я могу:<br>• Объяснять правила SAT и IELTS<br>• Создавать слова с синонимами и примерами<br>• Проверять твои эссе<br>• Добавлять слова в словарь<br><br>${hasKey?'Всё готово! 🚀':'⚠️ Добавь OpenRouter ключ — нажми <b>⚙️ добавить ключ</b> вверху.'}`);
 }
 async function loadAIFolders(){
  const type=document.getElementById('ai-type')?.value||'sat';
@@ -2262,7 +2276,7 @@ async function aiSend(){
    const sf=esc(fname);
    html+=`<div class="ai-pub-card"><div class="ai-pub-title">📦 ${words.length} слов готово${fid?` → «${fname}»`:''}</div>
     <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:9px;">
-     ${words.map(w=>`<div class="ai-word-prev"><b>${w.w}</b> — ${w.d}${w.ant?`<div style="color:#1a85c8;font-size:12px;margin-top:2px;">↔ ${w.ant}</div>`:''} ${w.ex?`<div style="color:#aaa;font-size:12px;font-style:italic;">"${w.ex}"</div>`:''}</div>`).join('')}
+     ${words.map(w=>`<div class="ai-word-prev"><b>${w.w}</b> — ${w.d}${w.ant?`<div style="color:#1a85c8;font-size:12px;margin-top:2px;">≈ ${w.ant}</div>`:''} ${w.ex?`<div style="color:#aaa;font-size:12px;font-style:italic;">"${w.ex}"</div>`:''}</div>`).join('')}
     </div>
     ${fid?`<button class="ai-pub-btn" onclick="aiPublish('${sw}','${fid}','${vtype}','${sf}',this)">✅ Добавить ${words.length} слов в «${fname}»</button>`:`<div style="font-size:12px;color:#f59e0b;font-weight:700;">⚠️ Выбери папку чтобы опубликовать</div>`}
    </div>`;
@@ -2288,7 +2302,9 @@ async function aiPublish(enc,fid,type,fname,btn){
  }
  btn.parentElement.innerHTML=`<div style="background:#dcfce7;border-radius:9px;padding:11px;text-align:center;font-weight:800;color:#166534;">✅ ${cnt} слов добавлено в «${fname}»!</div>`;
  aiBubble('bot',`🎉 <b>${cnt} слов</b> теперь в папке «<b>${fname}</b>»!`);
- await loadAdminWords(type);renderVocabFolders(type);
+ _lastWordsHash[type]='';
+ await loadAdminWords(type);
+ renderVocabFolders(type);
 }
 
 function showKeyModal(){
@@ -2341,10 +2357,26 @@ function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.ra
 window.addEventListener('fbReady',async()=>{
  await loadAdminAll();
  const{db,ref,onValue}=window.fb;
- onValue(ref(db,'books'),s=>{const d=s.val();allBooks=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderHomeBooks();renderAdminBooks();});
- onValue(ref(db,'podcasts'),s=>{const d=s.val();const pods=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderPodcasts(pods);});
- onValue(ref(db,'sat-words'),s=>{const d=s.val();cachedSATWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderVocabFolders('sat');});
- onValue(ref(db,'ielts-words'),s=>{const d=s.val();cachedIELTSWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderVocabFolders('ielts');});
+ onValue(ref(db,'books'),s=>{
+  const d=s.val();allBooks=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  renderHomeBooks();renderAdminBooks();
+ });
+ onValue(ref(db,'podcasts'),s=>{
+  const d=s.val();const pods=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  renderPodcasts(pods);
+ });
+ onValue(ref(db,'sat-words'),s=>{
+  const d=s.val();cachedSATWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  debounce('sat-vocab-render',()=>{
+   renderVocabFolders('sat');
+  },250);
+ });
+ onValue(ref(db,'ielts-words'),s=>{
+  const d=s.val();cachedIELTSWords=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  debounce('ielts-vocab-render',()=>{
+   renderVocabFolders('ielts');
+  },250);
+ });
  onValue(ref(db,'rules-items'),async s=>{
   const d=s.val();const items=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
   const fqSnap=await window.fb.get(ref(db,'rules-folder-quizzes'));
@@ -2356,8 +2388,14 @@ window.addEventListener('fbReady',async()=>{
   const d=iSnap.val();const items=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
   renderRulesPage(items,fqs);
  });
- onValue(ref(db,'practice-tests'),s=>{const d=s.val();const tests=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderPracticeList(tests);});
- onValue(ref(db,'quizzes'),s=>{const d=s.val();const qzs=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];renderQuizList(qzs);});
+ onValue(ref(db,'practice-tests'),s=>{
+  const d=s.val();const tests=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  renderPracticeList(tests);
+ });
+ onValue(ref(db,'quizzes'),s=>{
+  const d=s.val();const qzs=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
+  renderQuizList(qzs);
+ });
  setTheme(localStorage.getItem('theme')||'beige');
  document.getElementById('notes').value=localStorage.getItem('notes')||'';
  setTimeout(loadAIFolders,600);
