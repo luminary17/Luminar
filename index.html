@@ -48,6 +48,25 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .book-card:hover{transform:translateY(-6px);}
 .search-bar{background:#fff;border-radius:clamp(11px,3vw,16px);height:clamp(42px,10vw,48px);display:flex;align-items:center;padding:0 clamp(12px,4vw,18px);margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);}
 .search-bar input{background:none;border:none;width:100%;outline:none;font-size:clamp(13px,3.5vw,15px);font-family:inherit;}
+.home-hub{display:flex;flex-direction:column;gap:14px;}
+.home-hero-panel{background:linear-gradient(135deg,#fff 0%,#e9f4ff 55%,#fff6e9 100%);border-radius:clamp(16px,4vw,24px);padding:clamp(20px,5vw,32px);box-shadow:0 2px 14px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.05);}
+.home-kicker{font-size:12px;font-weight:900;color:#6a93bd;text-transform:uppercase;margin-bottom:7px;}
+.home-hero-title{font-size:clamp(24px,7vw,38px);font-weight:900;line-height:1.05;margin-bottom:8px;}
+.home-hero-sub{font-size:clamp(13px,3.8vw,16px);font-weight:700;color:#6b7280;max-width:560px;line-height:1.45;}
+.home-offer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.home-offer-card{min-height:132px;background:#fff;border:none;border-radius:clamp(14px,3.5vw,18px);padding:clamp(15px,4vw,22px);box-shadow:0 2px 12px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.05);font-family:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:.24s;}
+.home-offer-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.1);}
+.home-offer-card.primary{background:linear-gradient(135deg,#1f3a5f,#7aa8cf);color:#fff;}
+.home-offer-card.ielts{background:linear-gradient(135deg,#fff,#f2fff5);}
+.home-offer-card.vocab{background:linear-gradient(135deg,#fff,#fff8e9);}
+.home-offer-card.rules{background:linear-gradient(135deg,#fff,#eef5ff);}
+.home-offer-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.home-offer-icon{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.76);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);}
+.home-offer-card.primary .home-offer-icon{background:rgba(255,255,255,.18);}
+.home-offer-title{font-size:clamp(17px,5vw,22px);font-weight:900;margin-top:20px;}
+.home-offer-sub{font-size:clamp(12px,3.3vw,14px);font-weight:700;color:#667085;margin-top:4px;line-height:1.35;}
+.home-offer-card.primary .home-offer-sub{color:rgba(255,255,255,.82);}
+.home-offer-arrow{font-size:22px;font-weight:900;opacity:.55;}
 
 /* VOCAB */
 .vocab-item{background:#fff;border-radius:clamp(10px,3vw,14px);padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px);margin-bottom:8px;box-shadow:0 1px 8px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);}
@@ -70,9 +89,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .color-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.1);}
 
 /* FOOTER */
-.home-footer{text-align:center;padding:24px;background:#fff;border-radius:20px;max-width:280px;margin:60px auto 0;box-shadow:0 2px 12px rgba(0,0,0,.04);}
-.soc-row{display:flex;justify-content:center;gap:10px;margin-top:12px;}
-.soc-circle{width:clamp(38px,10vw,48px);height:clamp(38px,10vw,48px);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;transition:.25s;}
+.home-footer{width:100%;margin:clamp(70px,16vw,120px) 0 0;padding:clamp(18px,4vw,28px);background:#fff;border-radius:clamp(14px,3vw,20px);box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;gap:18px;}
+.home-footer-title{font-weight:800;font-size:clamp(13px,3.5vw,16px);color:#666;text-align:left;}
+.home-footer-sub{font-size:12px;color:#aaa;margin-top:3px;font-weight:600;}
+.soc-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.soc-circle{width:clamp(42px,10vw,52px);height:clamp(42px,10vw,52px);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;transition:.25s;}
 .soc-circle:hover{transform:translateY(-3px);}
 .soc-circle svg{width:clamp(18px,5vw,24px);height:clamp(18px,5vw,24px);fill:currentColor;}
 .tg-c{background:#26A5E4;}.ig-c{background:radial-gradient(circle at 30% 107%,#fdf497,#fd5949 45%,#d6249f 60%,#285AEB);}
@@ -322,6 +343,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
  .duo-actions{gap:8px;}
  .match-grid{gap:5px;}
  .modal-box{padding:14px;}
+ .home-footer{align-items:flex-start;flex-direction:column;}
+ .soc-row{justify-content:flex-start;}
 }
 </style>
 </head>
@@ -564,18 +587,33 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
  <!-- HOME -->
  <div id="home-view" class="view active">
-  <div class="search-bar">
-  <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:#aaa;stroke-width:2.5;stroke-linecap:round;flex-shrink:0;margin-right:8px;"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-  <input placeholder="Поиск книг..." oninput="searchBooks(event)" style="flex:1;">
-</div>
-  <div id="hero-banner" class="hero">
-   <div class="hero-overlay"></div>
-   <div class="hero-text"><h2 id="hero-title">Loading...</h2><p style="margin-top:4px;opacity:.8;font-size:14px;">Нажми чтобы читать</p></div>
+  <div class="home-hub">
+   <div class="home-hero-panel">
+    <div class="home-kicker">Luminary Prep</div>
+    <div class="home-hero-title">Выберите направление</div>
+    <div class="home-hero-sub">SAT, IELTS, словари, правила и тесты собраны в отдельных учебных страницах.</div>
+   </div>
+   <div class="home-offer-grid">
+    <button class="home-offer-card primary" onclick="goEdu('edu-sat')">
+     <div class="home-offer-top"><div class="home-offer-icon">SAT</div><div class="home-offer-arrow">→</div></div>
+     <div><div class="home-offer-title">SAT Prep</div><div class="home-offer-sub">Vocabulary, rules, practice and quizzes</div></div>
+    </button>
+    <button class="home-offer-card ielts" onclick="goEdu('edu-ielts')">
+     <div class="home-offer-top"><div class="home-offer-icon">IEL</div><div class="home-offer-arrow">→</div></div>
+     <div><div class="home-offer-title">IELTS</div><div class="home-offer-sub">Vocabulary folders and study materials</div></div>
+    </button>
+    <button class="home-offer-card vocab" onclick="goEdu('edu-sat-vocab')">
+     <div class="home-offer-top"><div class="home-offer-icon">Aa</div><div class="home-offer-arrow">→</div></div>
+     <div><div class="home-offer-title">SAT Vocab</div><div class="home-offer-sub">Flashcards and word folders</div></div>
+    </button>
+    <button class="home-offer-card rules" onclick="goEdu('edu-sat-quizzes')">
+     <div class="home-offer-top"><div class="home-offer-icon">Q</div><div class="home-offer-arrow">→</div></div>
+     <div><div class="home-offer-title">Rules & Tests</div><div class="home-offer-sub">Practice, quizzes and explanations</div></div>
+    </button>
+   </div>
   </div>
-  <div class="section-title">Библиотека</div>
-  <div id="book-grid" class="book-grid"></div>
   <div class="home-footer">
-   <div style="font-weight:800;font-size:13px;color:#666;">МЫ В СОЦСЕТЯХ</div>
+   <div><div class="home-footer-title">МЫ В СОЦСЕТЯХ</div><div class="home-footer-sub">Следите за обновлениями Luminary</div></div>
    <div class="soc-row">
     <a href="#" class="soc-circle tg-c"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
     <a href="#" class="soc-circle ig-c"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
@@ -844,24 +882,84 @@ let curPhotoSubId=null;
 // =============================================
 //  NAV
 // =============================================
-function tab(name){
+function tab(name,push=true){
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
  document.getElementById(name+'-view').classList.add('active');
  document.getElementById('n-'+name).classList.add('active');
+ if(name==='edu'&&push) openEdu('edu-main',false);
  if(name==='ai') initAI();
+ if(push) pushRoute(getTabPath(name));
+}
+
+function getTabPath(name){
+ return ({home:'/',edu:'/edu/',audio:'/audio/',ai:'/ai/',user:'/user/'}[name]||'/');
 }
 
 // =============================================
 //  EDU NAVIGATION
 // =============================================
-function openEdu(id){
+function openEdu(id,push=true){
  document.querySelectorAll('.edu-sec-view').forEach(v=>v.style.display='none');
  document.getElementById(id).style.display='block';
  if(id==='edu-sat-hacks') renderPhotoSubList();
  if(id==='edu-sat-practice') renderPracticeList();
  if(id==='edu-sat-quizzes') renderQuizList();
+ if(id==='edu-sat-vocab') closeFolderPage('sat',null,false);
+ if(id==='edu-ielts-vocab') closeFolderPage('ielts',null,false);
+ if(push) pushRoute(getEduPath(id));
 }
+
+function getEduPath(id){
+ return ({
+  'edu-main':'/edu/',
+  'edu-sat':'/edu/sat/',
+  'edu-sat-vocab':'/edu/sat/vocab/',
+  'edu-sat-rules':'/edu/sat/rules/',
+  'edu-sat-hacks':'/edu/sat/hacks/',
+  'edu-sat-practice':'/edu/sat/practice/',
+  'edu-sat-quizzes':'/edu/sat/quizzes/',
+  'edu-ielts':'/edu/ielts/',
+  'edu-ielts-vocab':'/edu/ielts/vocab/'
+ }[id]||'/edu/');
+}
+
+function pushRoute(path){
+ if(location.pathname!==path) history.pushState({},'',path);
+}
+
+function routeFromPath(){
+ const path=location.pathname.replace(/\/+$/,'')||'/';
+ if(path==='/') return {tab:'home'};
+ if(path==='/audio') return {tab:'audio'};
+ if(path==='/ai') return {tab:'ai'};
+ if(path==='/user') return {tab:'user'};
+ if(path==='/edu') return {tab:'edu',edu:'edu-main'};
+ if(path==='/edu/sat') return {tab:'edu',edu:'edu-sat'};
+ if(path==='/edu/sat/vocab') return {tab:'edu',edu:'edu-sat-vocab'};
+ if(path.startsWith('/edu/sat/vocab/')) return {tab:'edu',edu:'edu-sat-vocab',folderType:'sat',folderId:decodeURIComponent(path.split('/')[4]||'')};
+ if(path==='/edu/sat/rules') return {tab:'edu',edu:'edu-sat-rules'};
+ if(path==='/edu/sat/hacks') return {tab:'edu',edu:'edu-sat-hacks'};
+ if(path==='/edu/sat/practice') return {tab:'edu',edu:'edu-sat-practice'};
+ if(path==='/edu/sat/quizzes') return {tab:'edu',edu:'edu-sat-quizzes'};
+ if(path==='/edu/ielts') return {tab:'edu',edu:'edu-ielts'};
+ if(path==='/edu/ielts/vocab') return {tab:'edu',edu:'edu-ielts-vocab'};
+ if(path.startsWith('/edu/ielts/vocab/')) return {tab:'edu',edu:'edu-ielts-vocab',folderType:'ielts',folderId:decodeURIComponent(path.split('/')[4]||'')};
+ return {tab:'home'};
+}
+
+function applyRoute(){
+ const route=routeFromPath();
+ tab(route.tab,false);
+ if(route.edu) openEdu(route.edu,false);
+ if(route.folderType&&route.folderId) {
+  const folders=route.folderType==='sat'?cachedSATFolders:cachedIELTSFolders;
+  const folder=folders.find(item=>item.id===route.folderId);
+  if(folder) openFolderPage(folder.id,folder.name,route.folderType,false);
+ }
+}
+
+window.addEventListener('popstate',applyRoute);
 
 // =============================================
 //  ADMIN MODAL
@@ -1960,7 +2058,7 @@ function renderVocabFolders(type){
   return`<div class="edu-card" onclick="openFolderPage('${f.id}','${esc(f.name)}','${type}')"><div><div class="edu-card-title">📁 ${f.name}</div><div style="font-size:12px;color:#aaa;margin-top:5px;">${cnt} words${acc!==null?` · ${acc}% accuracy`:''}</div></div><div class="edu-icon">📖</div></div>`;
  }).join('');
 }
-function openFolderPage(fid,fname,type){
+function openFolderPage(fid,fname,type,push=true){
  const words=(type==='sat'?cachedSATWords:cachedIELTSWords).filter(w=>w.folder===fid);
  const pagesEl=document.getElementById(`${type}-folder-pages`);
  let pg=document.getElementById(`fp-${fid}`);
@@ -1977,24 +2075,26 @@ function openFolderPage(fid,fname,type){
  document.getElementById(`${type}-folder-cards`).style.display='none';
  document.querySelectorAll(`#${type}-folder-pages > div`).forEach(d=>d.style.display='none');
  pg.style.display='block';
+ if(push) pushRoute(`/edu/${type}/vocab/${encodeURIComponent(fid)}/`);
 }
-function closeFolderPage(type,fid){
+function closeFolderPage(type,fid,push=true){
  document.getElementById(`${type}-folder-cards`).style.display='block';
  document.querySelectorAll(`#${type}-folder-pages > div`).forEach(d=>d.style.display='none');
+ if(push) pushRoute(`/edu/${type}/vocab/`);
 }
 
 // =============================================
 //  DUOCARDS
 // =============================================
-let duo={fid:null,fname:null,type:null,queue:[],all:[],known:0,tot:0,tot_swipes:0,r_swipes:0,swiping:false};
+let duo={fid:null,fname:null,type:null,queue:[],all:[],known:0,tot:0,tot_swipes:0,r_swipes:0,swiping:false,promptSides:{}};
 let drag={active:false,sx:0,sy:0,cx:0,cy:0};
 
 function startDuo(fid,fname,type){
  const words=(type==='sat'?cachedSATWords:cachedIELTSWords).filter(w=>w.folder===fid);
  if(!words.length){alert('No words in this folder!');return;}
  const saved=loadDuoState(fid);
- if(saved&&saved.queue&&saved.queue.length>0){Object.assign(duo,saved);}
- else{duo={fid,fname,type,queue:shuffle([...words]),all:words,known:0,tot:words.length,tot_swipes:0,r_swipes:0,swiping:false};}
+ if(saved&&saved.queue&&saved.queue.length>0){Object.assign(duo,{promptSides:{},...saved});}
+ else{duo={fid,fname,type,queue:shuffle([...words]),all:words,known:0,tot:words.length,tot_swipes:0,r_swipes:0,swiping:false,promptSides:{}};}
  document.getElementById('duo-folder').textContent=fname;
  document.getElementById('duo-complete').classList.remove('active');
  document.getElementById('duo-actions').style.display='flex';
@@ -2007,8 +2107,12 @@ function showDuoCard(){
  const card=document.getElementById('duo-card');
  card.classList.remove('tint-r','tint-l');
  card.style.transition='';card.style.transform='';card.style.opacity='';
- document.getElementById('duo-word').textContent=w.w;
- document.getElementById('duo-def').textContent=w.d;
+ const sideKey=w.id||w.w;
+ if(!duo.promptSides)duo.promptSides={};
+ if(!duo.promptSides[sideKey])duo.promptSides[sideKey]=Math.random()<0.5?'word':'definition';
+ const showWord=duo.promptSides[sideKey]==='word';
+ document.getElementById('duo-word').textContent=showWord?w.w:w.d;
+ document.getElementById('duo-def').textContent=showWord?w.d:w.w;
  const ex=document.getElementById('duo-extra');
  ex.innerHTML='';
  if(w.ant)ex.innerHTML+=`<div class="duo-ant">↔ ${w.ant}</div>`;
@@ -2062,7 +2166,7 @@ function exitDuo(){
  document.getElementById('duoview').classList.remove('active');unbindDrag();
  renderVocabFolders(duo.type||'sat');
 }
-function saveDuoState(){localStorage.setItem(`dc_${duo.fid}`,JSON.stringify({fid:duo.fid,fname:duo.fname,type:duo.type,queue:duo.queue,all:duo.all,known:duo.known,tot:duo.tot,tot_swipes:duo.tot_swipes,r_swipes:duo.r_swipes,swiping:false}));}
+function saveDuoState(){localStorage.setItem(`dc_${duo.fid}`,JSON.stringify({fid:duo.fid,fname:duo.fname,type:duo.type,queue:duo.queue,all:duo.all,known:duo.known,tot:duo.tot,tot_swipes:duo.tot_swipes,r_swipes:duo.r_swipes,swiping:false,promptSides:duo.promptSides||{}}));}
 function loadDuoState(fid){try{return JSON.parse(localStorage.getItem(`dc_${fid}`));}catch{return null;}}
 function clearDuoState(fid){localStorage.removeItem(`dc_${fid}`);}
 function bindDrag(){
@@ -2382,6 +2486,7 @@ function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.ra
 // =============================================
 window.addEventListener('fbReady',async()=>{
  await loadAdminAll();
+ applyRoute();
  const{db,ref,onValue}=window.fb;
  onValue(ref(db,'books'),s=>{
   const d=s.val();allBooks=d?Object.keys(d).map(k=>({id:k,...d[k]})):[];
