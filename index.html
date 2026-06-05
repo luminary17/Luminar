@@ -8,9 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Schoolbell&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="main.css">
 <script>
-  // Восстанавливаем путь после редиректа с 404
-  const p = new URLSearchParams(window.location.search).get('path');
-  if (p) history.replaceState(null, '', p);
+  const p = sessionStorage.getItem('redirect');
+  if (p) { sessionStorage.removeItem('redirect'); history.replaceState(null, '', p); }
 </script>
 </head>
 <body>
