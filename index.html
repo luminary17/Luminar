@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Luminary - Education Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Schoolbell&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo" onclick="Nav.go('home')">LUMINARY</div>
+  <div class="nav-links">
+    <button class="nav-btn active" id="n-home" onclick="Nav.go('home')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Дом
+    </button>
+    <button class="nav-btn" id="n-edu" onclick="Nav.go('edu')">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>Учёба
+    </button>
+    <button class="nav-btn" id="n-tests" onclick="Nav.go('tests')">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Tests
+    </button>
+    <button class="nav-btn" id="n-audio" onclick="Nav.go('audio')">
+      <svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg>Аудио
+    </button>
+    <button class="nav-btn" id="n-user" onclick="Nav.go('user')">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Профиль
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN VIEWS -->
+<div class="container">
+
+  <!-- HOME -->
+  <div id="home-view" class="view active">
+    <div class="home-hub">
+      <div class="home-hero-panel">
+        <div class="home-kicker">Luminary Prep</div>
+        <div class="home-hero-title">Выберите направление</div>
+        <div class="home-hero-sub">SAT, IELTS, словари, правила и тесты собраны в отдельных учебных страницах.</div>
+      </div>
+      <div class="home-offer-grid">
+        <button class="home-offer-card primary" onclick="Edu.goTo('edu-sat')">
+          <div class="home-offer-top"><div class="home-offer-icon">SAT</div><div class="home-offer-arrow">→</div></div>
+          <div><div class="home-offer-title">SAT Prep</div><div class="home-offer-sub">Vocabulary, rules, practice and quizzes</div></div>
+        </button>
+        <button class="home-offer-card ielts" onclick="Edu.goTo('edu-ielts')">
+          <div class="home-offer-top"><div class="home-offer-icon">IEL</div><div class="home-offer-arrow">→</div></div>
+          <div><div class="home-offer-title">IELTS</div><div class="home-offer-sub">Vocabulary folders and study materials</div></div>
+        </button>
+        <button class="home-offer-card vocab" onclick="Edu.goTo('edu-sat-vocab')">
+          <div class="home-offer-top"><div class="home-offer-icon">Aa</div><div class="home-offer-arrow">→</div></div>
+          <div><div class="home-offer-title">SAT Vocab</div><div class="home-offer-sub">Flashcards and word folders</div></div>
+        </button>
+        <button class="home-offer-card rules" onclick="Nav.go('tests')">
+          <div class="home-offer-top"><div class="home-offer-icon">✓</div><div class="home-offer-arrow">→</div></div>
+          <div><div class="home-offer-title">Mock Tests</div><div class="home-offer-sub">SAT & IELTS practice mocks</div></div>
+        </button>
+      </div>
+    </div>
+    <div class="home-footer">
+      <div><div class="home-footer-title">МЫ В СОЦСЕТЯХ</div><div class="home-footer-sub">Следите за обновлениями Luminary</div></div>
+      <div class="soc-row">
+        <a href="#" class="soc-circle tg-c"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
+        <a href="#" class="soc-circle ig-c"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="#" class="soc-circle yt-c"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div id="edu-view" class="view">
+    <div id="edu-main" class="edu-sec-view active-edu">
+      <div class="section-title">Направления</div>
+      <div class="edu-card" onclick="Edu.open('edu-sat')"><div class="edu-card-title">SAT Prep</div><div class="edu-icon">📚</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-ielts')"><div class="edu-card-title">IELTS</div><div class="edu-icon">🎓</div></div>
+    </div>
+    <div id="edu-sat" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-main')">← Назад</button>
+      <div class="edu-card" onclick="Edu.open('edu-sat-vocab')"><div class="edu-card-title">Vocab</div><div class="edu-icon">📖</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-sat-rules')"><div class="edu-card-title">Rules</div><div class="edu-icon">📐</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-sat-hacks')"><div class="edu-card-title">Hacks / Problems / Solutions</div><div class="edu-icon">🖼️</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-sat-practice')"><div class="edu-card-title">Practice Tests</div><div class="edu-icon">📝</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-sat-quizzes')"><div class="edu-card-title">Quizzes & Tests</div><div class="edu-icon">🧩</div></div>
+    </div>
+    <div id="edu-ielts" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-main')">← Назад</button>
+      <div class="edu-card" onclick="Edu.open('edu-ielts-vocab')"><div class="edu-card-title">Vocabulary</div><div class="edu-icon">📖</div></div>
+    </div>
+    <div id="edu-sat-vocab" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
+      <div class="section-title">SAT Vocab</div>
+      <div id="sat-folder-cards"></div>
+      <div id="sat-folder-pages"></div>
+    </div>
+    <div id="edu-sat-rules" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')" style="padding:14px 14px 0;">← Назад</button>
+      <div id="sat-rules-content"><div style="text-align:center;padding:48px;color:#bbb;">Loading...</div></div>
+    </div>
+    <div id="edu-sat-hacks" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
+      <div class="section-title">Hacks / Problems / Solutions</div>
+      <div id="edu-photo-list"></div>
+    </div>
+    <div id="edu-sat-practice" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
+      <div class="section-title">Practice Tests</div>
+      <div id="edu-practice-list"></div>
+    </div>
+    <div id="edu-sat-quizzes" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
+      <div class="section-title">Quizzes & Tests</div>
+      <div id="edu-quiz-list"></div>
+    </div>
+    <div id="edu-ielts-vocab" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-ielts')">← Назад</button>
+      <div class="section-title">IELTS Vocab</div>
+      <div id="ielts-folder-cards"></div>
+      <div id="ielts-folder-pages"></div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- TESTS -->
+  <div id="tests-view" class="view">
+    <!-- Tests Main -->
+    <div id="tests-main" class="tests-sec">
+      <div class="section-title">Mock Tests</div>
+      <div class="edu-card" onclick="Tests.open('tests-sat')">
+        <div><div class="edu-card-title">SAT</div><div style="font-size:12px;color:#aaa;margin-top:4px;">Reading · Math</div></div>
+        <div class="edu-icon">📚</div>
+      </div>
+      <div class="edu-card" onclick="Tests.open('tests-ielts')">
+        <div><div class="edu-card-title">IELTS</div><div style="font-size:12px;color:#aaa;margin-top:4px;">Speaking · Writing · Reading · Listening</div></div>
+        <div class="edu-icon">🎓</div>
+      </div>
+    </div>
+
+    <!-- SAT -->
+    <div id="tests-sat" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-main')">← Назад</button>
+      <div class="section-title">SAT Mocks</div>
+      <div class="edu-card" onclick="Tests.open('tests-sat-reading')">
+        <div><div class="edu-card-title">Reading</div></div>
+        <div class="edu-icon">📖</div>
+      </div>
+      <div class="edu-card" onclick="Tests.open('tests-sat-math')">
+        <div><div class="edu-card-title">Math</div></div>
+        <div class="edu-icon">🔢</div>
+      </div>
+    </div>
+
+    <!-- SAT Reading -->
+    <div id="tests-sat-reading" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-sat')">← Назад</button>
+      <div class="section-title">SAT Reading</div>
+      <div id="mock-list-sat-reading"></div>
+    </div>
+
+    <!-- SAT Math -->
+    <div id="tests-sat-math" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-sat')">← Назад</button>
+      <div class="section-title">SAT Math</div>
+      <div id="mock-list-sat-math"></div>
+    </div>
+
+    <!-- IELTS -->
+    <div id="tests-ielts" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-main')">← Назад</button>
+      <div class="section-title">IELTS Mocks</div>
+      <div class="edu-card" onclick="Tests.open('tests-ielts-speaking')">
+        <div><div class="edu-card-title">Speaking</div></div>
+        <div class="edu-icon">🎤</div>
+      </div>
+      <div class="edu-card" onclick="Tests.open('tests-ielts-writing')">
+        <div><div class="edu-card-title">Writing</div></div>
+        <div class="edu-icon">✍️</div>
+      </div>
+      <div class="edu-card" onclick="Tests.open('tests-ielts-reading')">
+        <div><div class="edu-card-title">Reading</div></div>
+        <div class="edu-icon">📖</div>
+      </div>
+      <div class="edu-card" onclick="Tests.open('tests-ielts-listening')">
+        <div><div class="edu-card-title">Listening</div></div>
+        <div class="edu-icon">🎧</div>
+      </div>
+    </div>
+
+    <!-- IELTS Speaking -->
+    <div id="tests-ielts-speaking" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-ielts')">← Назад</button>
+      <div class="section-title">IELTS Speaking</div>
+      <div id="mock-list-ielts-speaking"></div>
+    </div>
+
+    <!-- IELTS Writing -->
+    <div id="tests-ielts-writing" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-ielts')">← Назад</button>
+      <div class="section-title">IELTS Writing</div>
+      <div id="mock-list-ielts-writing"></div>
+    </div>
+
+    <!-- IELTS Reading -->
+    <div id="tests-ielts-reading" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-ielts')">← Назад</button>
+      <div class="section-title">IELTS Reading</div>
+      <div id="mock-list-ielts-reading"></div>
+    </div>
+
+    <!-- IELTS Listening -->
+    <div id="tests-ielts-listening" class="tests-sec" style="display:none;">
+      <button class="back-btn" onclick="Tests.open('tests-ielts')">← Назад</button>
+      <div class="section-title">IELTS Listening</div>
+      <div id="mock-list-ielts-listening"></div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- AUDIO -->
+  <div id="audio-view" class="view">
+    <div class="section-title">Подкасты</div>
+    <div id="podcast-list"></div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- USER -->
+  <div id="user-view" class="view">
+    <div class="section-title">Мои заметки</div>
+    <div class="card">
+      <textarea style="width:100%;min-height:130px;border:none;outline:none;background:transparent;font-family:inherit;font-size:clamp(13px,4vw,15px);resize:none;" id="notes" oninput="UserModule.saveNotes()" placeholder="Пиши тут..."></textarea>
+    </div>
+    <div class="section-title">Темы</div>
+    <div class="theme-grid" id="theme-grid"></div>
+    <div class="spacer"></div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- READER -->
+<div class="reader" id="reader">
+  <div class="reader-head">
+    <div class="reader-top">
+      <button class="icon-btn" onclick="Reader.close()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <div><div id="r-chapter" style="font-size:12px;font-weight:700;color:var(--acc);"></div><div id="r-book" style="font-weight:800;font-size:clamp(13px,4vw,15px);"></div></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="r-prog" style="width:0%"></div></div>
+    <div class="prog-txt" id="r-prog-txt">Page 1 of 1</div>
+  </div>
+  <div class="reader-body">
+    <div class="touch-l" onclick="Reader.page(-1)"></div>
+    <div class="touch-r" onclick="Reader.page(1)"></div>
+    <div class="page-txt" id="r-content"></div>
+  </div>
+</div>
+
+<!-- DUOCARDS -->
+<div class="duoview" id="duoview">
+  <div class="duo-head">
+    <div class="duo-top">
+      <button class="icon-btn" onclick="Duo.exit()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <div class="duo-folder" id="duo-folder" style="font-weight:800;font-size:clamp(14px,4vw,16px);flex:1;"></div>
+      <div id="duo-stats" style="font-size:12px;font-weight:700;color:var(--acc);"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="duo-prog" style="width:0%;background:linear-gradient(90deg,#4CAF50,#81C784);"></div></div>
+  </div>
+  <div class="duo-arena">
+    <div class="duo-hint know" id="duo-know">✓ Know it!</div>
+    <div class="duo-hint dontknow" id="duo-dontknow">✗ Still learning</div>
+    <div class="duo-card" id="duo-card">
+      <div class="duo-word" id="duo-word">Word</div>
+      <div class="duo-def" id="duo-def">Definition</div>
+      <div id="duo-extra" style="width:100%;display:none;"></div>
+    </div>
+    <div class="duo-complete" id="duo-complete">
+      <div style="font-size:clamp(40px,12vw,60px);margin-bottom:12px;">🎉</div>
+      <div style="font-size:clamp(20px,6vw,26px);font-weight:800;margin-bottom:6px;">Complete!</div>
+      <div id="duo-complete-sub" style="color:#777;margin-bottom:20px;font-size:clamp(13px,3.5vw,15px);"></div>
+      <div class="accuracy-ring" id="duo-acc-ring" style="--pct:0%">
+        <div class="accuracy-inner">
+          <div id="duo-acc-pct" style="font-size:clamp(18px,5vw,24px);font-weight:800;"></div>
+          <div style="font-size:10px;color:#aaa;font-weight:700;">ACCURACY</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="Duo.exit()" style="max-width:220px;">Back to Vocab</button>
+    </div>
+  </div>
+  <div class="duo-actions" id="duo-actions">
+    <button class="duo-btn dont" onclick="Duo.swipe('left')">✗ Don't Know</button>
+    <button class="duo-btn know" onclick="Duo.swipe('right')">✓ Know It</button>
+  </div>
+</div>
+
+<!-- QUIZ VIEW -->
+<div class="quizview" id="quizview">
+  <div class="quiz-head">
+    <div class="quiz-top">
+      <button class="icon-btn" onclick="Quiz.exit()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <div class="quiz-title" id="qz-title">Quiz</div>
+      <div class="quiz-counter" id="qz-counter">1/10</div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="qz-prog" style="width:0%"></div></div>
+  </div>
+  <div class="quiz-body" id="qz-body"></div>
+  <div class="quiz-result" id="qz-result">
+    <div style="font-size:clamp(40px,12vw,56px);margin-bottom:12px;" id="qz-res-emoji">🎉</div>
+    <div style="font-size:clamp(18px,5vw,24px);font-weight:800;margin-bottom:6px;" id="qz-res-title">Great job!</div>
+    <div style="color:#888;margin-bottom:20px;font-size:clamp(13px,3.5vw,15px);" id="qz-res-sub"></div>
+    <div class="result-ring" id="qz-res-ring" style="--pct:0%">
+      <div class="result-inner">
+        <div style="font-size:clamp(17px,5vw,22px);font-weight:800;" id="qz-res-pct">0%</div>
+        <div style="font-size:10px;color:#aaa;font-weight:700;">SCORE</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="Quiz.retry()" style="max-width:220px;margin-bottom:10px;">🔁 Retry</button>
+    <button onclick="Quiz.exit()" style="background:none;border:2px solid rgba(0,0,0,.1);padding:12px 28px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Exit</button>
+  </div>
+</div>
+
+<!-- PHOTO FULLSCREEN -->
+<div class="photo-page" id="photo-page">
+  <div class="photo-head">
+    <button class="icon-btn" onclick="Photos.closePage()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div style="font-weight:800;font-size:clamp(15px,4.5vw,17px);" id="photo-page-title">Photos</div>
+  </div>
+  <div class="photo-body" id="photo-page-body"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="Photos.closeLightbox()">
+  <button class="lb-close" onclick="Photos.closeLightbox()">×</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- UNDO TOAST -->
+<div class="undo-toast" id="undo-toast">
+  <div id="undo-msg">Deleted</div>
+  <button class="undo-btn" onclick="Undo.do()">Undo</button>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, set, push, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  const cfg = {
+    apiKey: "AIzaSyCdA6I-a8eYZz1NFUpctYLIa-h56Rh1jNU",
+    authDomain: "dataluminary.firebaseapp.com",
+    databaseURL: "https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "dataluminary",
+    storageBucket: "dataluminary.firebasestorage.app",
+    messagingSenderId: "136281703091",
+    appId: "1:136281703091:web:632b8d1bbb202f9d95a6c6"
+  };
+  const app = initializeApp(cfg);
+  const db = getDatabase(app);
+  window.fb = { db, ref, set, push, get, remove, onValue };
+  window.dispatchEvent(new Event('fbReady'));
+</script>
+
+<script src="utils.js"></script>
+<script src="undo.js"></script>
+<script src="themes.js"></script>
+<script src="nav.js"></script>
+<script src="vocab.js"></script>
+<script src="duo.js"></script>
+<script src="quiz.js"></script>
+<script src="reader.js"></script>
+<script src="photos.js"></script>
+<script src="podcasts.js"></script>
+<script src="rules.js"></script>
+<script src="tests.js"></script>
+<script src="edu.js"></script>
+<script src="user.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
