@@ -2,9 +2,8 @@
 <html>
 <head>
   <script>
-    // Редиректим обратно на index.html с сохранением пути
-    const path = window.location.pathname;
-    window.location.replace('/?path=' + encodeURIComponent(path));
+    sessionStorage.setItem('redirect', location.pathname);
+    location.replace('/');
   </script>
 </head>
 </html>
