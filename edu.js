@@ -10,6 +10,7 @@ const Edu = (() => {
     'edu-sat-hacks':    '#/edu/sat/hacks/',
     'edu-sat-practice': '#/edu/sat/practice/',
     'edu-sat-quizzes':  '#/edu/sat/quizzes/',
+    'edu-sat-qbank':    '#/edu/sat/qbank/',
     'edu-ielts':        '#/edu/ielts/',
     'edu-ielts-vocab':  '#/edu/ielts/vocab/',
   };
@@ -23,6 +24,7 @@ const Edu = (() => {
     if (id === 'edu-sat-quizzes')  _renderQuizList();
     if (id === 'edu-sat-vocab')    Vocab.closeFolderPage('sat', false);
     if (id === 'edu-ielts-vocab')  Vocab.closeFolderPage('ielts', false);
+    if (id === 'edu-sat-qbank')    _renderQBank();
 
     if (updateHash) location.hash = EDU_HASHES[id] || '#/edu/';
   }
@@ -98,6 +100,56 @@ const Edu = (() => {
     ).join('');
   }
 
+  // ── Question Bank ────────────────────────────────────────────
+  let _qbank = [];
+  let _qbankFilter = 'all';
+
+  async function loadQBank() {
+    const snap = await Utils.fbGet('question-bank/sat');
+    _qbank = snap.val() ? Object.entries(snap.val()).map(([k, v]) => ({ id: k, ...v })) : [];
+  }
+
+  function _renderQBank() {
+    const el = document.getElementById('qbank-list');
+    const filtersEl = document.getElementById('qbank-filters');
+    if (!el) return;
+
+    // Build tag list
+    const tags = ['all', ...new Set(_qbank.map(q => q.tag).filter(Boolean))];
+    if (filtersEl) {
+      filtersEl.innerHTML = tags.map(t =>
+        `<button class="qbank-filter-btn ${_qbankFilter === t ? 'active' : ''}"
+          onclick="Edu.qbankFilter('${t}')">${t === 'all' ? 'All' : t}</button>`
+      ).join('');
+    }
+
+    const filtered = _qbankFilter === 'all' ? _qbank : _qbank.filter(q => q.tag === _qbankFilter);
+    if (!filtered.length) {
+      el.innerHTML = '<div style="text-align:center;padding:48px;color:#aaa;font-size:14px;">No questions yet</div>';
+      return;
+    }
+
+    el.innerHTML = filtered.map(q => `
+      <div class="qbank-card" onclick="this.classList.toggle('open')">
+        ${q.tag ? `<div class="qbank-tag">${q.tag}</div>` : ''}
+        <div class="qbank-q">${q.q}</div>
+        <div class="qbank-opts">
+          ${['A','B','C','D'].map(l => q.options?.[l]
+            ? `<div class="qbank-opt ${q.correct===l?'correct':''}"><b>${l}.</b> ${q.options[l]}</div>` : ''
+          ).join('')}
+        </div>
+        <div class="qbank-answer">
+          <div style="font-size:12px;font-weight:800;color:#22c55e;margin-bottom:4px;">✓ Answer: ${q.correct}</div>
+          ${q.explain ? `<div class="qbank-explain">${q.explain}</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  function qbankFilter(tag) {
+    _qbankFilter = tag;
+    _renderQBank();
+  }
+
   // ── Firebase listeners ──────────────────────────────────────
   function bindListeners() {
     Utils.fbListen('practice-tests', snap => {
@@ -110,12 +162,17 @@ const Edu = (() => {
       _quizzes = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
       _renderQuizList();
     });
+    Utils.fbListen('question-bank/sat', snap => {
+      const d = snap.val();
+      _qbank = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
+      if (document.getElementById('edu-sat-qbank')?.style.display !== 'none') _renderQBank();
+    });
   }
 
   async function init() {
-    await Promise.all([loadPracticeTests(), loadQuizzes()]);
+    await Promise.all([loadPracticeTests(), loadQuizzes(), loadQBank()]);
     bindListeners();
   }
 
-  return { open, goTo, init };
+  return { open, goTo, init, qbankFilter };
 })();

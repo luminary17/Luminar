@@ -122,6 +122,7 @@ document.addEventListener('click', function(e){
       <div class="edu-card" onclick="Edu.open('edu-sat-hacks')"><div class="edu-card-title">Hacks / Problems / Solutions</div><div class="edu-icon">🖼️</div></div>
       <div class="edu-card" onclick="Edu.open('edu-sat-practice')"><div class="edu-card-title">Practice Tests</div><div class="edu-icon">📝</div></div>
       <div class="edu-card" onclick="Edu.open('edu-sat-quizzes')"><div class="edu-card-title">Quizzes & Tests</div><div class="edu-icon">🧩</div></div>
+      <div class="edu-card" onclick="Edu.open('edu-sat-qbank')"><div class="edu-card-title">Question Bank</div><div class="edu-icon">🗂️</div></div>
     </div>
     <div id="edu-ielts" class="edu-sec-view" style="display:none;">
       <button class="back-btn" onclick="Edu.open('edu-main')">← Назад</button>
@@ -151,6 +152,14 @@ document.addEventListener('click', function(e){
       <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
       <div class="section-title">Quizzes & Tests</div>
       <div id="edu-quiz-list"></div>
+    </div>
+    <div id="edu-sat-qbank" class="edu-sec-view" style="display:none;">
+      <button class="back-btn" onclick="Edu.open('edu-sat')">← Назад</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div class="section-title" style="margin:0;">Question Bank</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="qbank-filters"></div>
+      </div>
+      <div id="qbank-list"></div>
     </div>
     <div id="edu-ielts-vocab" class="edu-sec-view" style="display:none;">
       <button class="back-btn" onclick="Edu.open('edu-ielts')">← Назад</button>
