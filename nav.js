@@ -33,6 +33,7 @@ const Nav = (() => {
     if (h === '/edu/sat/hacks/')           return { tab: 'edu', edu: 'edu-sat-hacks' };
     if (h === '/edu/sat/practice/')        return { tab: 'edu', edu: 'edu-sat-practice' };
     if (h === '/edu/sat/quizzes/')         return { tab: 'edu', edu: 'edu-sat-quizzes' };
+    if (h === '/edu/sat/qbank/')           return { tab: 'edu', edu: 'edu-sat-qbank' };
     if (h === '/edu/ielts/')               return { tab: 'edu', edu: 'edu-ielts' };
     if (h === '/edu/ielts/vocab/')         return { tab: 'edu', edu: 'edu-ielts-vocab' };
     if (h.startsWith('/edu/sat/vocab/')) {
