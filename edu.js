@@ -114,7 +114,6 @@ const Edu = (() => {
     const filtersEl = document.getElementById('qbank-filters');
     if (!el) return;
 
-    // Build tag list
     const tags = ['all', ...new Set(_qbank.map(q => q.tag).filter(Boolean))];
     if (filtersEl) {
       filtersEl.innerHTML = tags.map(t =>
@@ -129,20 +128,40 @@ const Edu = (() => {
       return;
     }
 
-    el.innerHTML = filtered.map(q => `
-      <div class="qbank-card" onclick="this.classList.toggle('open')">
-        ${q.tag ? `<div class="qbank-tag">${q.tag}</div>` : ''}
+    el.innerHTML = filtered.map((q, i) => `
+      <div class="qbank-card" id="qbc-${q.id}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span class="qbank-num">Question ${i + 1} / ${filtered.length}</span>
+          ${q.tag ? `<span class="qbank-tag">${q.tag}</span>` : ''}
+        </div>
         <div class="qbank-q">${q.q}</div>
         <div class="qbank-opts">
-          ${['A','B','C','D'].map(l => q.options?.[l]
-            ? `<div class="qbank-opt ${q.correct===l?'correct':''}"><b>${l}.</b> ${q.options[l]}</div>` : ''
-          ).join('')}
+          ${['A','B','C','D'].filter(l => q.options?.[l]).map(l => `
+            <button class="qbank-opt-btn" id="qbo-${q.id}-${l}"
+              onclick="Edu.qbankAnswer('${q.id}','${l}','${q.correct}')">
+              <span class="qbank-opt-letter">${l}</span>
+              <span>${q.options[l]}</span>
+            </button>`).join('')}
         </div>
-        <div class="qbank-answer">
-          <div style="font-size:12px;font-weight:800;color:#22c55e;margin-bottom:4px;">✓ Answer: ${q.correct}</div>
-          ${q.explain ? `<div class="qbank-explain">${q.explain}</div>` : ''}
-        </div>
+        ${q.explain ? `
+          <div class="qbank-explain-box" id="qbe-${q.id}">
+            <p>💡 ${q.explain}</p>
+          </div>` : ''}
       </div>`).join('');
+  }
+
+  function qbankAnswer(qid, chosen, correct) {
+    // Disable all options for this question
+    ['A','B','C','D'].forEach(l => {
+      const btn = document.getElementById(`qbo-${qid}-${l}`);
+      if (!btn) return;
+      btn.disabled = true;
+      if (l === correct) btn.classList.add('correct');
+      else if (l === chosen) btn.classList.add('wrong');
+    });
+    // Show explanation
+    const exp = document.getElementById(`qbe-${qid}`);
+    if (exp) exp.classList.add('show');
   }
 
   function qbankFilter(tag) {
@@ -174,5 +193,5 @@ const Edu = (() => {
     bindListeners();
   }
 
-  return { open, goTo, init, qbankFilter };
+  return { open, goTo, init, qbankFilter, qbankAnswer };
 })();
