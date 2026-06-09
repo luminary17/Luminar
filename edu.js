@@ -24,7 +24,7 @@ const Edu = (() => {
     if (id === 'edu-sat-quizzes')  _renderQuizList();
     if (id === 'edu-sat-vocab')    Vocab.closeFolderPage('sat', false);
     if (id === 'edu-ielts-vocab')  Vocab.closeFolderPage('ielts', false);
-    if (id === 'edu-sat-qbank')    _renderQBank();
+    if (id === 'edu-sat-qbank')    { _renderQBank(); }
 
     if (updateHash) location.hash = EDU_HASHES[id] || '#/edu/';
   }
@@ -103,6 +103,9 @@ const Edu = (() => {
   // ── Question Bank ────────────────────────────────────────────
   let _qbank = [];
   let _qbankFilter = 'all';
+  let _qbvItems = [];   // current filtered list for full-screen
+  let _qbvIdx   = 0;    // current question index
+  let _qbvAnswered = {}; // { qid: chosenLetter }
 
   async function loadQBank() {
     const snap = await Utils.fbGet('question-bank/sat');
@@ -128,40 +131,158 @@ const Edu = (() => {
       return;
     }
 
-    el.innerHTML = filtered.map((q, i) => `
-      <div class="qbank-card" id="qbc-${q.id}">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span class="qbank-num">Question ${i + 1} / ${filtered.length}</span>
-          ${q.tag ? `<span class="qbank-tag">${q.tag}</span>` : ''}
-        </div>
-        <div class="qbank-q">${q.q}</div>
-        <div class="qbank-opts">
-          ${['A','B','C','D'].filter(l => q.options?.[l]).map(l => `
-            <button class="qbank-opt-btn" id="qbo-${q.id}-${l}"
-              onclick="Edu.qbankAnswer('${q.id}','${l}','${q.correct}')">
-              <span class="qbank-opt-letter">${l}</span>
-              <span>${q.options[l]}</span>
-            </button>`).join('')}
-        </div>
-        ${q.explain ? `
-          <div class="qbank-explain-box" id="qbe-${q.id}">
-            <p>💡 ${q.explain}</p>
-          </div>` : ''}
-      </div>`).join('');
+    // Show as launch cards (not full questions)
+    el.innerHTML = `
+      <div style="margin-bottom:16px;padding:16px;background:var(--card);border-radius:14px;border:1px solid var(--border);">
+        <div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:4px;">${filtered.length} Questions</div>
+        <div style="font-size:13px;color:var(--txt-muted);margin-bottom:14px;">Click to start exam-style practice</div>
+        <button style="background:var(--acc);color:#fff;border:none;padding:12px 24px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;width:100%;" onclick="Edu.openQBank()">
+          🚀 Start Question Bank
+        </button>
+      </div>`;
   }
 
-  function qbankAnswer(qid, chosen, correct) {
-    // Disable all options for this question
-    ['A','B','C','D'].forEach(l => {
-      const btn = document.getElementById(`qbo-${qid}-${l}`);
-      if (!btn) return;
-      btn.disabled = true;
-      if (l === correct) btn.classList.add('correct');
-      else if (l === chosen) btn.classList.add('wrong');
+  function openQBank() {
+    const filtered = _qbankFilter === 'all' ? _qbank : _qbank.filter(q => q.tag === _qbankFilter);
+    if (!filtered.length) return;
+    _qbvItems = filtered;
+    _qbvIdx = 0;
+    _qbvAnswered = {};
+    document.getElementById('qbankview').classList.add('active');
+    _qbvRender();
+    _setupHighlight();
+  }
+
+  function closeQBank() {
+    document.getElementById('qbankview').classList.remove('active');
+    _hideHlBar();
+  }
+
+  function _qbvRender() {
+    const q = _qbvItems[_qbvIdx];
+    if (!q) return;
+    const total = _qbvItems.length;
+    const pct = (((_qbvIdx) / total) * 100).toFixed(1);
+
+    document.getElementById('qbv-counter').textContent = `${_qbvIdx + 1} / ${total}`;
+    document.getElementById('qbv-tag-badge').textContent = q.tag || '';
+    document.getElementById('qbv-prog-fill').style.width = pct + '%';
+    document.getElementById('qbv-q').innerHTML = q.q;
+    document.getElementById('qbv-prev-btn').disabled = _qbvIdx === 0;
+
+    const answered = _qbvAnswered[q.id];
+    const optsEl = document.getElementById('qbv-opts');
+    optsEl.innerHTML = ['A','B','C','D'].filter(l => q.options?.[l]).map(l => {
+      let cls = '';
+      if (answered) {
+        if (l === q.correct) cls = 'correct';
+        else if (l === answered) cls = 'wrong';
+      }
+      return `<button class="qbv-opt ${cls}" id="qbvo-${l}"
+        onclick="Edu.qbvAnswer('${l}')"
+        oncontextmenu="Edu.qbvStrike(this,event)"
+        ${answered ? 'disabled' : ''}>
+        <span class="qbv-opt-letter">${l}</span>
+        <span>${q.options[l]}</span>
+      </button>`;
+    }).join('');
+
+    // Explanation
+    const expEl = document.getElementById('qbv-explain');
+    if (answered && q.explain) {
+      const correct = answered === q.correct;
+      expEl.className = 'qbv-explain show';
+      expEl.innerHTML = `<div class="qbv-result-badge ${correct ? 'correct' : 'wrong'}">${correct ? '✓ Correct' : '✗ Incorrect'}</div><br>💡 ${q.explain}`;
+    } else if (answered) {
+      const correct = answered === q.correct;
+      expEl.className = 'qbv-explain show';
+      expEl.innerHTML = `<div class="qbv-result-badge ${correct ? 'correct' : 'wrong'}">${correct ? '✓ Correct!' : `✗ Incorrect — answer is ${q.correct}`}</div>`;
+    } else {
+      expEl.className = 'qbv-explain';
+      expEl.innerHTML = '';
+    }
+
+    // Footer status
+    const status = document.getElementById('qbv-status');
+    const done = Object.keys(_qbvAnswered).length;
+    status.textContent = `${done} / ${total} answered`;
+
+    document.getElementById('qbv-next-btn').textContent = _qbvIdx === total - 1 ? 'Finish' : 'Next →';
+  }
+
+  function qbvAnswer(letter) {
+    const q = _qbvItems[_qbvIdx];
+    if (!q || _qbvAnswered[q.id]) return;
+    _qbvAnswered[q.id] = letter;
+    _qbvRender();
+  }
+
+  function qbvStrike(btn, e) {
+    e.preventDefault();
+    if (btn.disabled) return;
+    btn.classList.toggle('struck');
+  }
+
+  function qbvNext() {
+    if (_qbvIdx < _qbvItems.length - 1) { _qbvIdx++; _qbvRender(); }
+    else closeQBank();
+  }
+
+  function qbvPrev() {
+    if (_qbvIdx > 0) { _qbvIdx--; _qbvRender(); }
+  }
+
+  // ── Highlighting ─────────────────────────────────────────────
+  function _setupHighlight() {
+    const qEl = document.getElementById('qbv-q');
+    if (!qEl) return;
+    document.addEventListener('mouseup', _onSelect);
+    document.addEventListener('touchend', _onSelect);
+  }
+
+  function _onSelect() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) { _hideHlBar(); return; }
+    const range = sel.getRangeAt(0);
+    const qEl = document.getElementById('qbv-q');
+    if (!qEl || !qEl.contains(range.commonAncestorContainer)) { _hideHlBar(); return; }
+    const rect = range.getBoundingClientRect();
+    const bar = document.getElementById('qbv-hl-bar');
+    bar.style.top  = (rect.top - 50 + window.scrollY) + 'px';
+    bar.style.left = (rect.left + rect.width / 2 - 60) + 'px';
+    bar.classList.add('show');
+  }
+
+  function _hideHlBar() {
+    document.getElementById('qbv-hl-bar')?.classList.remove('show');
+  }
+
+  function highlight(color) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const mark = document.createElement('mark');
+    mark.style.background = color;
+    mark.style.color = '#000';
+    try { range.surroundContents(mark); } catch(e) {}
+    sel.removeAllRanges();
+    _hideHlBar();
+  }
+
+  function clearHighlight() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const marks = document.getElementById('qbv-q')?.querySelectorAll('mark');
+    marks?.forEach(m => {
+      if (range.intersectsNode(m)) {
+        const parent = m.parentNode;
+        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+        parent.removeChild(m);
+      }
     });
-    // Show explanation
-    const exp = document.getElementById(`qbe-${qid}`);
-    if (exp) exp.classList.add('show');
+    sel.removeAllRanges();
+    _hideHlBar();
   }
 
   function qbankFilter(tag) {
@@ -193,5 +314,5 @@ const Edu = (() => {
     bindListeners();
   }
 
-  return { open, goTo, init, qbankFilter, qbankAnswer };
+  return { open, goTo, init, qbankFilter, openQBank, closeQBank, qbvAnswer, qbvStrike, qbvNext, qbvPrev, highlight, clearHighlight };
 })();
