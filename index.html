@@ -11,15 +11,9 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-  <div class="sidebar-mode" id="sidebar-mode" onclick="toggleSidebarMode()">
-    <div class="sidebar-mode-inner">
-      <span class="sidebar-mode-label" id="mode-label">SAT</span>
-      <span class="sidebar-mode-arrow" id="mode-arrow">▼</span>
-    </div>
-    <div class="sidebar-mode-dropdown" id="mode-dropdown">
-      <button class="sidebar-mode-opt active" id="mode-sat" onclick="selectMode('sat',event)">SAT</button>
-      <button class="sidebar-mode-opt" id="mode-ielts" onclick="selectMode('ielts',event)">IELTS</button>
-    </div>
+  <div style="padding:16px 16px 8px;border-bottom:1px solid var(--border);">
+    <div style="font-weight:900;font-size:18px;color:var(--acc);letter-spacing:-0.5px;">LUMINARY</div>
+    <div style="font-size:11px;color:var(--txt-muted);font-weight:600;margin-top:2px;">Prep Hub</div>
   </div>
   <div class="sidebar-nav">
     <button class="nav-btn active" id="n-home" onclick="Nav.go('home')">
@@ -50,31 +44,6 @@
   <div class="sidebar-logo">LUMINARY</div>
 </div>
 
-<script>
-function toggleSidebarMode(){
-  const el=document.getElementById('sidebar-mode');
-  const dd=document.getElementById('mode-dropdown');
-  el.classList.toggle('open');
-  dd.classList.toggle('show');
-}
-function selectMode(mode, e){
-  e.stopPropagation();
-  document.getElementById('mode-label').textContent=mode.toUpperCase();
-  document.getElementById('mode-sat').classList.toggle('active', mode==='sat');
-  document.getElementById('mode-ielts').classList.toggle('active', mode==='ielts');
-  document.getElementById('sidebar-mode').classList.remove('open');
-  document.getElementById('mode-dropdown').classList.remove('show');
-  if(mode==='sat') Nav.goSub('edu-sat','edu','edu-sat');
-  else Nav.goSub('edu-ielts','edu','edu-ielts');
-}
-document.addEventListener('click', function(e){
-  const mode=document.getElementById('sidebar-mode');
-  if(mode && !mode.contains(e.target)){
-    mode.classList.remove('open');
-    document.getElementById('mode-dropdown').classList.remove('show');
-  }
-});
-</script>
 
 <!-- MAIN VIEWS -->
 <div class="container">
@@ -430,7 +399,9 @@ document.addEventListener('click', function(e){
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getDatabase, ref, set, push, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-  const cfg = {
+
+  // DB1 — existing data (vocab, rules, podcasts, photos, quizzes)
+  const app = initializeApp({
     apiKey: "AIzaSyCdA6I-a8eYZz1NFUpctYLIa-h56Rh1jNU",
     authDomain: "dataluminary.firebaseapp.com",
     databaseURL: "https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app",
@@ -438,10 +409,23 @@ document.addEventListener('click', function(e){
     storageBucket: "dataluminary.firebasestorage.app",
     messagingSenderId: "136281703091",
     appId: "1:136281703091:web:632b8d1bbb202f9d95a6c6"
-  };
-  const app = initializeApp(cfg);
-  const db = getDatabase(app);
-  window.fb = { db, ref, set, push, get, remove, onValue };
+  });
+
+  // DB2 — new materials (question bank, mock tests)
+  const app2 = initializeApp({
+    apiKey: "AIzaSyDOt_G1cP7GKogZ4A_5LjPYX1VAO_JDR7M",
+    authDomain: "luminary-46748.firebaseapp.com",
+    databaseURL: "https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "luminary-46748",
+    storageBucket: "luminary-46748.firebasestorage.app",
+    messagingSenderId: "43189176496",
+    appId: "1:43189176496:web:dc79880e682e4dea7e9375"
+  }, 'secondary');
+
+  const db  = getDatabase(app);
+  const db2 = getDatabase(app2);
+  window.fb  = { db,  ref, set, push, get, remove, onValue };
+  window.fb2 = { db: db2, ref, set, push, get, remove, onValue };
   window.dispatchEvent(new Event('fbReady'));
 </script>
 

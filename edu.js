@@ -107,8 +107,17 @@ const Edu = (() => {
   let _qbvIdx   = 0;    // current question index
   let _qbvAnswered = {}; // { qid: chosenLetter }
 
+  function _fb2Get(path) {
+    const { db, ref, get } = window.fb2;
+    return get(ref(db, path));
+  }
+  function _fb2Listen(path, cb) {
+    const { db, ref, onValue } = window.fb2;
+    return onValue(ref(db, path), cb);
+  }
+
   async function loadQBank() {
-    const snap = await Utils.fbGet('question-bank/sat');
+    const snap = await _fb2Get('question-bank/sat');
     _qbank = snap.val() ? Object.entries(snap.val()).map(([k, v]) => ({ id: k, ...v })) : [];
   }
 
@@ -302,7 +311,7 @@ const Edu = (() => {
       _quizzes = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
       _renderQuizList();
     });
-    Utils.fbListen('question-bank/sat', snap => {
+    _fb2Listen('question-bank/sat', snap => {
       const d = snap.val();
       _qbank = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
       if (document.getElementById('edu-sat-qbank')?.style.display !== 'none') _renderQBank();
