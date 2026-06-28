@@ -5,7 +5,7 @@ window.addEventListener('fbReady', async () => {
   Themes.init();
   UserModule.init();
 
-  await Promise.all([
+  await Promise.allSettled([
     Vocab.init(),
     Edu.init(),
   ]);

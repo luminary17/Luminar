@@ -108,17 +108,23 @@ const Edu = (() => {
   let _qbvAnswered = {}; // { qid: chosenLetter }
 
   function _fb2Get(path) {
+    if (!window.fb2) return Promise.resolve({ val: () => null });
     const { db, ref, get } = window.fb2;
-    return get(ref(db, path));
+    return get(ref(db, path)).catch(() => ({ val: () => null }));
   }
   function _fb2Listen(path, cb) {
+    if (!window.fb2) return;
     const { db, ref, onValue } = window.fb2;
-    return onValue(ref(db, path), cb);
+    try { return onValue(ref(db, path), cb); } catch(e) {}
   }
 
   async function loadQBank() {
-    const snap = await _fb2Get('question-bank/sat');
-    _qbank = snap.val() ? Object.entries(snap.val()).map(([k, v]) => ({ id: k, ...v })) : [];
+    try {
+      const snap = await _fb2Get('question-bank/sat');
+      _qbank = snap.val() ? Object.entries(snap.val()).map(([k, v]) => ({ id: k, ...v })) : [];
+    } catch(e) {
+      _qbank = [];
+    }
   }
 
   function _renderQBank() {
@@ -319,7 +325,7 @@ const Edu = (() => {
   }
 
   async function init() {
-    await Promise.all([loadPracticeTests(), loadQuizzes(), loadQBank()]);
+    await Promise.allSettled([loadPracticeTests(), loadQuizzes(), loadQBank()]);
     bindListeners();
   }
 
