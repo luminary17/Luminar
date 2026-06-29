@@ -217,8 +217,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .rule-block{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);}
 .rule-block:last-child{border-bottom:none;}
 .rule-num{font-size:clamp(14px,4vw,18px);color:var(--txt);}
-.rule-stmt{font-size:clamp(14px,4vw,17px);color:var(--acc);}
-.rule-body{font-size:clamp(12px,3.5vw,14px);color:var(--txt-muted);line-height:1.8;margin:4px 0;}
+.rule-stmt{font-size:clamp(14px,4vw,17px);color:var(--acc);word-break:break-word;overflow-wrap:break-word;}
+.rule-body{font-size:clamp(12px,3.5vw,14px);color:var(--txt-muted);line-height:1.8;margin:4px 0;word-break:break-word;overflow-wrap:break-word;}
 .rule-ok{color:#22c55e;}.rule-bad{color:#f87171;}
 .rule-bullet{padding-left:16px;position:relative;}.rule-bullet::before{content:'✓';color:#22c55e;position:absolute;left:0;}
 .rule-quiz-badge{font-size:11px;color:var(--acc);display:inline-flex;align-items:center;gap:3px;background:rgba(74,158,218,.12);padding:3px 10px;border-radius:16px;margin-top:10px;}
