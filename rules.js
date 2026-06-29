@@ -19,7 +19,7 @@ const Rules = (() => {
       grouped[fn].push(it);
     });
 
-    const qdataStr = JSON.stringify(quizItems).replace(/"/g, '&quot;');
+    const qdataStr = JSON.stringify(quizItems).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     let n = 1;
     let html = `<div class="rules-wrap">
       <div class="rules-main-title">SAT Grammar &amp; Punctuation Rules</div>
@@ -33,7 +33,7 @@ const Rules = (() => {
     for (const [sec, its] of Object.entries(grouped)) {
       const fid = its[0]?.folder || '';
       const fq  = fid && folderQuizzes[fid] ? folderQuizzes[fid] : null;
-      const fqData = fq ? JSON.stringify(fq.questions).replace(/"/g, '&quot;') : '';
+      const fqData = fq ? JSON.stringify(fq.questions).replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
 
       html += `<div class="rule-sec-header">
         <div class="rule-sec-title">${sec}</div>
