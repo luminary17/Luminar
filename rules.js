@@ -72,22 +72,22 @@ const Rules = (() => {
   }
 
   function bindListeners() {
-    Utils.fbListen('rules-items', async snap => {
+    Utils.fbListen('sat-rules-items', async snap => {
       const d = snap.val();
       const items = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
       let fqs = {};
       try {
-        const fqSnap = await Utils.fbGet('rules-folder-quizzes');
+        const fqSnap = await Utils.fbGet('sat-rules-folder-quizzes');
         fqs = fqSnap.val() || {};
       } catch(e) {}
       render(items, fqs);
     });
 
-    Utils.fbListen('rules-folder-quizzes', async snap => {
+    Utils.fbListen('sat-rules-folder-quizzes', async snap => {
       const fqs = snap.val() || {};
       let items = [];
       try {
-        const iSnap = await Utils.fbGet('rules-items');
+        const iSnap = await Utils.fbGet('sat-rules-items');
         const d = iSnap.val();
         items = d ? Object.entries(d).map(([k, v]) => ({ id: k, ...v })) : [];
       } catch(e) {}
