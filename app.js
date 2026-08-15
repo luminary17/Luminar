@@ -63,7 +63,8 @@ const dateText = (date) => new Intl.DateTimeFormat('en-US', { month: 'short', da
 const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 async function api(path, options = {}) {
-  if (window.location.protocol === 'file:') throw new Error('Local API requires the Luminary server.');
+  const isLocalServer = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  if (!isLocalServer) throw new Error('The local API is unavailable on the published site.');
   const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, keepalive: true, ...options });
   if (!response.ok) throw new Error('Request failed');
   return response.json();
