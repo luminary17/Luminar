@@ -87,11 +87,11 @@
     </header>
     <div class="test-subbar"><span id="test-module">Math / Module 1</span><span id="test-domain">Advanced Math</span></div>
     <div class="test-body" id="test-body">
-      <main class="question-workspace"><section class="question-copy"><p class="question-label" id="question-domain-label">Advanced Math</p><img id="question-image" class="question-image" alt="Question illustration" hidden><h2 id="question-prompt"></h2></section><section class="answer-column"><div class="answer-list" id="answer-list"></div><p class="answer-status" id="answer-status" aria-live="polite"></p><div class="test-actions"><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-quiet" id="next-question" type="button">Next</button></div></section></main>
+      <main class="question-workspace" id="question-workspace"><aside class="passage-copy" id="passage-copy" hidden><p id="question-passage"></p></aside><section class="answer-column"><section class="question-copy"><p class="question-label" id="question-domain-label">Advanced Math</p><img id="question-image" class="question-image" alt="Question illustration" hidden><h2 id="question-prompt"></h2></section><div class="answer-list" id="answer-list"></div><p class="answer-status" id="answer-status" aria-live="polite"></p><div class="test-actions"><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-quiet" id="next-question" type="button">Next</button></div></section></main>
     </div>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=7"></script>

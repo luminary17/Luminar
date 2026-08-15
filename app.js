@@ -460,7 +460,7 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const correct = typeof rawCorrect === 'number' ? rawCorrect : Math.max(0, 'ABCD'.indexOf(String(rawCorrect || '').toUpperCase()));
   const domain=item.tag || item.domain || item.topic || 'Practice';const declared=String(item.set||item.section||'').toLowerCase();
   const set=prefix.startsWith('ielts')?(declared||'reading'):declared.includes('math')?'math':declared.includes('read')||declared==='rw'?'rw':/algebra|math|geometry|data|problem solving/i.test(domain)?'math':'rw';
-  return { id: `${prefix}-${id}`, domain, set, prompt: item.q || item.question || item.prompt || '', answers: answers.map((answer) => String(answer || '')), correct, image: item.image || item.imageUrl || item.picture || '', explanation: item.explain || item.explanation || '' };
+  return { id: `${prefix}-${id}`, domain, set, prompt: item.q || item.question || item.prompt || '', passage: item.passage || item.reference || item.text || item.stimulus || '', answers: answers.map((answer) => String(answer || '')), correct, image: item.image || item.imageUrl || item.picture || '', explanation: item.explain || item.explanation || '' };
 }
 
 function validRemoteQuestion(question) {
@@ -674,6 +674,10 @@ function renderQuestion() {
   $('test-domain').textContent = question.domain;
   $('question-domain-label').textContent = question.domain;
   $('question-prompt').textContent = question.prompt;
+  const passage = String(question.passage || '');
+  $('question-passage').textContent = passage;
+  $('passage-copy').hidden = !passage;
+  $('question-workspace').classList.toggle('is-with-passage', Boolean(passage));
   const questionImage=$('question-image'),imageSource=safeImageSource(question.image);
   questionImage.hidden=!imageSource;questionImage.src=imageSource||'';
   $('mark-question').innerHTML = `<span aria-hidden="true">&#128278;</span> ${marked ? 'Marked for review' : 'Mark for review'}`;
