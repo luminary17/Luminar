@@ -22,25 +22,6 @@ const SAT_CATEGORIES = {
   math: ['Algebra', 'Advanced Math', 'Problem-Solving and Data Analysis', 'Geometry and Trigonometry']
 };
 
-const QUESTIONS = {
-  math: [
-    { id: 'm1', domain: 'Advanced Math', prompt: 'If 3x + 8 = 35, what is the value of x?', answers: ['7', '9', '11', '13'], correct: 1 },
-    { id: 'm2', domain: 'Algebra', prompt: 'A line has a slope of 4 and passes through (2, 3). Which equation represents the line?', answers: ['y = 4x - 5', 'y = 4x + 3', 'y = 2x - 5', 'y = 3x + 4'], correct: 0 },
-    { id: 'm3', domain: 'Problem-Solving and Data Analysis', prompt: 'A jacket costs $80 after a 20% discount. What was the original price?', answers: ['$64', '$96', '$100', '$120'], correct: 2 },
-    { id: 'm4', domain: 'Geometry and Trigonometry', prompt: 'A square has a perimeter of 36. What is its area?', answers: ['18', '36', '72', '81'], correct: 3 },
-    { id: 'm5', domain: 'Problem-Solving and Data Analysis', prompt: 'The mean of 4, 8, 10, and n is 9. What is n?', answers: ['12', '14', '16', '18'], correct: 1 },
-    { id: 'm6', domain: 'Advanced Math', prompt: 'What is the positive solution to x squared = 49?', answers: ['5', '6', '7', '8'], correct: 2 }
-  ],
-  rw: [
-    { id: 'r1', domain: 'Standard English Conventions', prompt: 'Which choice completes the sentence so that it conforms to Standard English conventions? The students studied carefully, _____ they felt prepared.', answers: ['and', 'but', 'because', 'although'], correct: 0 },
-    { id: 'r2', domain: 'Words in Context', prompt: 'In this context, concise most nearly means:', answers: ['brief', 'uncertain', 'complex', 'traditional'], correct: 0 },
-    { id: 'r3', domain: 'Expression of Ideas', prompt: 'Which transition best emphasizes a contrast?', answers: ['For example,', 'However,', 'Similarly,', 'Therefore,'], correct: 1 },
-    { id: 'r4', domain: 'Information and Ideas', prompt: 'Which claim is best supported by the evidence in the passage?', answers: ['The author rejects all new methods.', 'The method improved accuracy.', 'The study was never completed.', 'The result was unexpected.'], correct: 1 },
-    { id: 'r5', domain: 'Craft and Structure', prompt: 'The author\'s primary purpose is to:', answers: ['describe a process', 'challenge a belief', 'celebrate an achievement', 'summarize a debate'], correct: 0 },
-    { id: 'r6', domain: 'Standard English Conventions', prompt: 'Choose the punctuation that correctly joins the two independent clauses.', answers: ['a comma', 'a semicolon', 'no punctuation', 'a colon after because'], correct: 1 }
-  ]
-};
-
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
 const HACK_SECTIONS = [
@@ -453,6 +434,15 @@ function respondVocabularyReview(action) {
   renderVocabularyReview();
 }
 
+function splitQuestionText(text) {
+  const source = String(text || '').trim();
+  const lastQuestionMark = source.lastIndexOf('?');
+  if (lastQuestionMark < 0 && source.includes('\n')) return { passage: source, prompt: '' };
+  const lineStart = lastQuestionMark >= 0 ? source.lastIndexOf('\n', lastQuestionMark) : -1;
+  if (lineStart >= 0) return { passage: source.slice(0, lineStart).trim(), prompt: source.slice(lineStart + 1).trim() };
+  return { passage: '', prompt: source };
+}
+
 function remoteQuestion(id, item, prefix = 'firebase') {
   const options = item.options || item.answers || {};
   const answers = Array.isArray(options) ? options : ['A', 'B', 'C', 'D'].map((key) => options[key]);
@@ -460,7 +450,10 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const correct = typeof rawCorrect === 'number' ? rawCorrect : Math.max(0, 'ABCD'.indexOf(String(rawCorrect || '').toUpperCase()));
   const domain=item.tag || item.domain || item.topic || 'Practice';const declared=String(item.set||item.section||'').toLowerCase();
   const set=prefix.startsWith('ielts')?(declared||'reading'):declared.includes('math')?'math':declared.includes('read')||declared==='rw'?'rw':/algebra|math|geometry|data|problem solving/i.test(domain)?'math':'rw';
-  return { id: `${prefix}-${id}`, domain, set, prompt: item.q || item.question || item.prompt || '', passage: item.passage || item.reference || item.text || item.stimulus || '', answers: answers.map((answer) => String(answer || '')), correct, image: item.image || item.imageUrl || item.picture || '', explanation: item.explain || item.explanation || '' };
+  const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
+  const rawQuestion = item.q || '';
+  const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
+  return { id: `${prefix}-${id}`, domain, set, prompt: split.prompt || item.question || item.prompt || 'Choose the best answer.', passage: split.passage, answers: answers.map((answer) => String(answer || '')), correct, image: item.image || item.imageUrl || item.picture || '', explanation: item.explain || item.explanation || '' };
 }
 
 function validRemoteQuestion(question) {
@@ -623,7 +616,7 @@ function renderQuestionBank() {
   const exam=state.profile.exam,store=remotePractice.questions[exam];
   if(store.status==='idle')loadRemoteQuestionBank();
   const sections=exam==='sat'?['rw','math']:['listening','reading','writing','speaking'];
-  const questionsForSet=(set)=>[...(exam==='sat'?(QUESTIONS[set]||[]):[]),...store.items.filter(question=>question.set===set)];
+  const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
   if (questionBankView === 'sections') {
     $('question-bank-copy').textContent = exam==='sat'?'Choose Reading & Writing or Math.':'Choose an IELTS section.';
@@ -637,11 +630,11 @@ function renderQuestionBank() {
   const availableTopics = new Set(questions.map((question) => question.domain));
   const preferred=SAT_CATEGORIES[currentSet]||[];
   const topics = [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
-  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose up to 3 topics.`;
+  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose 3 topics.`;
   library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection">${topics.map((topic) => {
     const selected = selectedQuestionTopics.includes(topic);
     return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
-  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length ? '' : 'disabled'}>Start selected questions</button></div>`;
+  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length === 3 ? '' : 'disabled'}>Start selected questions</button></div>`;
 }
 
 function toggleQuestionTopic(topic) {
@@ -650,13 +643,13 @@ function toggleQuestionTopic(topic) {
   } else if (selectedQuestionTopics.length < 3) {
     selectedQuestionTopics = [...selectedQuestionTopics, topic];
   } else {
-    showToast('Choose up to 3 topics.');
+    showToast('Choose exactly 3 topics.');
   }
   renderQuestionBank();
 }
 
 function startSelectedTopics() {
-  const exam=state.profile.exam,questions = [...(exam==='sat'?(QUESTIONS[currentSet]||[]):[]),...remotePractice.questions[exam].items.filter(question=>question.set===currentSet)].filter((question) => selectedQuestionTopics.includes(question.domain));
+  const exam=state.profile.exam,questions = remotePractice.questions[exam].items.filter((question) => question.set===currentSet && selectedQuestionTopics.includes(question.domain));
   if (!questions.length) return;
   startPractice(currentSet, 0, questions);
 }
@@ -694,9 +687,8 @@ function renderQuestion() {
 }
 
 function startPractice(set = 'math', questionIndex = 0, questions = null) {
-  currentSet = set === 'daily' ? 'math' : set;
-  if (!questions?.length&&!QUESTIONS[currentSet]) currentSet = 'math';
-  practiceQuestions = questions?.length ? questions : QUESTIONS[currentSet];
+  currentSet = set;
+  practiceQuestions = questions || [];
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
   openPage('questions');
