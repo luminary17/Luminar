@@ -18,7 +18,7 @@ const DEFAULT_STATE = {
 
 const SAT_DATES = ['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03'];
 const SAT_CATEGORIES = {
-  rw: ['Information and Ideas', 'Craft and Structure', 'Expression of Ideas', 'Standard English Conventions'],
+  rw: ['Information and Ideas', 'Craft and Structure', 'Expression of Ideas', 'Standard English Conventions', 'Reading'],
   math: ['Algebra', 'Advanced Math', 'Problem-Solving and Data Analysis', 'Geometry and Trigonometry']
 };
 
@@ -50,6 +50,8 @@ let draftAnswers = {};
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
 const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
+const questionTopicCache = { sat: {}, ielts: {} };
+let questionSetLoading = false;
 const vocabularyStores = {
   sat: { folders: [], words: [], status: 'idle' },
   ielts: { folders: [], words: [], status: 'idle' }
@@ -181,11 +183,12 @@ async function fetchMaterialData(path) {
   return fetchDatabaseData(MATERIAL_DATABASE_URL, path);
 }
 
-async function fetchDatabaseData(baseUrl, path) {
+async function fetchDatabaseData(baseUrl, path, timeoutMs = 12000) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${baseUrl}/${path}.json`, { cache: 'no-store', signal: controller.signal });
+    const [resource, query = ''] = path.split('?');
+    const response = await fetch(`${baseUrl}/${resource}.json${query ? `?${query}` : ''}`, { cache: 'no-store', signal: controller.signal });
     if (!response.ok) throw new Error(`Could not load ${path}`);
     return response.json();
   } finally {
@@ -469,6 +472,16 @@ async function loadRemoteQuestionBank() {
   if(currentPage==='questions')renderQuestionBank();
 }
 
+async function loadQuestionTopics(exam, topics) {
+  const cache = questionTopicCache[exam];
+  const missingTopics = topics.filter((topic) => !cache[topic]);
+  if (!missingTopics.length) return topics.flatMap((topic) => cache[topic]);
+  const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
+  const allQuestions = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
+  missingTopics.forEach((topic) => { cache[topic] = allQuestions.filter((question) => question.domain === topic); });
+  return topics.flatMap((topic) => cache[topic] || []);
+}
+
 function currentMockKey(){return state.profile.exam==='ielts'?`ielts/${(currentSkill||'Listening').toLowerCase()}`:'sat/all';}
 async function loadRemoteMocks(){
   const key=currentMockKey();if(remotePractice.mocks[key]?.status==='loading'||remotePractice.mocks[key]?.status==='ready')return;
@@ -615,7 +628,7 @@ function renderQuestionBank() {
   const library = $('question-library');
   library.classList.toggle('question-topic-list', questionBankView === 'topics');
   const exam=state.profile.exam,store=remotePractice.questions[exam];
-  if(store.status==='idle')loadRemoteQuestionBank();
+  if(exam === 'ielts' && store.status==='idle')loadRemoteQuestionBank();
   const sections=exam==='sat'?['rw','math']:['listening','reading','writing','speaking'];
   const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
@@ -627,32 +640,40 @@ function renderQuestionBank() {
     return;
   }
 
+  const preferred=SAT_CATEGORIES[currentSet]||[];
   const questions = questionsForSet(currentSet);
   const availableTopics = new Set(questions.map((question) => question.domain));
-  const preferred=SAT_CATEGORIES[currentSet]||[];
-  const topics = [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
-  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose 3 topics.`;
+  const topics = exam === 'sat' ? preferred : [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
+  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose one or more topics.`;
   library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection">${topics.map((topic) => {
     const selected = selectedQuestionTopics.includes(topic);
     return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
-  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length === 3 ? '' : 'disabled'}>Start selected questions</button></div>`;
+  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length > 0 && !questionSetLoading ? '' : 'disabled'}>${questionSetLoading ? 'Loading questions...' : 'Start selected questions'}</button></div>`;
 }
 
 function toggleQuestionTopic(topic) {
   if (selectedQuestionTopics.includes(topic)) {
     selectedQuestionTopics = selectedQuestionTopics.filter((item) => item !== topic);
-  } else if (selectedQuestionTopics.length < 3) {
-    selectedQuestionTopics = [...selectedQuestionTopics, topic];
   } else {
-    showToast('Choose exactly 3 topics.');
+    selectedQuestionTopics = [...selectedQuestionTopics, topic];
   }
   renderQuestionBank();
 }
 
-function startSelectedTopics() {
-  const exam=state.profile.exam,questions = remotePractice.questions[exam].items.filter((question) => question.set===currentSet && selectedQuestionTopics.includes(question.domain));
-  if (!questions.length) return;
-  startPractice(currentSet, 0, questions);
+async function startSelectedTopics() {
+  if (!selectedQuestionTopics.length || questionSetLoading) return;
+  questionSetLoading = true;
+  renderQuestionBank();
+  try {
+    const questions = await loadQuestionTopics(state.profile.exam, selectedQuestionTopics);
+    if (questions.length) startPractice(currentSet, 0, questions);
+    else showToast('No questions are available for these topics yet.');
+  } catch {
+    showToast('Questions could not be loaded right now.');
+  } finally {
+    questionSetLoading = false;
+    if (currentPage === 'questions') renderQuestionBank();
+  }
 }
 
 function renderQuestion() {
