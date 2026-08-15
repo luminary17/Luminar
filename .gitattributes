@@ -1,0 +1,5 @@
+# Keep source files consistent across Windows and GitHub.
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
