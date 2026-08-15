@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4efe7">
   <title>Luminary</title>
-  <link rel="stylesheet" href="main.css?v=4">
+  <link rel="stylesheet" href="main.css?v=13">
 </head>
 <body>
   <div class="app-shell">
@@ -20,7 +20,9 @@
         <div class="nav-section sat-only"><span>Learn</span><button class="nav-link" data-page="learn" type="button">Rules</button><button class="nav-link" data-page="vocab" type="button">Vocabulary</button><button class="nav-link" data-page="problems" type="button">Problems &amp; Solutions</button></div>
         <div class="nav-section ielts-only"><span>Learn</span><button class="nav-link" data-page="learn" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="learn" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="learn" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="learn" data-skill="Speaking" type="button">Speaking</button></div>
         <div class="nav-section ielts-only"><span>Vocab</span><button class="nav-link" data-page="vocab" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="vocab" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="vocab" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="vocab" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section"><span>Practice</span><button class="nav-link" data-page="questions" type="button">Question Bank</button><button class="nav-link" data-page="mocks" type="button">Mocks</button></div>
+        <div class="nav-section"><span>Practice</span><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
+        <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
+        <div class="nav-section ielts-only"><span>Mocks</span><button class="nav-link" data-page="mocks" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="mocks" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="mocks" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="mocks" data-skill="Speaking" type="button">Speaking</button></div>
         <div class="nav-section"><span>Personal</span><button class="nav-link" data-page="profile" type="button">Profile</button></div>
       </nav>
       <div class="account-line"><span class="avatar" id="account-initial">L</span><span><b id="sidebar-name">Learner</b><small id="account-status">Local profile</small></span></div>
@@ -34,32 +36,62 @@
         <div class="page-intro"><p class="kicker" id="home-kicker">SAT plan</p><h1>Your goal, clearly.</h1><p id="home-copy">Choose one focused task and keep moving.</p></div>
         <section class="goal-strip" aria-label="Exam goal"><article><span>Target score</span><strong id="goal-score">--</strong></article><article><span>Exam date</span><strong id="goal-date">Not selected</strong></article><article><span>Time left</span><strong id="goal-countdown">Set your date</strong></article></section>
         <div class="section-heading"><h2>Today</h2><span></span></div>
-        <article class="daily-card"><div><p class="kicker">Daily questions</p><h2 id="daily-title">SAT warm-up</h2><p id="daily-copy">Ten focused questions. One honest baseline.</p></div><button class="button button-primary" data-open-practice="daily" type="button">Start</button></article>
+        <article class="daily-card"><div><p class="kicker">Daily question</p><h2 id="daily-title">Daily question</h2><p id="daily-copy">A separate daily task will appear here when its own material is connected.</p></div><button class="button button-primary" id="daily-action" type="button" disabled>Not available yet</button></article>
         <div class="section-heading"><h2>Progress</h2><span></span></div>
         <section class="stats"><article><strong id="stat-focus">SAT</strong><span>Current focus</span></article><article><strong id="stat-sessions">0</strong><span>Sessions completed</span></article><article><strong id="stat-streak">0</strong><span>Day streak</span></article></section>
       </section>
 
       <section class="page" id="learn-page"><div class="page-intro"><p class="kicker" id="learn-kicker">SAT learn</p><h1 id="learn-title">Rules</h1><p id="learn-copy">Clear notes, examples, and short practice sets.</p></div><div class="resource-grid" id="learn-grid"></div></section>
       <section class="page" id="vocab-page"><div class="page-intro"><p class="kicker" id="vocab-kicker">SAT vocabulary</p><h1 id="vocab-title">Vocabulary</h1><p id="vocab-copy">Small, repeatable review sessions.</p></div><div class="resource-grid" id="vocab-grid"></div></section>
-      <section class="page" id="problems-page"><div class="page-intro"><p class="kicker">SAT learn</p><h1>Problems &amp; Solutions</h1><p>Short explanations for the patterns that cost points.</p></div><div class="resource-grid" id="problems-grid"></div></section>
+      <section class="page" id="vocab-study-page">
+        <button class="back-button" id="back-to-vocab" type="button">Back</button>
+        <div class="page-intro material-intro"><p class="kicker" id="vocab-study-kicker">Vocabulary</p><h1 id="vocab-study-title">Folder</h1><p id="vocab-study-copy"></p><button class="button button-primary vocab-review-launch" id="start-vocab-review" type="button">Start focused review</button></div>
+        <div class="vocab-toolbar"><input id="vocab-search" type="search" placeholder="Search vocabulary" autocomplete="off"><span id="vocab-results"></span></div>
+        <div class="vocab-list" id="vocab-list"></div>
+        <div class="vocab-pagination"><button class="button button-quiet" id="vocab-previous" type="button">Previous</button><span id="vocab-page-count"></span><button class="button button-primary" id="vocab-next" type="button">Next</button></div>
+      </section>
+      <section class="page" id="vocab-review-page">
+        <button class="back-button" id="back-to-vocab-study" type="button">Back to folder</button>
+        <div class="vocab-review-header"><div><p class="kicker" id="vocab-review-kicker">Focused review</p><h1 id="vocab-review-title">Vocabulary</h1></div><span id="vocab-review-count">1 / 12</span></div>
+        <section class="vocab-review-card" id="vocab-review-card"></section>
+        <div class="vocab-review-actions" id="vocab-review-actions"></div>
+      </section>
+      <section class="page" id="problems-page"><div class="page-intro"><p class="kicker">SAT learn</p><h1>Hacks / Problems / Solutions</h1><p>Materials from your Luminary library.</p></div><div class="resource-grid" id="problems-grid"></div></section>
 
-      <section class="page" id="questions-page">
-        <div class="practice-header"><div><p class="kicker">Practice</p><h1>Question Bank</h1><p id="question-bank-copy">Pick a section, then start a focused set.</p></div><div class="mode-toggle" aria-label="Practice interface"><button type="button" class="mode-choice is-active" data-mode="flash">FlashSAT</button><button type="button" class="mode-choice" data-mode="bluebook">Bluebook</button></div></div>
-        <div class="question-library" id="question-library"><button class="library-card" data-start-set="rw" type="button"><span>Reading &amp; Writing</span><strong>48 questions</strong><small>Grammar, rhetoric, and words in context.</small></button><button class="library-card" data-start-set="math" type="button"><span>Math</span><strong>46 questions</strong><small>Algebra, advanced math, and problem solving.</small></button></div>
-        <div class="test-stage is-hidden" id="test-stage">
-          <div class="test-toolbar"><button class="text-button" id="leave-practice" type="button">Back to Question Bank</button><span id="question-counter">Question 1 of 6</span><div><button class="tool-button" id="mark-question" type="button">Mark for review</button><button class="tool-button" id="switch-mode" type="button">Switch to Bluebook</button></div></div>
-          <article class="flash-test"><aside><span id="flash-section">Math</span><strong id="flash-number">01</strong><div class="dot-row" id="question-dots"></div></aside><div class="question-panel"><p class="question-label" id="question-domain">Advanced Math</p><h2 id="question-prompt"></h2><div class="answer-list" id="answer-list"></div><div class="test-actions"><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-primary" id="next-question" type="button">Next</button></div></div></article>
-          <article class="bluebook-test"><div class="bluebook-top"><span id="bluebook-module">Math / Module 1</span><span id="bluebook-timer">32:00</span><button class="tool-button" type="button">Reference</button></div><div class="bluebook-body"><div class="bluebook-question"><p id="bluebook-prompt"></p><div class="answer-list" id="bluebook-answers"></div></div><aside><strong>Question</strong><div class="bluebook-numbers" id="bluebook-numbers"></div></aside></div><div class="bluebook-bottom"><button class="button button-quiet" id="bluebook-previous" type="button">Back</button><button class="button button-primary" id="bluebook-next" type="button">Next</button></div></article>
-        </div>
+      <section class="page" id="material-page">
+        <button class="back-button" id="back-to-materials" type="button">Back</button>
+        <div class="page-intro material-intro"><p class="kicker" id="material-kicker">SAT material</p><h1 id="material-title">Chapter</h1><p id="material-copy"></p></div>
+        <div class="material-list" id="material-list"></div>
       </section>
 
-      <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">Practice</p><h1 id="mocks-title">SAT Mocks</h1><p>Practice under a timer when you are ready.</p></div><div class="mock-list"><article><div><span>Practice test 1</span><strong id="mock-one">Full SAT</strong><small>2 hours 14 minutes</small></div><button class="button button-primary" data-open-practice="mock" type="button">Begin</button></article><article><div><span>Practice test 2</span><strong id="mock-two">Math module</strong><small>35 minutes</small></div><button class="button button-quiet" data-open-practice="mock" type="button">Begin</button></article></div></section>
+      <section class="page" id="questions-page">
+        <div class="practice-header"><div><p class="kicker">Practice</p><h1>Question Bank</h1><p id="question-bank-copy">Choose Reading &amp; Writing or Math.</p></div></div>
+        <div class="question-library" id="question-library"></div>
+      </section>
+
+      <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">Practice</p><h1 id="mocks-title">SAT Mocks</h1><p>Practice under a timer when you are ready.</p></div><div class="mock-list" id="mock-list"><article class="empty-state"><strong>Loading mocks...</strong></article></div></section>
 
       <section class="page" id="profile-page"><div class="page-intro"><p class="kicker">Profile</p><h1>Personal settings</h1><p>Your information is saved locally in this workspace.</p></div><form id="profile-form" class="settings-form"><label>Name<input id="profile-name" maxlength="36" placeholder="Your name"></label><label>Exam<select id="profile-exam"><option value="sat">SAT</option><option value="ielts">IELTS</option></select></label><label>Target score<select id="profile-score"></select><small id="score-help"></small></label><label>Exam date<select id="profile-sat-date"></select><input id="profile-date" type="date" min="2026-08-14" max="2028-12-31" hidden><small id="date-help"></small></label><fieldset><legend>Appearance</legend><p>Choose a complete Luminary palette.</p><div class="theme-grid" id="theme-grid"></div></fieldset><button class="button button-primary" type="submit">Save settings</button></form></section>
     </main>
   </div>
+  <section class="test-experience is-hidden" id="test-experience" aria-label="Practice test">
+    <header class="test-topbar">
+      <button class="text-button" id="leave-practice" type="button">Back to Question Bank</button>
+      <span id="question-counter">Question 1 of 6</span>
+      <div class="test-tools">
+        <span class="test-timer" id="test-timer" aria-live="off">00:00</span>
+        <button class="tool-button" id="pause-timer" type="button" title="Pause timer" aria-label="Pause timer">II</button>
+        <button class="tool-button" id="hide-timer" type="button">Hide</button>
+        <button class="tool-button" id="mark-question" type="button"><span aria-hidden="true">&#128278;</span> Mark for review</button>
+      </div>
+    </header>
+    <div class="test-subbar"><span id="test-module">Math / Module 1</span><span id="test-domain">Advanced Math</span></div>
+    <div class="test-body" id="test-body">
+      <main class="question-workspace"><section class="question-copy"><p class="question-label" id="question-domain-label">Advanced Math</p><img id="question-image" class="question-image" alt="Question illustration" hidden><h2 id="question-prompt"></h2></section><section class="answer-column"><div class="answer-list" id="answer-list"></div><p class="answer-status" id="answer-status" aria-live="polite"></p><div class="test-actions"><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-quiet" id="next-question" type="button">Next</button></div></section></main>
+    </div>
+  </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=15"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=7"></script>
