@@ -628,9 +628,7 @@ function renderQuestionBank() {
   if (questionBankView === 'sections') {
     $('question-bank-copy').textContent = exam==='sat'?'Choose Reading & Writing or Math.':'Choose an IELTS section.';
     library.innerHTML = sections.map((set) => {
-      const questions = questionsForSet(set);
-      const topicCount = new Set(questions.map((question) => question.domain)).size;
-      return `<button class="library-card" data-select-set="${set}" type="button"><span>${questionSetName(set)}</span><strong>${questions.length} questions</strong><small>${topicCount} topics available in this section.</small></button>`;
+      return `<button class="library-card qbank-section qbank-section-${set}" data-select-set="${set}" type="button"><strong>${questionSetName(set)}</strong></button>`;
     }).join('');
     return;
   }
@@ -641,10 +639,9 @@ function renderQuestionBank() {
   const topics = [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
   $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose up to 3 topics.`;
   library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection">${topics.map((topic) => {
-    const count = questions.filter((question) => question.domain === topic).length;
     const selected = selectedQuestionTopics.includes(topic);
-    return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong><small>${count} question${count === 1 ? '' : 's'}</small></span></button>`;
-  }).join('')}</div><div class="topic-actions"><span>${selectedQuestionTopics.length} / 3 selected</span><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length ? '' : 'disabled'}>Start selected questions</button></div>`;
+    return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
+  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length ? '' : 'disabled'}>Start selected questions</button></div>`;
 }
 
 function toggleQuestionTopic(topic) {
