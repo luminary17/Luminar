@@ -51,7 +51,10 @@ const remoteMaterials = {};
 const remoteMaterialLoads = {};
 const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
 const questionTopicCache = { sat: {}, ielts: {} };
+const questionBankLoads = {};
 let questionSetLoading = false;
+const QUESTION_CACHE_DB = 'luminary-question-cache';
+const QUESTION_CACHE_MAX_AGE = 12 * 60 * 60 * 1000;
 const vocabularyStores = {
   sat: { folders: [], words: [], status: 'idle' },
   ielts: { folders: [], words: [], status: 'idle' }
@@ -181,6 +184,35 @@ function getMaterials(category) {
 
 async function fetchMaterialData(path) {
   return fetchDatabaseData(MATERIAL_DATABASE_URL, path);
+}
+
+function openQuestionCache() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) return resolve(null);
+    const request = indexedDB.open(QUESTION_CACHE_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('banks', { keyPath: 'exam' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+}
+
+async function readQuestionCache(exam) {
+  const database = await openQuestionCache();
+  if (!database) return null;
+  return new Promise((resolve) => {
+    const request = database.transaction('banks').objectStore('banks').get(exam);
+    request.onsuccess = () => {
+      const saved = request.result;
+      resolve(saved && Date.now() - saved.savedAt < QUESTION_CACHE_MAX_AGE ? saved.items : null);
+    };
+    request.onerror = () => resolve(null);
+  });
+}
+
+async function writeQuestionCache(exam, items) {
+  const database = await openQuestionCache();
+  if (!database) return;
+  database.transaction('banks', 'readwrite').objectStore('banks').put({ exam, items, savedAt: Date.now() });
 }
 
 async function fetchDatabaseData(baseUrl, path, timeoutMs = 12000) {
@@ -464,20 +496,41 @@ function validRemoteQuestion(question) {
   return question.prompt && question.answers.length === 4 && question.answers.every(Boolean) && question.correct >= 0 && question.correct < 4;
 }
 
-async function loadRemoteQuestionBank() {
-  const exam=state.profile.exam,store = remotePractice.questions[exam];if(store.status==='loading'||store.status==='ready')return;
-  store.status='loading';renderQuestionBank();
-  try { const data=await fetchDatabaseData(QUESTION_DATABASE_URL,`question-bank/${exam}`);store.items=Object.entries(data||{}).map(([id,item])=>remoteQuestion(id,item,`${exam}-bank`)).filter(validRemoteQuestion);store.status='ready'; }
-  catch { store.status='error'; }
-  if(currentPage==='questions')renderQuestionBank();
+async function loadRemoteQuestionBank(exam = state.profile.exam) {
+  const store = remotePractice.questions[exam];
+  if (store.status === 'ready') return store.items;
+  if (questionBankLoads[exam]) return questionBankLoads[exam];
+
+  store.status = 'loading';
+  questionBankLoads[exam] = (async () => {
+    try {
+      const cachedItems = await readQuestionCache(exam);
+      if (cachedItems?.length) {
+        store.items = cachedItems;
+        store.status = 'ready';
+        return store.items;
+      }
+      const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
+      store.items = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
+      store.status = 'ready';
+      writeQuestionCache(exam, store.items);
+      return store.items;
+    } catch {
+      store.status = 'error';
+      return [];
+    } finally {
+      delete questionBankLoads[exam];
+      if (currentPage === 'questions') renderQuestionBank();
+    }
+  })();
+  return questionBankLoads[exam];
 }
 
 async function loadQuestionTopics(exam, topics) {
   const cache = questionTopicCache[exam];
   const missingTopics = topics.filter((topic) => !cache[topic]);
   if (!missingTopics.length) return topics.flatMap((topic) => cache[topic]);
-  const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
-  const allQuestions = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
+  const allQuestions = await loadRemoteQuestionBank(exam);
   missingTopics.forEach((topic) => { cache[topic] = allQuestions.filter((question) => question.domain === topic); });
   return topics.flatMap((topic) => cache[topic] || []);
 }
@@ -628,7 +681,7 @@ function renderQuestionBank() {
   const library = $('question-library');
   library.classList.toggle('question-topic-list', questionBankView === 'topics');
   const exam=state.profile.exam,store=remotePractice.questions[exam];
-  if(exam === 'ielts' && store.status==='idle')loadRemoteQuestionBank();
+  if(store.status === 'idle') loadRemoteQuestionBank(exam);
   const sections=exam==='sat'?['rw','math']:['listening','reading','writing','speaking'];
   const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
