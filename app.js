@@ -13,14 +13,25 @@ const THEMES = {
 
 const DEFAULT_STATE = {
   profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' },
-  progress: { sessions: 0, streak: 0, answers: {}, marked: {}, eliminated: {} }
+  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {} }
 };
 
 const SAT_DATES = ['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03'];
-const SAT_CATEGORIES = {
-  rw: ['Information and Ideas', 'Craft and Structure', 'Expression of Ideas', 'Standard English Conventions', 'Reading'],
-  math: ['Algebra', 'Advanced Math', 'Problem-Solving and Data Analysis', 'Geometry and Trigonometry']
+const SAT_TOPIC_GROUPS = {
+  rw: [
+    { title: 'Information and Ideas', topics: ['Central Ideas and Details', 'Inferences', 'Command of Evidence'] },
+    { title: 'Craft and Structure', topics: ['Words in Context', 'Text Structure and Purpose', 'Cross-Text Connections'] },
+    { title: 'Expression of Ideas', topics: ['Rhetorical Synthesis', 'Transitions'] },
+    { title: 'Standard English Conventions', topics: ['Boundaries', 'Form, Structure, and Sense'] }
+  ],
+  math: [
+    { title: 'Algebra', topics: ['Linear equations in one variable', 'Linear functions', 'Linear equations in two variables', 'Systems of two linear equations in two variables', 'Linear inequalities in one or two variables'] },
+    { title: 'Advanced Math', topics: ['Nonlinear functions', 'Nonlinear equations in one variable and systems of equations in two variables', 'Equivalent expressions'] },
+    { title: 'Problem-Solving and Data Analysis', topics: ['Ratios, rates, proportional relationships, and units', 'Percentages', 'One-variable data: Distributions and measures of center and spread', 'Two-variable data: Models and scatterplots', 'Probability and conditional probability', 'Inference from sample statistics and margin of error', 'Evaluating statistical claims: Observational studies and experiments'] },
+    { title: 'Geometry and Trigonometry', topics: ['Area and volume', 'Lines, angles, and triangles', 'Right triangles and trigonometry', 'Circles'] }
+  ]
 };
+const SAT_CATEGORIES = Object.fromEntries(Object.entries(SAT_TOPIC_GROUPS).map(([set, groups]) => [set, groups.map((group) => group.title)]));
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
@@ -47,6 +58,9 @@ let timerHidden = false;
 let timerHandle = null;
 let toastTimer;
 let draftAnswers = {};
+let checkedAnswers = {};
+let practiceMode = 'bank';
+let explanationOpen = false;
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
 const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
@@ -55,6 +69,7 @@ const questionBankLoads = {};
 let questionSetLoading = false;
 const QUESTION_CACHE_DB = 'luminary-question-cache';
 const QUESTION_CACHE_MAX_AGE = 12 * 60 * 60 * 1000;
+const ACTIVE_PRACTICE_KEY = 'luminary-active-practice';
 const vocabularyStores = {
   sat: { folders: [], words: [], status: 'idle' },
   ielts: { folders: [], words: [], status: 'idle' }
@@ -66,6 +81,7 @@ const $ = (id) => document.getElementById(id);
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 const dateText = (date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(`${date}T12:00:00`));
 const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+const compactDisplayText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
 async function api(path, options = {}) {
   const isLocalServer = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
@@ -82,6 +98,7 @@ function mergeState(next) {
     progress: {
       ...DEFAULT_STATE.progress,
       ...progress,
+      lastSessionDate: String(progress.lastSessionDate || ''),
       answers: { ...DEFAULT_STATE.progress.answers, ...(progress.answers || {}) },
       marked: { ...DEFAULT_STATE.progress.marked, ...(progress.marked || {}) },
       eliminated: { ...DEFAULT_STATE.progress.eliminated, ...(progress.eliminated || {}) }
@@ -489,7 +506,7 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
   const rawQuestion = item.q || '';
   const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
-  return { id: `${prefix}-${id}`, domain, set, prompt: split.prompt || item.question || item.prompt || 'Choose the best answer.', passage: split.passage, answers: answers.map((answer) => String(answer || '')), correct, image: item.image || item.imageUrl || item.picture || '', explanation: item.explain || item.explanation || '' };
+  return { id: `${prefix}-${id}`, domain, set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
 }
 
 function validRemoteQuestion(question) {
@@ -528,11 +545,12 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
 
 async function loadQuestionTopics(exam, topics) {
   const cache = questionTopicCache[exam];
-  const missingTopics = topics.filter((topic) => !cache[topic]);
-  if (!missingTopics.length) return topics.flatMap((topic) => cache[topic]);
+  const databaseTopics = exam === 'sat' ? [...new Set(topics.map((topic) => topic.split('::')[0]))] : topics;
+  const missingTopics = databaseTopics.filter((topic) => !cache[topic]);
+  if (!missingTopics.length) return databaseTopics.flatMap((topic) => cache[topic]);
   const allQuestions = await loadRemoteQuestionBank(exam);
   missingTopics.forEach((topic) => { cache[topic] = allQuestions.filter((question) => question.domain === topic); });
-  return topics.flatMap((topic) => cache[topic] || []);
+  return databaseTopics.flatMap((topic) => cache[topic] || []);
 }
 
 function currentMockKey(){return state.profile.exam==='ielts'?`ielts/${(currentSkill||'Listening').toLowerCase()}`:'sat/all';}
@@ -549,7 +567,7 @@ async function loadRemoteMocks(){
 
 function startRemoteQuestions(sourceId, questions, set='math'){
   const normalized=(questions||[]).map((item,index)=>remoteQuestion(`${sourceId}-${index}`,item,sourceId)).filter(validRemoteQuestion);
-  if(!normalized.length){showToast('This material has no valid test questions yet.');return;}startPractice(set,0,normalized);
+  if(!normalized.length){showToast('This material has no valid test questions yet.');return;}startPractice(set,0,normalized,sourceId.startsWith('mock-')?'mock':'bank');
 }
 
 function renderMocks() {
@@ -639,8 +657,8 @@ function renderTimer() {
   $('test-timer').textContent = formatTimer();
   $('test-timer').classList.toggle('is-hidden-timer', timerHidden);
   $('hide-timer').textContent = timerHidden ? 'Show' : 'Hide';
-  $('pause-timer').textContent = timerRunning ? 'II' : '>';
-  $('pause-timer').title = timerRunning ? 'Pause timer' : 'Resume timer';
+  $('pause-timer').textContent = timerRunning ? 'Stop' : 'Continue';
+  $('pause-timer').title = timerRunning ? 'Stop timer' : 'Continue timer';
   $('pause-timer').setAttribute('aria-label', $('pause-timer').title);
 }
 
@@ -655,6 +673,58 @@ function startTimer() {
     timerSeconds += 1;
     renderTimer();
   }, 1000);
+}
+
+function saveActivePractice() {
+  if (!practiceQuestions.length || $('test-experience').classList.contains('is-hidden')) return;
+  try {
+    sessionStorage.setItem(ACTIVE_PRACTICE_KEY, JSON.stringify({
+      questions: practiceQuestions,
+      set: currentSet,
+      question: currentQuestion,
+      mode: practiceMode,
+      draftAnswers,
+      checkedAnswers,
+      timerSeconds,
+      timerRunning,
+      timerHidden
+    }));
+  } catch {
+    // A very large image-based set may exceed session storage.
+  }
+}
+
+function clearActivePractice() {
+  sessionStorage.removeItem(ACTIVE_PRACTICE_KEY);
+}
+
+function restoreActivePractice() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(ACTIVE_PRACTICE_KEY) || 'null');
+    if (!saved?.questions?.length) return;
+    practiceQuestions = saved.questions;
+    currentSet = saved.set || 'math';
+    currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
+    practiceMode = saved.mode === 'mock' ? 'mock' : 'bank';
+    draftAnswers = saved.draftAnswers || {};
+    checkedAnswers = saved.checkedAnswers || {};
+    timerSeconds = Math.max(0, Number(saved.timerSeconds) || 0);
+    timerRunning = saved.timerRunning !== false;
+    timerHidden = Boolean(saved.timerHidden);
+    openPage('questions');
+    $('test-experience').classList.remove('is-hidden');
+    $('test-experience').classList.toggle('is-mock-mode', practiceMode === 'mock');
+    clearInterval(timerHandle);
+    renderTimer();
+    timerHandle = setInterval(() => {
+      if (!timerRunning) return;
+      timerSeconds += 1;
+      renderTimer();
+    }, 1000);
+    renderQuestion();
+  } catch {
+    clearActivePractice();
+  }
 }
 
 function stopTimer() {
@@ -698,10 +768,17 @@ function renderQuestionBank() {
   const availableTopics = new Set(questions.map((question) => question.domain));
   const topics = exam === 'sat' ? preferred : [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
   $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose one or more topics.`;
-  library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection">${topics.map((topic) => {
-    const selected = selectedQuestionTopics.includes(topic);
-    return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
-  }).join('')}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length > 0 && !questionSetLoading ? '' : 'disabled'}>${questionSetLoading ? 'Loading questions...' : 'Start selected questions'}</button></div>`;
+  const topicList = exam === 'sat'
+    ? (SAT_TOPIC_GROUPS[currentSet] || []).map((group) => `<section class="topic-group"><h2>${escapeHtml(group.title)}</h2>${group.topics.map((topic) => {
+      const key = `${group.title}::${topic}`;
+      const selected = selectedQuestionTopics.includes(key);
+      return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(key)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
+    }).join('')}</section>`).join('')
+    : topics.map((topic) => {
+      const selected = selectedQuestionTopics.includes(topic);
+      return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
+    }).join('');
+  library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection ${exam === 'sat' ? 'is-grouped' : ''}">${topicList}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length > 0 && !questionSetLoading ? '' : 'disabled'}>${questionSetLoading ? 'Loading questions...' : 'Start selected questions'}</button></div>`;
 }
 
 function toggleQuestionTopic(topic) {
@@ -731,9 +808,10 @@ async function startSelectedTopics() {
 
 function renderQuestion() {
   const question = practiceQuestions[currentQuestion];
-  const answer = state.progress.answers[question.id];
+  const isMock = practiceMode === 'mock';
+  const answer = checkedAnswers[question.id];
   const selectedAnswer = answer ?? draftAnswers[question.id];
-  const isChecked = answer !== undefined;
+  const isChecked = !isMock && answer !== undefined;
   const eliminated = state.progress.eliminated[question.id] || [];
   const marked = Boolean(state.progress.marked[question.id]);
   const section = questionSetName(currentSet);
@@ -741,57 +819,81 @@ function renderQuestion() {
   $('test-module').textContent = `${section} / Module 1`;
   $('test-domain').textContent = question.domain;
   $('question-domain-label').textContent = question.domain;
-  $('question-prompt').textContent = question.prompt;
-  const passage = String(question.passage || '');
+  $('question-prompt').textContent = compactDisplayText(question.prompt);
+  const passage = compactDisplayText(question.passage);
   $('question-passage').textContent = passage;
-  $('passage-copy').hidden = !passage;
-  $('question-workspace').classList.toggle('is-with-passage', Boolean(passage));
   const questionImage=$('question-image'),imageSource=safeImageSource(question.image);
   questionImage.hidden=!imageSource;questionImage.src=imageSource||'';
-  $('mark-question').innerHTML = `<span aria-hidden="true">&#128278;</span> ${marked ? 'Marked for review' : 'Mark for review'}`;
+  const hasContext = Boolean(passage || imageSource);
+  $('passage-copy').hidden = !hasContext;
+  $('question-workspace').classList.toggle('is-with-passage', hasContext);
+  $('mark-question').innerHTML = `<span class="mark-indicator" aria-hidden="true"></span>${marked ? 'Marked for review' : 'Mark for review'}`;
   $('mark-question').classList.toggle('is-marked', marked);
+  $('mark-question').setAttribute('aria-pressed', String(marked));
   $('answer-list').innerHTML = question.answers.map((text, index) => {
     const resultClass = isChecked && index === question.correct ? 'is-correct' : isChecked && index === answer ? 'is-incorrect' : '';
-    const confirm = selectedAnswer === index && !isChecked ? '<button class="confirm-answer" data-check-answer type="button">Choose</button>' : '';
+    const confirm = !isMock && selectedAnswer === index && !isChecked ? '<button class="confirm-answer" data-check-answer type="button">Check answer</button>' : '';
     return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${text}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button></div>`;
   }).join('');
-  $('answer-status').textContent = isChecked ? `${answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`}${question.explanation?` ${question.explanation}`:''}` : '';
+  $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : '';
   $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : ''}`;
+  const hasExplanation = Boolean(!isMock && isChecked && question.explanation);
+  $('explanation-toggle').classList.toggle('is-hidden', !hasExplanation);
+  $('explanation-toggle').textContent = explanationOpen ? 'Hide explanation' : 'View explanation';
+  $('explanation-panel').classList.toggle('is-hidden', !hasExplanation || !explanationOpen);
+  $('explanation-copy').textContent = hasExplanation ? question.explanation : '';
   $('previous-question').disabled = currentQuestion === 0;
+  $('next-question').disabled = false;
   $('next-question').textContent = currentQuestion === practiceQuestions.length - 1 ? 'Finish' : 'Next';
+  renderQuestionNavigator();
 }
 
-function startPractice(set = 'math', questionIndex = 0, questions = null) {
+function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank') {
   currentSet = set;
   practiceQuestions = questions || [];
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
+  checkedAnswers = {};
+  practiceMode = mode;
+  explanationOpen = false;
   openPage('questions');
   $('test-experience').classList.remove('is-hidden');
+  $('test-experience').classList.toggle('is-mock-mode', practiceMode === 'mock');
+  $('question-navigator').classList.add('is-hidden');
   startTimer();
   renderQuestion();
+  saveActivePractice();
 }
 
 function leavePractice() {
   $('test-experience').classList.add('is-hidden');
+  $('question-navigator').classList.add('is-hidden');
   stopTimer();
+  clearActivePractice();
 }
 
 function answerQuestion(index) {
   const question = practiceQuestions[currentQuestion];
-  if (state.progress.answers[question.id] !== undefined) return;
+  if (checkedAnswers[question.id] !== undefined) return;
   draftAnswers[question.id] = index;
+  if (practiceMode === 'mock') {
+    state.progress.answers[question.id] = index;
+    persist();
+  }
   renderQuestion();
+  saveActivePractice();
 }
 
 function checkAnswer() {
   const question = practiceQuestions[currentQuestion];
   const choice = draftAnswers[question.id];
-  if (choice === undefined || state.progress.answers[question.id] !== undefined) return;
+  if (practiceMode === 'mock' || choice === undefined || checkedAnswers[question.id] !== undefined) return;
+  checkedAnswers[question.id] = choice;
   state.progress.answers[question.id] = choice;
   delete draftAnswers[question.id];
   renderQuestion();
   persist();
+  saveActivePractice();
 }
 
 function toggleEliminated(index) {
@@ -801,6 +903,7 @@ function toggleEliminated(index) {
   state.progress.eliminated[question.id] = [...eliminated];
   renderQuestion();
   persist();
+  saveActivePractice();
 }
 
 function toggleMark() {
@@ -808,22 +911,54 @@ function toggleMark() {
   state.progress.marked[question.id] = !state.progress.marked[question.id];
   renderQuestion();
   persist();
+  saveActivePractice();
 }
 
 function moveQuestion(delta) {
   const next = currentQuestion + delta;
   if (next >= practiceQuestions.length) {
+    const localDateKey = (date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+    const now = new Date();
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setDate(now.getDate() - 1);
+    const today = localDateKey(now);
+    const yesterday = localDateKey(yesterdayDate);
     state.progress.sessions += 1;
-    state.progress.streak = Math.max(1, state.progress.streak || 0);
+    state.progress.streak = state.progress.lastSessionDate === today ? Math.max(1, state.progress.streak) : state.progress.lastSessionDate === yesterday ? state.progress.streak + 1 : 1;
+    state.progress.lastSessionDate = today;
     persist();
     renderHome();
-    showToast('Practice set complete. Progress saved.');
+    showToast(practiceMode === 'mock' ? 'Mock complete. Your responses were saved.' : 'Practice set complete. Progress saved.');
     leavePractice();
     return;
   }
   if (next < 0) return;
   currentQuestion = next;
+  explanationOpen = false;
   renderQuestion();
+  saveActivePractice();
+}
+
+function renderQuestionNavigator() {
+  $('navigator-grid').innerHTML = practiceQuestions.map((question, index) => {
+    const answered = practiceMode === 'mock' ? draftAnswers[question.id] !== undefined : checkedAnswers[question.id] !== undefined;
+    const marked = Boolean(state.progress.marked[question.id]);
+    const classes = [index === currentQuestion ? 'is-current' : '', answered ? 'is-answered' : '', marked ? 'is-marked' : ''].filter(Boolean).join(' ');
+    return `<button class="navigator-question ${classes}" type="button" data-jump-question="${index}" aria-label="Question ${index + 1}${marked ? ', marked for review' : ''}">${index + 1}</button>`;
+  }).join('');
+}
+
+function toggleQuestionNavigator() {
+  $('question-navigator').classList.toggle('is-hidden');
+}
+
+function jumpToQuestion(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= practiceQuestions.length) return;
+  currentQuestion = index;
+  explanationOpen = false;
+  $('question-navigator').classList.add('is-hidden');
+  renderQuestion();
+  saveActivePractice();
 }
 
 function openPage(page) {
@@ -893,6 +1028,8 @@ function bindEvents() {
     if (review) { respondVocabularyReview(review.dataset.vocabReview); return; }
     const confirm = event.target.closest('[data-check-answer]');
     if (confirm) { checkAnswer(); return; }
+    const jump = event.target.closest('[data-jump-question]');
+    if (jump) { jumpToQuestion(Number(jump.dataset.jumpQuestion)); return; }
     const section = event.target.closest('[data-select-set]');
     if (section) { currentSet = section.dataset.selectSet; selectedQuestionTopics = []; questionBankView = 'topics'; renderQuestionBank(); return; }
     const topic = event.target.closest('[data-toggle-topic]');
@@ -906,10 +1043,26 @@ function bindEvents() {
     const eliminate = event.target.closest('[data-eliminate]');
     if (eliminate) { toggleEliminated(Number(eliminate.dataset.eliminate)); return; }
   });
+  document.addEventListener('keydown', (event) => {
+    if ($('test-experience').classList.contains('is-hidden') || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) return;
+    const key = event.key.toLowerCase();
+    if ('abcd'.includes(key)) { answerQuestion('abcd'.indexOf(key)); return; }
+    if (key === 'enter') {
+      const question = practiceQuestions[currentQuestion];
+      practiceMode === 'mock' || checkedAnswers[question.id] !== undefined ? moveQuestion(1) : checkAnswer();
+      return;
+    }
+    if (key === 'arrowleft') moveQuestion(-1);
+    if (key === 'arrowright') moveQuestion(1);
+  });
   $('leave-practice').addEventListener('click', leavePractice);
   $('previous-question').addEventListener('click', () => moveQuestion(-1));
   $('next-question').addEventListener('click', () => moveQuestion(1));
   $('mark-question').addEventListener('click', toggleMark);
+  $('question-counter').addEventListener('click', toggleQuestionNavigator);
+  $('close-question-navigator').addEventListener('click', () => $('question-navigator').classList.add('is-hidden'));
+  $('explanation-toggle').addEventListener('click', () => { explanationOpen = !explanationOpen; renderQuestion(); });
   $('pause-timer').addEventListener('click', toggleTimer);
   $('hide-timer').addEventListener('click', toggleTimerVisibility);
   $('back-to-materials').addEventListener('click', backToMaterials);
@@ -951,6 +1104,9 @@ function bindEvents() {
     await persist();
     showToast('Settings saved.');
   });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveActivePractice();
+  });
 }
 
 async function init() {
@@ -961,6 +1117,7 @@ async function init() {
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
+  restoreActivePractice();
   applyAuthenticatedUser(window.luminaryAuthUser);
 }
 

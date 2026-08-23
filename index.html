@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4efe7">
   <title>Luminary</title>
-  <link rel="stylesheet" href="main.css?v=14">
+  <link rel="stylesheet" href="main.css?v=20">
 </head>
 <body>
   <div class="app-shell">
@@ -77,18 +77,20 @@
   <section class="test-experience is-hidden" id="test-experience" aria-label="Practice test">
     <header class="test-topbar">
       <div class="test-navigation"><button class="text-button" id="leave-practice" type="button">Go back</button><span class="directions-label">Directions</span></div>
-      <div class="timer-cluster"><span class="test-timer" id="test-timer" aria-live="off">00:00</span><button class="tool-button" id="pause-timer" type="button" title="Pause timer" aria-label="Pause timer">II</button><button class="tool-button" id="hide-timer" type="button">Hide</button></div>
+      <div class="timer-cluster"><span class="test-timer" id="test-timer" aria-live="off">00:00</span><button class="tool-button" id="pause-timer" type="button" title="Stop timer" aria-label="Stop timer">Stop</button><button class="tool-button" id="hide-timer" type="button">Hide</button></div>
       <div class="test-tools">
         <button class="tool-button mark-button" id="mark-question" type="button"><span class="mark-indicator" aria-hidden="true"></span>Mark for review</button>
       </div>
     </header>
     <div class="test-subbar"><span id="test-module">Math / Module 1</span><span id="test-domain">Advanced Math</span></div>
     <div class="test-body" id="test-body">
-      <main class="question-workspace" id="question-workspace"><aside class="passage-copy" id="passage-copy" hidden><p id="question-passage"></p></aside><section class="answer-column"><section class="question-copy"><p class="question-label" id="question-domain-label">Advanced Math</p><img id="question-image" class="question-image" alt="Question illustration" hidden><h2 id="question-prompt"></h2></section><div class="answer-list" id="answer-list"></div><p class="answer-status" id="answer-status" aria-live="polite"></p><div class="test-actions"><span class="question-counter" id="question-counter">Question 1 of 6</span><div><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-quiet" id="next-question" type="button">Next</button></div></div></section></main>
+      <main class="question-workspace" id="question-workspace"><aside class="passage-copy" id="passage-copy" hidden><img id="question-image" class="question-image" alt="Question illustration" hidden><p id="question-passage"></p></aside><section class="answer-column"><section class="question-copy"><p class="question-label" id="question-domain-label">Advanced Math</p><h2 id="question-prompt"></h2></section><div class="answer-list" id="answer-list"></div><p class="answer-status" id="answer-status" aria-live="polite"></p><button class="explanation-toggle is-hidden" id="explanation-toggle" type="button">View explanation</button><section class="explanation-panel is-hidden" id="explanation-panel"><h3>Explanation</h3><p id="explanation-copy"></p></section></section></main>
     </div>
+    <footer class="test-actions"><button class="question-counter" id="question-counter" type="button" aria-haspopup="dialog">Question 1 of 6</button><div><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-primary" id="next-question" type="button">Next</button></div></footer>
+    <section class="question-navigator is-hidden" id="question-navigator" role="dialog" aria-modal="true" aria-labelledby="navigator-title"><div class="navigator-card"><header><h2 id="navigator-title">Questions</h2><button class="tool-button" id="close-question-navigator" type="button">Close</button></header><div class="navigator-grid" id="navigator-grid"></div></div></section>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=29"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=7"></script>
