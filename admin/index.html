@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://apis.google.com https://*.firebasedatabase.app; script-src-elem 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://*.firebasedatabase.app; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebasedatabase.app https://firebasestorage.googleapis.com https://www.gstatic.com wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src https://*.firebasedatabase.app; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
+<title>Luminary — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a1628;--card:#0f2035;--card2:#162840;--txt:#dde8f4;--muted:#7a94b0;--acc:#4a9eda;--acc2:#3a8bc9;--border:rgba(255,255,255,.08);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* HEADER */
+.admin-header{position:sticky;top:0;left:0;width:100%;background:var(--card);border-bottom:1px solid var(--border);z-index:100;padding:0 clamp(14px,4vw,28px);height:clamp(56px,8vh,68px);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.logo{font-weight:800;font-size:clamp(17px,4vw,22px);color:var(--acc);letter-spacing:-1px;}
+.logo span{color:var(--muted);font-weight:600;font-size:clamp(11px,2.5vw,14px);margin-left:6px;letter-spacing:0;}
+.header-status{font-size:12px;color:var(--muted);font-weight:700;}
+
+/* MAIN LAYOUT */
+.admin-wrap{max-width:780px;margin:0 auto;padding:clamp(16px,4vw,28px) clamp(12px,3vw,20px) 100px;}
+.admin-page-title{font-size:clamp(20px,5vw,26px);font-weight:800;margin-bottom:clamp(14px,4vw,22px);color:var(--txt);}
+
+/* ADMIN SECTIONS */
+.admin-sec{background:var(--card);border-radius:16px;margin-bottom:12px;overflow:hidden;border:1px solid var(--border);}
+.admin-sec-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;}
+.admin-sec-head h3{font-size:clamp(13px,3.5vw,16px);font-weight:800;margin:0;color:var(--txt);}
+.admin-sec-arrow{font-size:14px;color:var(--acc);transition:.3s;}
+.admin-sec.collapsed .admin-sec-arrow{transform:rotate(-90deg);}
+.admin-sec-body{padding:0 20px 20px;overflow:hidden;transition:max-height .3s,opacity .3s,padding .3s;max-height:9999px;opacity:1;}
+.admin-sec.collapsed .admin-sec-body{max-height:0;opacity:0;padding-bottom:0;}
+
+/* FORM */
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;font-weight:700;font-size:13px;margin-bottom:6px;color:var(--muted);}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;background:var(--card2);color:var(--txt);outline:none;transition:.2s;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--acc);}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--muted);}
+.form-group textarea{resize:vertical;min-height:72px;}
+.form-group select option{background:var(--card2);color:var(--txt);}
+.btn-primary{background:var(--acc);border:none;padding:12px 20px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#fff;cursor:pointer;width:100%;transition:.2s;}
+.btn-primary:hover{background:var(--acc2);transform:translateY(-1px);}
+.btn-cancel{background:none;border:2px solid #ff4444;color:#ff4444;padding:11px 20px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;}
+.btn-del{background:#ff4444;border:none;padding:7px 14px;border-radius:8px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;}
+.btn-edit{background:#e8f0ff;border:none;padding:7px 14px;border-radius:8px;color:#2563eb;cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;}
+.success-msg{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.3);padding:10px 16px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:700;font-size:14px;}
+.item-row{background:var(--card2);padding:13px;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);}
+.item-row-info{flex:1;min-width:0;}
+.item-row-title{font-weight:700;font-size:14px;color:var(--txt);}
+.item-row-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* IMAGE UPLOAD */
+.img-upload-area{border:2px dashed rgba(0,0,0,.15);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:.2s;background:#fafafa;}
+.img-upload-area:hover{border-color:var(--acc);background:#fff8f0;}
+.img-upload-area input[type=file]{display:none;}
+.img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:10px;display:none;}
+
+/* ICON BTN */
+.icon-btn{width:clamp(32px,9vw,38px);height:clamp(32px,9vw,38px);background:rgba(0,0,0,.05);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon-btn svg{width:clamp(16px,4.5vw,20px);height:clamp(16px,4.5vw,20px);fill:currentColor;}
+
+/* WORD ROWS */
+.word-row{background:#fff;padding:11px 13px;border-radius:11px;margin-bottom:7px;display:flex;align-items:center;gap:9px;border:2px solid transparent;transition:.15s;}
+.word-row.sel{border-color:var(--acc);background:#fff8f0;}
+.wchk{width:18px;height:18px;border:2px solid #ddd;border-radius:5px;cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;background:#fff;position:relative;transition:.15s;}
+.wchk:checked{background:var(--acc);border-color:var(--acc);}
+.wchk:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:11px;font-weight:900;line-height:1;}
+.word-info{flex:1;min-width:0;}
+.word-w{font-weight:800;font-size:13px;}
+.word-d{font-size:11px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.word-ant-tag{font-size:10px;color:#1a85c8;font-weight:700;margin-top:2px;}
+.word-actions{display:flex;gap:5px;flex-shrink:0;}
+.bulk-bar{background:#fff8f0;border:1px solid var(--acc);border-radius:9px;padding:7px 11px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.sel-all-btn{padding:4px 9px;border-radius:7px;border:1.5px solid var(--acc);background:#fff;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;color:#555;}
+.bulk-del-btn{padding:4px 10px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;display:none;}
+.bulk-del-btn.vis{display:inline-flex;align-items:center;gap:3px;}
+.admin-word-group-inner{max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;}
+.admin-word-group-inner::-webkit-scrollbar{width:4px;}
+.admin-word-group-inner::-webkit-scrollbar-thumb{background:var(--acc);border-radius:4px;}
+
+/* MOCK TABS */
+.mock-tab{padding:6px 13px;border-radius:8px;border:1.5px solid rgba(0,0,0,.1);background:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;color:#555;}
+.mock-tab.active{background:var(--acc);color:#fff;border-color:var(--acc);}
+.mock-tab:hover:not(.active){background:#f0f0f0;}
+
+/* UNDO TOAST */
+.undo-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:11px 18px;border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+.undo-toast.show{transform:translateX(-50%) translateY(0);}
+.undo-btn{background:var(--acc);border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:800;padding:5px 12px;border-radius:7px;cursor:pointer;}
+
+/* QUIZ VIEW */
+.quizview{position:fixed;inset:0;background:#fffdf7;z-index:5000;display:none;flex-direction:column;}
+.quizview.active{display:flex;}
+.quiz-head{background:#fff;padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px) 11px;box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:8px;}
+.quiz-top{display:flex;align-items:center;gap:12px;}
+.quiz-title{font-weight:800;font-size:clamp(13px,3.5vw,16px);flex:1;}
+.quiz-counter{font-size:12px;font-weight:700;color:var(--acc);}
+.quiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(14px,4vw,20px) clamp(10px,3vw,16px) 24px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.quiz-qcard{width:100%;max-width:540px;background:#fff;border-radius:16px;padding:clamp(14px,4vw,20px);border-left:4px solid #1e6fa8;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.quiz-qlabel{font-size:10px;font-weight:800;color:#1e6fa8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.quiz-qtype{font-size:11px;color:#bbb;font-weight:600;margin-bottom:8px;}
+.quiz-qtext{font-size:clamp(14px,4vw,16px);font-weight:700;line-height:1.5;color:#111;}
+.quiz-options{width:100%;max-width:540px;display:flex;flex-direction:column;gap:9px;}
+.quiz-opt{background:#fff;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;padding:clamp(10px,3vw,13px) clamp(12px,4vw,16px);font-family:inherit;font-size:clamp(13px,3.5vw,14px);font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:10px;line-height:1.5;transition:.15s;}
+.quiz-opt:hover:not(:disabled){border-color:#1e6fa8;background:#f0f7ff;}
+.quiz-opt.correct{border-color:#22c55e;background:#f0fdf4;color:#166534;}
+.quiz-opt.wrong{border-color:#ef4444;background:#fef2f2;color:#b91c1c;}
+.quiz-opt-letter{width:24px;height:24px;border-radius:6px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.quiz-opt.correct .quiz-opt-letter{background:#22c55e;color:#fff;}
+.quiz-opt.wrong .quiz-opt-letter{background:#ef4444;color:#fff;}
+.quiz-fb{width:100%;max-width:540px;padding:clamp(10px,3vw,14px) clamp(12px,4vw,16px);border-radius:12px;font-size:clamp(12px,3.5vw,14px);line-height:1.6;display:none;border-left:4px solid;}
+.quiz-fb.show{display:block;}
+.quiz-fb.correct{background:#f0fdf4;color:#166534;border-color:#22c55e;}
+.quiz-fb.wrong{background:#fff8f0;color:#7c3900;border-color:#f59e0b;}
+.quiz-next{background:#1e6fa8;color:#fff;border:none;padding:13px 24px;border-radius:12px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;width:100%;max-width:540px;display:none;transition:.2s;}
+.quiz-next.show{display:block;}
+.quiz-next:hover{background:#1a5f94;transform:translateY(-1px);}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:540px;}
+.match-item{background:#fff;border:2px solid rgba(0,0,0,.1);border-radius:12px;padding:clamp(8px,2.5vw,12px);font-size:clamp(11px,3vw,13px);font-weight:700;cursor:pointer;text-align:center;transition:.2s;min-height:50px;display:flex;align-items:center;justify-content:center;line-height:1.3;}
+.match-item.selected{border-color:var(--acc);background:#fff8f0;}
+.match-item.matched{border-color:#22c55e;background:#f0fdf4;color:#166534;cursor:default;}
+.match-item.wrong-flash{border-color:#ef4444;background:#fef2f2;animation:wrongFlash .4s ease;}
+@keyframes wrongFlash{0%,100%{border-color:#ef4444;}50%{border-color:transparent;}}
+.open-textarea{width:100%;max-width:540px;padding:14px;border:2px solid rgba(0,0,0,.1);border-radius:14px;font-family:inherit;font-size:15px;min-height:110px;resize:vertical;outline:none;transition:.2s;}
+.open-textarea:focus{border-color:var(--acc);}
+.open-check-btn{background:var(--acc);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;width:100%;max-width:540px;transition:.2s;}
+.quiz-result{display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;flex:1;}
+.quiz-result.show{display:flex;}
+.result-ring{width:clamp(90px,24vw,120px);height:clamp(90px,24vw,120px);border-radius:50%;background:conic-gradient(var(--acc) 0% var(--pct),#e5e7eb var(--pct));display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 4px 20px rgba(217,185,155,.3);}
+.result-inner{width:75%;height:75%;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.prog-bar{height:6px;background:rgba(0,0,0,.06);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:10px;transition:width .4s;}
+
+/* PHOTO PAGE */
+.photo-page{position:fixed;inset:0;background:var(--bg);z-index:4500;display:none;flex-direction:column;}
+.photo-page.active{display:flex;}
+.photo-head{background:#fff;padding:clamp(10px,3vw,14px) clamp(12px,4vw,18px);box-shadow:0 2px 10px rgba(0,0,0,.05);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.photo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(12px,3.5vw,18px);}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(200px,40vw,260px),1fr));gap:14px;max-width:860px;margin:0 auto;}
+.photo-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.07);cursor:pointer;transition:.25s;}
+.photo-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12);}
+.photo-card img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;background:#f0f0f0;}
+.photo-card-body{padding:10px 13px;}
+.photo-card-title{font-weight:800;font-size:clamp(11px,3vw,13px);}
+.text-block{background:#fff;border-radius:clamp(12px,3.5vw,16px);padding:clamp(14px,4vw,18px);margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.05);}
+.text-block-title{font-size:clamp(15px,4vw,17px);font-weight:800;margin-bottom:6px;}
+.text-block-body{font-size:clamp(13px,3.5vw,14px);color:#444;line-height:1.7;white-space:pre-wrap;}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9900;display:none;align-items:center;justify-content:center;}
+.lightbox.active{display:flex;}
+.lightbox img{max-width:96vw;max-height:92vh;object-fit:contain;border-radius:10px;}
+.lb-close{position:absolute;top:14px;right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+@media(max-width:480px){
+  .match-grid{gap:5px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="admin-header">
+  <div class="logo">LUMINARY <span>Admin Panel</span></div>
+  <div class="header-status" id="header-status">Loading...</div>
+</header>
+
+<div class="admin-wrap">
+  <div id="success-area"></div>
+
+  <!-- MOCK TESTS -->
+  <div class="admin-sec collapsed" id="as-mock-tests">
+    <div class="admin-sec-head" onclick="toggleSec('as-mock-tests')">
+      <h3>🧪 Mock Tests</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <!-- Category tabs -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;" id="mock-tabs">
+        <button class="mock-tab active" onclick="switchMockTab('sat/reading',this)">SAT Reading</button>
+        <button class="mock-tab" onclick="switchMockTab('sat/math',this)">SAT Math</button>
+        <button class="mock-tab" onclick="switchMockTab('ielts/speaking',this)">IELTS Speaking</button>
+        <button class="mock-tab" onclick="switchMockTab('ielts/writing',this)">IELTS Writing</button>
+        <button class="mock-tab" onclick="switchMockTab('ielts/reading',this)">IELTS Reading</button>
+        <button class="mock-tab" onclick="switchMockTab('ielts/listening',this)">IELTS Listening</button>
+      </div>
+      <input type="hidden" id="mock-current-path" value="sat/reading">
+      <!-- Add form -->
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
+        <div class="form-group"><label>Title</label><input id="mock-title" placeholder="e.g. SAT Reading Test 1"></div>
+        <div class="form-group"><label>URL</label><input id="mock-url" placeholder="https://..."></div>
+        <div class="form-group"><label>Description <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="mock-desc" placeholder="e.g. 52 questions, 65 min"></div>
+        <div class="form-group"><label>Picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'mock')"><img id="mock-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
+        <button class="btn-primary" onclick="addMockTest()">➕ Add Test</button>
+      </div>
+      <!-- List -->
+      <div id="mock-json-import"></div>
+      <div id="mock-list"></div>
+    </div>
+  </div>
+
+  <!-- QUESTION BANK -->
+  <div class="admin-sec collapsed" id="as-qbank">
+    <div class="admin-sec-head" onclick="toggleSec('as-qbank')">
+      <h3>🗂️ SAT / IELTS Question Bank</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
+        <div class="form-group"><label>Question</label><textarea id="qb-q" placeholder="e.g. Which of the following best describes..." style="min-height:72px;"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Option A</label><input id="qb-a" placeholder="Answer A"></div>
+          <div class="form-group"><label>Option B</label><input id="qb-b" placeholder="Answer B"></div>
+          <div class="form-group"><label>Option C</label><input id="qb-c" placeholder="Answer C"></div>
+          <div class="form-group"><label>Option D</label><input id="qb-d" placeholder="Answer D"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Correct Answer</label>
+            <select id="qb-correct"><option value="">Select...</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="form-group"><label>Exam</label><select id="qb-exam" onchange="updateQBankCategories()"><option value="sat">SAT</option><option value="ielts">IELTS</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Section</label><select id="qb-section" onchange="updateQBankCategories()"></select></div>
+          <div class="form-group" id="qb-sat-theme-wrap"><label>Theme</label><select id="qb-tag"></select></div>
+          <div class="form-group" id="qb-ielts-theme-wrap" style="display:none"><label>Theme</label><input id="qb-ielts-theme" placeholder="e.g. Education, Environment, Maps"></div>
+        </div>
+        <div class="form-group"><label>Explanation <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="qb-explain" placeholder="Why this answer is correct..."></textarea></div>
+        <div class="form-group"><label>Question picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'qbank')"><img id="qbank-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
+        <button class="btn-primary" onclick="addQBankQuestion()">➕ Add Question</button>
+      </div>
+      <div id="qbank-json-import"></div>
+      <div id="qb-list"></div>
+    </div>
+  </div>
+
+  <div class="admin-sec collapsed" id="as-daily-question">
+    <div class="admin-sec-head" onclick="toggleSec('as-daily-question')">
+      <h3>Daily Question</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5;">This is separate from Question Bank. It is visible on Home for exactly 24 hours after publishing.</p>
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Exam</label><select id="daily-exam"><option value="sat">SAT</option><option value="ielts">IELTS</option></select></div>
+          <div class="form-group"><label>Section</label><select id="daily-set"><option value="rw">Reading &amp; Writing</option><option value="math">Math</option><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></div>
+        </div>
+        <div class="form-group"><label>Topic</label><input id="daily-tag" placeholder="e.g. Information and Ideas"></div>
+        <div class="form-group"><label>Passage or reference <span style="font-weight:400;color:var(--muted);">(optional)</span></label><textarea id="daily-passage" placeholder="Text shown on the left side of the question."></textarea></div>
+        <div class="form-group"><label>Question</label><textarea id="daily-q" placeholder="Write the question shown on the right."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Option A</label><input id="daily-a"></div><div class="form-group"><label>Option B</label><input id="daily-b"></div>
+          <div class="form-group"><label>Option C</label><input id="daily-c"></div><div class="form-group"><label>Option D</label><input id="daily-d"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Correct answer</label><select id="daily-correct"><option value="">Select...</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+          <div class="form-group"><label>Explanation <span style="font-weight:400;color:var(--muted);">(optional)</span></label><input id="daily-explain"></div>
+        </div>
+        <div class="form-group"><label>Question image <span style="font-weight:400;color:var(--muted);">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'daily')"><img id="daily-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
+        <button class="btn-primary" onclick="publishDailyQuestion()">Publish for 24 hours</button>
+        <button class="btn-cancel" onclick="clearDailyQuestion()">Remove current daily question</button>
+      </div>
+      <div id="daily-admin-status"></div>
+    </div>
+  </div>
+
+  <!-- IELTS PREP -->
+  <div class="admin-sec collapsed" id="as-ielts-prep">
+    <div class="admin-sec-head" onclick="toggleSec('as-ielts-prep')">
+      <h3>IELTS Prep (JSON)</h3><span class="admin-sec-arrow">&#9660;</span>
+    </div>
+    <div class="admin-sec-body">
+      <div class="form-group"><label>Skill</label><select id="ielts-prep-skill">
+        <option value="listening">Listening</option><option value="reading">Reading</option>
+        <option value="writing">Writing</option><option value="speaking">Speaking</option>
+      </select></div>
+      <div id="ielts-prep-json-import"></div>
+    </div>
+  </div>
+
+  <!-- SAT VOCAB -->
+  <div class="admin-sec collapsed" id="as-sat-vocab">
+    <div class="admin-sec-head" onclick="toggleSec('as-sat-vocab')">
+      <h3>📖 SAT Vocabulary</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div class="form-group"><label>Create Folder</label><input id="sat-folder-name" placeholder="Folder name"></div>
+      <button class="btn-primary" onclick="createFolder('sat')" style="margin-bottom:14px;">➕ Create Folder</button>
+      <div id="sat-folders-admin"></div>
+
+      <!-- JSON IMPORT SAT -->
+      <div style="background:#eef7ff;border:1.5px solid #93c5fd;border-radius:13px;padding:14px;margin-top:10px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleImport('sat')">
+          <div style="font-weight:800;font-size:13px;color:#1d4ed8;">📥 Import Words from JSON</div>
+          <span id="sat-import-arrow" style="font-size:12px;color:#1d4ed8;transition:.3s;">▼</span>
+        </div>
+        <div id="sat-import-body" style="display:none;margin-top:12px;">
+          <div style="font-size:12px;color:#555;margin-bottom:10px;line-height:1.6;">
+            Upload a <code>.json</code> file or paste JSON directly. Each key is a word ID, value must have <code>w</code>, <code>d</code>, <code>folder</code>, <code>folderName</code> fields.
+          </div>
+          <label style="display:flex;align-items:center;gap:9px;background:#fff;border:1.5px dashed #93c5fd;border-radius:10px;padding:12px;cursor:pointer;margin-bottom:10px;">
+            <span style="font-size:20px;">📂</span>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:#1d4ed8;">Choose JSON file</div>
+              <div style="font-size:11px;color:#aaa;" id="sat-import-filename">No file selected</div>
+            </div>
+            <input type="file" accept=".json,application/json" style="display:none;" onchange="loadImportFile(this,'sat')">
+          </label>
+          <div style="text-align:center;font-size:11px;color:#aaa;font-weight:700;margin-bottom:8px;">— OR PASTE JSON —</div>
+          <textarea id="sat-import-json" placeholder='{"key":{"w":"Word","d":"Definition","ant":"Synonyms","ex":"Example","folder":"folderId","folderName":"Folder Name"}}' style="width:100%;min-height:120px;padding:10px 12px;border:1.5px solid #93c5fd;border-radius:10px;font-family:monospace;font-size:12px;outline:none;resize:vertical;background:#fff;"></textarea>
+          <div id="sat-import-preview" style="margin-top:8px;display:none;background:#fff;border-radius:9px;padding:9px 12px;border:1px solid #93c5fd;">
+            <span id="sat-import-count" style="font-weight:800;color:#1d4ed8;font-size:13px;"></span>
+            <span style="font-size:12px;color:#666;"> words ready to import</span>
+            <div id="sat-import-folders" style="font-size:11px;color:#888;margin-top:3px;"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="previewImport('sat')" style="flex:1;background:#1d4ed8;color:#fff;border:none;padding:10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">🔍 Preview</button>
+            <button onclick="runImport('sat')" id="sat-import-btn" style="flex:1;background:#16a34a;color:#fff;border:none;padding:10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;display:none;">⬆️ Import All</button>
+          </div>
+          <div id="sat-import-progress" style="margin-top:8px;display:none;">
+            <div style="background:#e0f2fe;border-radius:8px;height:8px;overflow:hidden;">
+              <div id="sat-import-bar" style="height:100%;background:#1d4ed8;border-radius:8px;transition:width .2s;width:0%;"></div>
+            </div>
+            <div id="sat-import-status" style="font-size:12px;color:#1d4ed8;font-weight:700;margin-top:5px;text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-top:12px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:12px;">Add Word</div>
+        <div class="form-group"><label>Folder</label>
+          <select id="sat-folder-sel"><option value="">Select folder...</option></select>
+        </div>
+        <div class="form-group"><label>Word</label><input id="sat-word" placeholder="e.g. Benevolent"></div>
+        <div class="form-group"><label>Definition</label><textarea id="sat-def" placeholder="e.g. Well meaning and kindly"></textarea></div>
+        <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="sat-ant" placeholder="e.g. Kind, Generous"></div>
+        <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="sat-ex" placeholder="e.g. The benevolent teacher..."></textarea></div>
+        <button class="btn-primary" id="sat-word-btn" onclick="saveWord('sat')">Add Word</button>
+        <button class="btn-cancel" id="sat-word-cancel" onclick="cancelWord('sat')" style="display:none;">Cancel Edit</button>
+      </div>
+      <div id="sat-words-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- IELTS VOCAB -->
+  <div class="admin-sec collapsed" id="as-ielts-vocab">
+    <div class="admin-sec-head" onclick="toggleSec('as-ielts-vocab')">
+      <h3>🎓 IELTS Vocabulary</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div class="form-group"><label>Create Folder</label><input id="ielts-folder-name" placeholder="Folder name"></div>
+      <button class="btn-primary" onclick="createFolder('ielts')" style="margin-bottom:14px;">➕ Create Folder</button>
+      <div id="ielts-folders-admin"></div>
+
+      <!-- JSON IMPORT IELTS -->
+      <div style="background:#eef7ff;border:1.5px solid #93c5fd;border-radius:13px;padding:14px;margin-top:10px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleImport('ielts')">
+          <div style="font-weight:800;font-size:13px;color:#1d4ed8;">📥 Import Words from JSON</div>
+          <span id="ielts-import-arrow" style="font-size:12px;color:#1d4ed8;transition:.3s;">▼</span>
+        </div>
+        <div id="ielts-import-body" style="display:none;margin-top:12px;">
+          <div style="font-size:12px;color:#555;margin-bottom:10px;line-height:1.6;">
+            Upload a <code>.json</code> file or paste JSON directly. Each key is a word ID, value must have <code>w</code>, <code>d</code>, <code>folder</code>, <code>folderName</code> fields.
+          </div>
+          <label style="display:flex;align-items:center;gap:9px;background:#fff;border:1.5px dashed #93c5fd;border-radius:10px;padding:12px;cursor:pointer;margin-bottom:10px;">
+            <span style="font-size:20px;">📂</span>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:#1d4ed8;">Choose JSON file</div>
+              <div style="font-size:11px;color:#aaa;" id="ielts-import-filename">No file selected</div>
+            </div>
+            <input type="file" accept=".json,application/json" style="display:none;" onchange="loadImportFile(this,'ielts')">
+          </label>
+          <div style="text-align:center;font-size:11px;color:#aaa;font-weight:700;margin-bottom:8px;">— OR PASTE JSON —</div>
+          <textarea id="ielts-import-json" placeholder='{"key":{"w":"Word","d":"Definition","ant":"Synonyms","ex":"Example","folder":"folderId","folderName":"Folder Name"}}' style="width:100%;min-height:120px;padding:10px 12px;border:1.5px solid #93c5fd;border-radius:10px;font-family:monospace;font-size:12px;outline:none;resize:vertical;background:#fff;"></textarea>
+          <div id="ielts-import-preview" style="margin-top:8px;display:none;background:#fff;border-radius:9px;padding:9px 12px;border:1px solid #93c5fd;">
+            <span id="ielts-import-count" style="font-weight:800;color:#1d4ed8;font-size:13px;"></span>
+            <span style="font-size:12px;color:#666;"> words ready to import</span>
+            <div id="ielts-import-folders" style="font-size:11px;color:#888;margin-top:3px;"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="previewImport('ielts')" style="flex:1;background:#1d4ed8;color:#fff;border:none;padding:10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">🔍 Preview</button>
+            <button onclick="runImport('ielts')" id="ielts-import-btn" style="flex:1;background:#16a34a;color:#fff;border:none;padding:10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;display:none;">⬆️ Import All</button>
+          </div>
+          <div id="ielts-import-progress" style="margin-top:8px;display:none;">
+            <div style="background:#e0f2fe;border-radius:8px;height:8px;overflow:hidden;">
+              <div id="ielts-import-bar" style="height:100%;background:#1d4ed8;border-radius:8px;transition:width .2s;width:0%;"></div>
+            </div>
+            <div id="ielts-import-status" style="font-size:12px;color:#1d4ed8;font-weight:700;margin-top:5px;text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-top:12px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:12px;">Add Word</div>
+        <div class="form-group"><label>Folder</label>
+          <select id="ielts-folder-sel"><option value="">Select folder...</option></select>
+        </div>
+        <div class="form-group"><label>Word</label><input id="ielts-word" placeholder="e.g. Coherent"></div>
+        <div class="form-group"><label>Definition</label><textarea id="ielts-def" placeholder="e.g. Logical and consistent"></textarea></div>
+        <div class="form-group"><label>Synonyms <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="ielts-ant" placeholder="e.g. Logical, Consistent"></div>
+        <div class="form-group"><label>Example Sentence <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="ielts-ex" placeholder="e.g. Her coherent argument..."></textarea></div>
+        <button class="btn-primary" id="ielts-word-btn" onclick="saveWord('ielts')">Add Word</button>
+        <button class="btn-cancel" id="ielts-word-cancel" onclick="cancelWord('ielts')" style="display:none;">Cancel Edit</button>
+      </div>
+      <div id="ielts-words-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- SAT RULES -->
+  <div class="admin-sec collapsed" id="as-sat-rules">
+    <div class="admin-sec-head" onclick="toggleSec('as-sat-rules')">
+      <h3>📐 SAT Rules</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div class="form-group"><label>Create Folder</label><input id="rules-folder-name" placeholder="e.g. Grammar Rules"></div>
+      <button class="btn-primary" onclick="createContentFolder('rules')" style="margin-bottom:14px;">➕ Create Folder</button>
+      <div id="rules-folders-admin"></div>
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-top:12px;border-left:3px solid #1a85c8;">
+        <div style="font-weight:800;font-size:13px;color:#1a85c8;margin-bottom:10px;">🧩 Folder Quiz (Attach quiz to a folder)</div>
+        <div class="form-group"><label>Folder</label><select id="rules-fq-folder-sel"><option value="">Select folder...</option></select></div>
+        <div class="form-group"><label>Quiz Name</label><input id="rules-fq-name" placeholder="e.g. Grammar Folder Test"></div>
+        <div class="form-group"><label>Questions (JSON)</label>
+          <textarea id="rules-fq-data" style="min-height:100px;font-size:12px;font-family:monospace;" placeholder='[{"q":"Which is correct?","options":{"A":"...","B":"...","C":"...","D":"..."},"correct":"A","explain":"..."}]'></textarea>
+        </div>
+        <button class="btn-primary" onclick="saveFolderQuiz('rules')">💾 Attach Quiz to Folder</button>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:13px;margin-top:12px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:12px;">Add Rule</div>
+        <div class="form-group"><label>Folder</label><select id="rules-folder-sel"><option value="">Select...</option></select></div>
+        <div class="form-group"><label>Title</label><input id="rules-title" placeholder="e.g. Subject-Verb Agreement"></div>
+        <div class="form-group"><label>Content</label><textarea id="rules-body" placeholder="Explain the rule... Use ✅ for correct, ❌ for wrong, • for bullets" style="min-height:100px;"></textarea></div>
+        <div style="background:var(--card2);border-radius:10px;padding:13px;margin-top:8px;border:1px solid var(--border);">
+          <div style="font-weight:800;font-size:12px;color:var(--acc);margin-bottom:10px;">🧠 Quiz Question (optional)</div>
+          <div class="form-group"><label>Question</label><input id="rules-q" placeholder="Which sentence is correct?"></div>
+          <div class="form-group"><label>Option A</label><input id="rules-a" placeholder="Answer A"></div>
+          <div class="form-group"><label>Option B</label><input id="rules-b" placeholder="Answer B"></div>
+          <div class="form-group"><label>Option C</label><input id="rules-c" placeholder="Answer C"></div>
+          <div class="form-group"><label>Option D</label><input id="rules-d" placeholder="Answer D"></div>
+          <div class="form-group"><label>Correct</label>
+            <select id="rules-correct"><option value="">Select...</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="form-group"><label>Explanation</label><input id="rules-explain" placeholder="Why this is correct..."></div>
+        </div>
+        <button class="btn-primary" id="rules-save-btn" onclick="saveContentItem('rules')" style="margin-top:12px;">Add Rule</button>
+        <button class="btn-cancel" id="rules-cancel-btn" onclick="cancelContentEdit('rules')" style="display:none;">Cancel Edit</button>
+      </div>
+      <div id="rules-items-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- HACKS / PROBLEMS / SOLUTIONS -->
+  <div class="admin-sec collapsed" id="as-hacks-photos">
+    <div class="admin-sec-head" onclick="toggleSec('as-hacks-photos')">
+      <h3>🖼️ Hacks / Problems / Solutions</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <p style="font-size:13px;color:#888;margin-bottom:14px;">Upload images or add text content for each section.</p>
+      <div id="admin-photo-sections"></div>
+    </div>
+  </div>
+
+  <!-- SAT PRACTICE TESTS -->
+  <div class="admin-sec collapsed" id="as-practice">
+    <div class="admin-sec-head" onclick="toggleSec('as-practice')">
+      <h3>📝 SAT Practice Tests</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div style="background:var(--bg);padding:16px;border-radius:13px;">
+        <div class="form-group"><label>Test Name</label><input id="pt-title" placeholder="e.g. Official SAT Practice Test 1"></div>
+        <div class="form-group"><label>URL</label><input id="pt-url" placeholder="https://..."></div>
+        <div class="form-group"><label>Description</label><input id="pt-desc" placeholder="e.g. 98 questions, full length"></div>
+        <button class="btn-primary" onclick="addPracticeTest()">Add Test</button>
+      </div>
+      <div id="pt-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- QUIZZES ADMIN -->
+  <div class="admin-sec collapsed" id="as-quizzes">
+    <div class="admin-sec-head" onclick="toggleSec('as-quizzes')">
+      <h3>🧩 Quizzes &amp; Tests</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div style="font-size:13px;color:#888;margin-bottom:14px;">Create standalone quizzes with multiple question types.</div>
+      <div style="background:var(--bg);padding:16px;border-radius:13px;">
+        <div class="form-group"><label>Quiz Name</label><input id="qz-name" placeholder="e.g. SAT Grammar Test 1"></div>
+        <div class="form-group"><label>Type</label>
+          <select id="qz-type">
+            <option value="mc">Multiple Choice (7+ Qs)</option>
+            <option value="match">Matching Pairs (7+ pairs)</option>
+            <option value="open">Open Questions (3-5 Qs)</option>
+            <option value="real">Real Exam Practice (25+ Qs)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Questions (JSON format)</label>
+          <textarea id="qz-data" style="min-height:120px;font-size:12px;font-family:monospace;" placeholder='For MC: [{"q":"Question?","options":{"A":"...","B":"...","C":"...","D":"..."},"correct":"A","explain":"..."}]'></textarea>
+        </div>
+        <button class="btn-primary" onclick="saveQuiz()">Save Quiz</button>
+      </div>
+      <div id="qz-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- PODCASTS -->
+  <div class="admin-sec collapsed" id="as-podcasts">
+    <div class="admin-sec-head" onclick="toggleSec('as-podcasts')">
+      <h3>🎧 Podcasts / Audio</h3><span class="admin-sec-arrow">▼</span>
+    </div>
+    <div class="admin-sec-body">
+      <div class="form-group"><label>Title</label><input id="pod-title" placeholder="e.g. Romeo and Juliet"></div>
+      <div class="form-group"><label>YouTube URL</label><input id="pod-url" placeholder="https://youtu.be/..."></div>
+      <button class="btn-primary" onclick="addPodcast()">Add Podcast</button>
+      <div id="pod-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+</div><!-- /admin-wrap -->
+
+<!-- QUIZ VIEW (preview) -->
+<div class="quizview" id="quizview">
+  <div class="quiz-head">
+    <div class="quiz-top">
+      <button class="icon-btn" onclick="exitQuiz()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <div class="quiz-title" id="qz-title">Quiz Preview</div>
+      <div class="quiz-counter" id="qz-counter">1/10</div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="qz-prog" style="width:0%"></div></div>
+  </div>
+  <div class="quiz-body" id="qz-body"></div>
+  <div class="quiz-result" id="qz-result">
+    <div style="font-size:clamp(40px,12vw,56px);margin-bottom:12px;" id="qz-res-emoji">🎉</div>
+    <div style="font-size:clamp(18px,5vw,24px);font-weight:800;margin-bottom:6px;" id="qz-res-title">Great job!</div>
+    <div style="color:#888;margin-bottom:20px;font-size:clamp(13px,3.5vw,15px);" id="qz-res-sub"></div>
+    <div class="result-ring" id="qz-res-ring" style="--pct:0%">
+      <div class="result-inner"><div style="font-size:clamp(17px,5vw,22px);font-weight:800;" id="qz-res-pct">0%</div><div style="font-size:10px;color:#aaa;font-weight:700;">SCORE</div></div>
+    </div>
+    <button class="btn-primary" onclick="retryQuiz()" style="max-width:220px;margin-bottom:10px;">🔁 Retry</button>
+    <button onclick="exitQuiz()" style="background:none;border:2px solid rgba(0,0,0,.1);padding:12px 28px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Exit</button>
+  </div>
+</div>
+
+<!-- PHOTO FULLSCREEN -->
+<div class="photo-page" id="photo-page">
+  <div class="photo-head">
+    <button class="icon-btn" onclick="closePhotoPage()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div style="font-weight:800;font-size:clamp(15px,4.5vw,17px);" id="photo-page-title">Photos</div>
+  </div>
+  <div class="photo-body" id="photo-page-body"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">×</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- UNDO TOAST -->
+<div class="undo-toast" id="undo-toast">
+  <div id="undo-msg">Deleted</div>
+  <button class="undo-btn" onclick="doUndo()">Undo</button>
+</div>
+
+<!-- FIREBASE -->
+
+<script>
+// =============================================
+//  PERFORMANCE: DEBOUNCE + RENDER CACHE
+// =============================================
+let _debTimers={};
+function debounce(key,fn,ms){clearTimeout(_debTimers[key]);_debTimers[key]=setTimeout(fn,ms||300);}
+let _lastWordsHash={sat:'',ielts:''};
+function _wordsHash(arr){if(!arr||!arr.length)return '';const first=arr[0]?.id||'';const last=arr[arr.length-1]?.id||'';return arr.length+'|'+first+'|'+last;}
+
+// =============================================
+//  GLOBALS
+// =============================================
+const PHOTO_SUBS=[
+  {id:'geo-problems',emoji:'📐',title:'SAT Must-Solve Geometry Problems'},
+  {id:'desmos-solutions',emoji:'🖩',title:'Desmos Solutions for Hardest Questions'},
+  {id:'inference',emoji:'🧠',title:'Inference: All Hardest Questions'},
+  {id:'desmos-guide',emoji:'📖',title:'Desmos Guide'},
+  {id:'desmos-tips',emoji:'💡',title:'10 Desmos Tips'},
+];
+let allBooks=[];
+let cachedSATFolders=[],cachedIELTSFolders=[];
+let cachedSATWords=[],cachedIELTSWords=[];
+let editingWordId=null,editingWordType=null;
+let editingBookId=null,editorBookId=null;
+const _wordStore={};
+function _storeWord(type,w){_wordStore[type+':'+w.id]=w;}
+function _getWord(type,id){return _wordStore[type+':'+id]||null;}
+let editingContentId=null,editingContentType=null;
+let undoState=null,undoTimer=null;
+
+// =============================================
+//  UTILS
+// =============================================
+function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function toggleSec(id){
+  const el=document.getElementById(id);
+  const wasCollapsed=el.classList.contains('collapsed');
+  el.classList.toggle('collapsed');
+  // Lazy-load photo data only when the Hacks section is first expanded
+  if(wasCollapsed && id==='as-hacks-photos' && !el.dataset.photosLoaded){
+    el.dataset.photosLoaded='1';
+    PHOTO_SUBS.forEach(sub=>{loadAdminPhotos(sub.id);loadAdminTexts(sub.id);});
+  }
+}
+
+function showSuccess(msg){
+  const el=document.createElement('div');
+  el.className='success-msg';el.textContent=msg;
+  const area=document.getElementById('success-area');
+  area.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// =============================================
+//  JSON MATERIAL IMPORTS
+// =============================================
+function renderJsonImporter(containerId,kind,title,example){
+  const el=document.getElementById(containerId);if(!el)return;
+  el.innerHTML=`<div style="background:#eef7ff;border:1.5px solid #93c5fd;border-radius:13px;padding:14px;margin-bottom:14px;">
+    <div style="font-weight:800;font-size:13px;color:#1d4ed8;margin-bottom:5px;">Import ${title} from JSON</div>
+    <div style="font-size:12px;color:#555;line-height:1.55;margin-bottom:9px;">Upload a JSON file or paste an array/object below. Existing records are preserved.</div>
+    <label style="display:block;background:#fff;border:1.5px dashed #93c5fd;border-radius:10px;padding:10px 12px;cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:700;color:#1d4ed8;">Choose JSON file
+      <input type="file" accept=".json,application/json" style="display:none" onchange="readMaterialJsonFile(this,'${kind}')">
+    </label>
+    <textarea id="${kind}-json" style="width:100%;min-height:120px;padding:10px 12px;border:1.5px solid #93c5fd;border-radius:10px;font-family:monospace;font-size:12px;resize:vertical;background:#fff;" placeholder='${example.replace(/'/g,"&#39;")}'></textarea>
+    <div id="${kind}-json-status" style="font-size:12px;color:#666;margin:7px 0;"></div>
+    <div style="display:flex;gap:8px;"><button class="btn-cancel" style="flex:1" onclick="previewMaterialJson('${kind}')">Preview</button><button class="btn-primary" id="${kind}-json-btn" style="flex:1" onclick="importMaterialJson('${kind}')" disabled>Import All</button></div>
+  </div>`;
+}
+const materialJsonCache={};
+const recordImages={mock:'',qbank:'',daily:''};
+const SAT_QBANK_CATEGORIES={
+  rw:['Information and Ideas','Craft and Structure','Expression of Ideas','Standard English Conventions'],
+  math:['Algebra','Advanced Math','Problem-Solving and Data Analysis','Geometry and Trigonometry']
+};
+function updateQBankCategories(){
+  const exam=document.getElementById('qb-exam')?.value||'sat',sectionSelect=document.getElementById('qb-section'),themeSelect=document.getElementById('qb-tag');if(!sectionSelect||!themeSelect)return;
+  const previousSection=sectionSelect.value;
+  const sections=exam==='sat'?[['rw','Reading & Writing'],['math','Math']]:[['listening','Listening'],['reading','Reading'],['writing','Writing'],['speaking','Speaking']];
+  sectionSelect.innerHTML=sections.map(([value,label])=>`<option value="${value}">${label}</option>`).join('');
+  if(sections.some(([value])=>value===previousSection))sectionSelect.value=previousSection;
+  const section=sectionSelect.value,previousTheme=themeSelect.value;
+  if(exam==='sat'){themeSelect.innerHTML=SAT_QBANK_CATEGORIES[section].map(theme=>`<option value="${theme}">${theme}</option>`).join('');if(SAT_QBANK_CATEGORIES[section].includes(previousTheme))themeSelect.value=previousTheme;}
+  document.getElementById('qb-sat-theme-wrap').style.display=exam==='sat'?'':'none';document.getElementById('qb-ielts-theme-wrap').style.display=exam==='ielts'?'':'none';
+}
+function loadRecordImage(input,kind){
+  const file=input.files&&input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){alert('Please choose an image smaller than 2 MB.');input.value='';return;}
+  const reader=new FileReader();reader.onload=()=>{recordImages[kind]=reader.result;const p=document.getElementById(`${kind}-image-preview`);p.src=reader.result;p.style.display='block';};reader.readAsDataURL(file);
+}
+function clearRecordImage(kind){recordImages[kind]='';const p=document.getElementById(`${kind}-image-preview`);if(p){p.src='';p.style.display='none';}}
+function initMaterialJsonImporters(){
+  updateQBankCategories();
+  renderJsonImporter('mock-json-import','mocks','mocks for the selected tab','[{"title":"Mock 1","image":"https://...","questions":[{"question":"...","answers":["A","B","C","D"],"correct":0,"image":"https://..."}]}]');
+  renderJsonImporter('qbank-json-import','qbank','SAT / IELTS question-bank items','[{"exam":"sat","section":"math","theme":"Algebra","question":"...","answers":["A","B","C","D"],"correct":0,"image":"https://...","explanation":"..."}]');
+  renderJsonImporter('ielts-prep-json-import','ieltsprep','IELTS prep materials','[{"title":"Lesson 1","body":"Lesson content","image":"https://...","questions":[{"question":"...","answers":["A","B","C","D"],"correct":"A"}]}]');
+}
+function readMaterialJsonFile(input,kind){
+  const file=input.files&&input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{document.getElementById(`${kind}-json`).value=reader.result;previewMaterialJson(kind);};
+  reader.onerror=()=>alert('Could not read that file.');reader.readAsText(file);
+}
+function jsonRecords(value){
+  if(Array.isArray(value))return value;
+  if(value&&typeof value==='object')return Object.entries(value).map(([id,item])=>item&&typeof item==='object'?{_sourceId:id,...item}:item);
+  throw new Error('JSON must be an array or object.');
+}
+function normalizeMaterialRecord(kind,item,index){
+  if(!item||typeof item!=='object'||Array.isArray(item))throw new Error(`Item ${index+1} must be an object`);
+  if(kind==='mocks'){
+    const title=String(item.title||item.name||'').trim(),url=String(item.url||item.link||'').trim();
+    if(!title||(!url&&!Array.isArray(item.questions)))throw new Error(`Item ${index+1}: title and either url or questions are required`);
+    const record={title,...(url?{url}:{}),...((item.desc||item.description)?{desc:String(item.desc||item.description)}:{})};
+    if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);
+    if(item.questions){if(!Array.isArray(item.questions))throw new Error(`Item ${index+1}: questions must be an array`);record.questions=item.questions.map((q,i)=>normalizeMaterialRecord('qbank',q,i));}
+    return record;
+  }
+  if(kind==='qbank'){
+    const q=String(item.q||item.question||item.prompt||'').trim();let options=item.options||item.answers;
+    if(Array.isArray(options))options={A:options[0],B:options[1],C:options[2],D:options[3]};
+    const rawCorrect=item.correct!==undefined?item.correct:item.answer;
+    const correct=typeof rawCorrect==='number'?'ABCD'[rawCorrect]:String(rawCorrect||'').toUpperCase();
+    if(!q||!options||!['A','B','C','D'].every(k=>String(options[k]===undefined?'':options[k]).trim())||!['A','B','C','D'].includes(correct))throw new Error(`Item ${index+1}: question, four answers, and correct answer are required`);
+    const record={q,options:{A:String(options.A),B:String(options.B),C:String(options.C),D:String(options.D)},correct};
+    const tag=item.theme||item.category||item.tag||item.domain||item.topic,explain=item.explain||item.explanation;
+    const section=item.set||item.section;if(!tag||!section)throw new Error(`Item ${index+1}: section and theme are required`);
+    record.tag=String(tag);record.set=String(section).toLowerCase();if(explain)record.explain=String(explain);
+    if(item.exam){record.exam=String(item.exam).toLowerCase();if(!['sat','ielts'].includes(record.exam))throw new Error(`Item ${index+1}: exam must be sat or ielts`);}
+    if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);return record;
+  }
+  const title=String(item.title||item.name||'').trim(),body=String(item.body||item.content||item.text||'').trim();
+  if(!title||!body)throw new Error(`Item ${index+1}: title and body/content are required`);
+  const record={title,body,addedAt:Date.now()};
+  if(item.url||item.link)record.url=String(item.url||item.link);
+  if(item.desc||item.description)record.desc=String(item.desc||item.description);
+  if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);
+  if(item.questions){if(!Array.isArray(item.questions))throw new Error(`Item ${index+1}: questions must be an array`);record.questions=item.questions.map((q,i)=>normalizeMaterialRecord('qbank',q,i));}return record;
+}
+function previewMaterialJson(kind){
+  const status=document.getElementById(`${kind}-json-status`),btn=document.getElementById(`${kind}-json-btn`);
+  try{const raw=document.getElementById(`${kind}-json`).value.trim();if(!raw)throw new Error('Paste JSON or choose a file.');
+    const records=jsonRecords(JSON.parse(raw)).map((x,i)=>normalizeMaterialRecord(kind,x,i));if(!records.length)throw new Error('JSON contains no records.');
+    materialJsonCache[kind]=records;status.textContent=`Valid: ${records.length} record${records.length===1?'':'s'} ready`;status.style.color='#15803d';btn.disabled=false;
+  }catch(e){materialJsonCache[kind]=null;status.textContent=e.message;status.style.color='#b91c1c';btn.disabled=true;}
+}
+async function importMaterialJson(kind){
+  const records=materialJsonCache[kind];if(!records||!records.length){previewMaterialJson(kind);return;}
+  const btn=document.getElementById(`${kind}-json-btn`),status=document.getElementById(`${kind}-json-status`);btn.disabled=true;
+  try{let api,path;
+    if(kind==='mocks'){api=window.fb;path=`mocks/${document.getElementById('mock-current-path').value}`;}
+    else if(kind==='qbank'){api=window.fb2;path=null;}
+    else{api=window.fb;path=`ielts-prep/${document.getElementById('ielts-prep-skill').value}`;}
+    for(let i=0;i<records.length;i++){const record={...records[i]};let recordPath=path;if(kind==='qbank'){const exam=['sat','ielts'].includes(record.exam)?record.exam:(document.getElementById('qb-exam')?.value||'sat');delete record.exam;recordPath=`question-bank/${exam}`;}await api.set(api.push(api.ref(api.db,recordPath)),record);status.textContent=`Uploading ${i+1} of ${records.length}...`;}
+    status.textContent=`Imported ${records.length} record${records.length===1?'':'s'}`;status.style.color='#15803d';document.getElementById(`${kind}-json`).value='';materialJsonCache[kind]=null;
+    showSuccess(`Imported ${records.length} items!`);if(kind==='mocks')loadMockTests();if(kind==='qbank')loadQBankAdmin();
+  }catch(e){status.textContent=`Import stopped: ${e.message}`;status.style.color='#b91c1c';btn.disabled=false;}
+}
+
+// =============================================
+//  IMAGE UPLOAD (base64)
+// =============================================
+function previewImg(input,previewId,dataId){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const data=e.target.result;
+    document.getElementById(previewId).src=data;
+    document.getElementById(previewId).style.display='block';
+    document.getElementById(dataId).value=data;
+  };
+  reader.readAsDataURL(file);
+}
+
+// DB path prefix map — 'rules' data lives under 'sat-rules-*' in Firebase
+function dp(type){ return ({rules:'sat-rules'})[type] || type; }
+
+// =============================================
+//  LOAD ALL ADMIN DATA
+// =============================================
+async function loadAdminAll(){
+  document.getElementById('header-status').textContent='Loading...';
+  const{db,ref,get}=window.fb;
+  await loadFolders('sat');
+  await loadFolders('ielts');
+  await loadAdminWords('sat');
+  await loadAdminWords('ielts');
+  await loadContentFolders('rules');
+  await loadContentItems('rules');
+  await loadPracticeTests();
+  await loadQuizzes();
+  const ps=await get(ref(db,'podcasts'));
+  const pods=ps.val()?Object.keys(ps.val()).map(k=>({id:k,...ps.val()[k]})):[];
+  renderAdminPodcasts(pods);
+  renderAdminPhotoSections();
+  document.getElementById('header-status').textContent='✓ Connected';
+}
+
+// =============================================
+//  BOOKS
+// =============================================
+function renderAdminBooks(){
+  const el=document.getElementById('bk-list');
+  if(!allBooks.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:16px;">No books yet</p>';return;}
+  el.innerHTML=allBooks.map(b=>`
+    <div class="item-row">
+      <div class="item-row-info">
+        <div class="item-row-title">${b.t}</div>
+        <div class="item-row-sub">by ${b.a} · ${(b.chapters||[]).length} chapters · ${(b.pages||[]).length} pages</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <button class="btn-edit" onclick="openBookEditor('${b.id}')">📖 Edit</button>
+        <button class="btn-edit" style="background:#f0fff4;color:#166534;" onclick="editBookInfo('${b.id}')">✏️ Info</button>
+        <button class="btn-del" onclick="deleteBook('${b.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function saveBook(){
+  const t=document.getElementById('bk-title').value.trim();
+  const a=document.getElementById('bk-author').value.trim();
+  const img=document.getElementById('bk-cover-data').value;
+  if(!t||!a){alert('Fill title and author');return;}
+  const{db,ref,set,push}=window.fb;
+  if(editingBookId){
+    const snap=await window.fb.get(ref(db,`books/${editingBookId}`));
+    const ex=snap.val()||{};
+    await set(ref(db,`books/${editingBookId}`),{...ex,t,a,...(img?{i:img}:{})});
+    showSuccess('Book updated! ✅');cancelBook();
+  }else{
+    const r=push(ref(db,'books'));
+    await set(r,{t,a,i:img||'',pages:[],chapters:[]});
+    showSuccess('Book created! ✅');
+  }
+  document.getElementById('bk-title').value='';
+  document.getElementById('bk-author').value='';
+  document.getElementById('bk-cover-data').value='';
+  document.getElementById('bk-cover-preview').style.display='none';
+  loadAdminAll();
+}
+function editBookInfo(id){
+  const b=allBooks.find(x=>x.id===id);if(!b)return;
+  editingBookId=id;
+  document.getElementById('bk-title').value=b.t;
+  document.getElementById('bk-author').value=b.a;
+  document.getElementById('bk-save-btn').textContent='💾 Update Book';
+  document.getElementById('bk-cancel-btn').style.display='block';
+  document.getElementById('as-books').classList.remove('collapsed');
+}
+function cancelBook(){
+  editingBookId=null;
+  document.getElementById('bk-title').value='';
+  document.getElementById('bk-author').value='';
+  document.getElementById('bk-save-btn').textContent='➕ Create Book';
+  document.getElementById('bk-cancel-btn').style.display='none';
+}
+async function deleteBook(id){
+  if(!confirm('Delete this book?'))return;
+  await window.fb.remove(window.fb.ref(window.fb.db,`books/${id}`));
+  showSuccess('Deleted!');loadAdminAll();
+}
+
+// BOOK EDITOR
+function openBookEditor(id){
+  editorBookId=id;
+  const b=allBooks.find(x=>x.id===id);if(!b)return;
+  document.getElementById('be-title').textContent=b.t;
+  refreshEditorStats(b);renderEditorChapters(b);
+  document.getElementById('as-book-editor').style.display='block';
+  document.getElementById('as-book-editor').scrollIntoView({behavior:'smooth'});
+}
+function closeBookEditor(){
+  editorBookId=null;
+  document.getElementById('as-book-editor').style.display='none';
+}
+function refreshEditorStats(b){
+  const ch=(b.chapters||[]).length,pg=(b.pages||[]).length;
+  document.getElementById('be-stats').textContent=`${ch} chapters · ${pg} pages`;
+}
+function renderEditorChapters(b){
+  const el=document.getElementById('be-chapters');
+  const chs=b.chapters||[],pgs=b.pages||[];
+  if(!chs.length){el.innerHTML='<p style="color:#aaa;padding:10px 0;font-size:13px;">No chapters yet</p>';return;}
+  el.innerHTML=chs.map((ch,ci)=>{
+    const cnt=ch.endPage-ch.startPage+1;
+    return`<div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:9px;border:1.5px solid rgba(0,0,0,.06);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div><div style="font-weight:800;font-size:14px;">${ch.title}</div>
+        <div style="font-size:11px;color:#aaa;">${cnt} page${cnt!==1?'s':''}</div></div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-edit" onclick="openAddPage(${ci})">+ Page</button>
+          <button class="btn-edit" style="background:#f0f0ff;color:#4444cc;" onclick="renameChapter(${ci})">✏️</button>
+          <button class="btn-del" onclick="deleteChapter(${ci})">🗑️</button>
+        </div>
+      </div>
+      <div id="ch-pages-${ci}" style="margin-top:8px;display:none;">
+        ${pgs.slice(ch.startPage,ch.endPage+1).map((pg,pi)=>`
+          <div style="background:#fafafa;border-radius:8px;padding:8px 11px;margin-bottom:5px;font-size:12px;display:flex;gap:7px;align-items:flex-start;">
+            <span style="color:#ccc;font-weight:700;min-width:22px;">p${ch.startPage+pi+1}</span>
+            <div style="flex:1;">${pg.substring(0,100)}${pg.length>100?'…':''}</div>
+            <button class="btn-del" style="font-size:11px;padding:4px 8px;" onclick="deletePage(${ch.startPage+pi})">🗑️</button>
+          </div>`).join('')}
+      </div>
+      <button onclick="toggleChPgs(${ci})" style="background:none;border:none;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;margin-top:5px;padding:0;">▼ pages</button>
+      <div id="add-page-${ci}" style="display:none;margin-top:10px;">
+        <textarea id="pg-txt-${ci}" placeholder="Page text..." style="width:100%;padding:10px;border:2px solid var(--acc);border-radius:10px;font-family:inherit;font-size:13px;min-height:100px;resize:vertical;outline:none;"></textarea>
+        <div style="display:flex;gap:7px;margin-top:7px;">
+          <button class="btn-primary" onclick="savePage(${ci})" style="padding:9px 14px;width:auto;font-size:13px;">💾 Save</button>
+          <button onclick="closeAddPage(${ci})" style="padding:9px 14px;border-radius:10px;border:1.5px solid #ddd;background:none;font-family:inherit;font-weight:700;cursor:pointer;font-size:13px;">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleChPgs(ci){
+  const d=document.getElementById(`ch-pages-${ci}`);
+  const b=d.nextElementSibling;
+  d.style.display=d.style.display==='none'?'block':'none';
+  b.textContent=d.style.display==='none'?'▼ pages':'▲ pages';
+}
+function openAddPage(ci){
+  document.querySelectorAll('[id^="add-page-"]').forEach(e=>e.style.display='none');
+  document.getElementById(`add-page-${ci}`).style.display='block';
+  document.getElementById(`pg-txt-${ci}`).focus();
+}
+function closeAddPage(ci){document.getElementById(`add-page-${ci}`).style.display='none';}
+async function savePage(ci){
+  const txt=document.getElementById(`pg-txt-${ci}`).value.trim();
+  if(!txt){alert('Empty page!');return;}
+  const{db,ref,get,set}=window.fb;
+  const snap=await get(ref(db,`books/${editorBookId}`));
+  const b=snap.val();
+  const pgs=b.pages||[],chs=b.chapters||[];
+  const ch=chs[ci];
+  const ins=ch.endPage+1;
+  pgs.splice(ins,0,txt);
+  chs[ci].endPage+=1;
+  for(let i=ci+1;i<chs.length;i++){chs[i].startPage+=1;chs[i].endPage+=1;}
+  await set(ref(db,`books/${editorBookId}`),{...b,pages:pgs,chapters:chs});
+  closeAddPage(ci);showSuccess('Page added!');
+  await reloadEditor();
+}
+async function deletePage(pi){
+  if(!confirm('Delete page?'))return;
+  const{db,ref,get,set}=window.fb;
+  const snap=await get(ref(db,`books/${editorBookId}`));
+  const b=snap.val();
+  const pgs=b.pages||[],chs=b.chapters||[];
+  pgs.splice(pi,1);
+  for(let i=0;i<chs.length;i++){
+    if(pi<chs[i].startPage){chs[i].startPage-=1;chs[i].endPage-=1;}
+    else if(pi<=chs[i].endPage){chs[i].endPage-=1;}
+  }
+  await set(ref(db,`books/${editorBookId}`),{...b,pages:pgs,chapters:chs});
+  showSuccess('Page deleted!');await reloadEditor();
+}
+async function addChapter(){
+  const t=document.getElementById('be-ch-title').value.trim();
+  if(!t){alert('Enter title');return;}
+  const{db,ref,get,set}=window.fb;
+  const snap=await get(ref(db,`books/${editorBookId}`));
+  const b=snap.val();
+  const pgs=b.pages||[],chs=b.chapters||[];
+  const sp=pgs.length;
+  chs.push({title:t,startPage:sp,endPage:sp-1});
+  await set(ref(db,`books/${editorBookId}`),{...b,chapters:chs});
+  document.getElementById('be-ch-title').value='';
+  showSuccess('Chapter added!');await reloadEditor();
+}
+async function deleteChapter(ci){
+  if(!confirm('Delete chapter and all its pages?'))return;
+  const{db,ref,get,set}=window.fb;
+  const snap=await get(ref(db,`books/${editorBookId}`));
+  const b=snap.val();
+  const pgs=b.pages||[],chs=b.chapters||[];
+  const ch=chs[ci];
+  const cnt=ch.endPage-ch.startPage+1;
+  pgs.splice(ch.startPage,Math.max(0,cnt));
+  chs.splice(ci,1);
+  for(let i=ci;i<chs.length;i++){chs[i].startPage-=cnt;chs[i].endPage-=cnt;}
+  await set(ref(db,`books/${editorBookId}`),{...b,pages:pgs,chapters:chs});
+  showSuccess('Deleted!');await reloadEditor();
+}
+async function renameChapter(ci){
+  const b=allBooks.find(x=>x.id===editorBookId);
+  const cur=b?.chapters?.[ci]?.title||'';
+  const nt=prompt('Rename:',cur);
+  if(!nt||nt===cur)return;
+  const{db,ref,set}=window.fb;
+  await set(ref(db,`books/${editorBookId}/chapters/${ci}/title`),nt.trim());
+  showSuccess('Renamed!');await reloadEditor();
+}
+async function reloadEditor(){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`books/${editorBookId}`));
+  const b={id:editorBookId,...snap.val()};
+  const idx=allBooks.findIndex(x=>x.id===editorBookId);
+  if(idx>=0)allBooks[idx]=b;
+  refreshEditorStats(b);renderEditorChapters(b);loadAdminAll();
+}
+
+// =============================================
+//  VOCAB FOLDERS
+// =============================================
+async function createFolder(type){
+  const inp=document.getElementById(`${type}-folder-name`);
+  const name=inp.value.trim();
+  if(!name){alert('Enter folder name');return;}
+  const{db,ref,push,set}=window.fb;
+  const r=push(ref(db,`${type}-folders`));
+  await set(r,{name,createdAt:Date.now()});
+  inp.value='';showSuccess('Folder created!');
+  await loadFolders(type);
+}
+async function loadFolders(type){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`${type}-folders`));
+  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  if(type==='sat'){cachedSATFolders=folders;}else{cachedIELTSFolders=folders;}
+  const sel=document.getElementById(`${type}-folder-sel`);
+  if(sel)sel.innerHTML=`<option value="">Select folder...</option>`+folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  const el=document.getElementById(`${type}-folders-admin`);
+  if(el)el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><strong style="font-size:13px;">Folders:</strong><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="deleteFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;padding:0;">×</button></div>`).join('')}</div></div>`:'';
+}
+async function deleteFolder(type,id){
+  if(!confirm('Delete folder?'))return;
+  await window.fb.remove(window.fb.ref(window.fb.db,`${type}-folders/${id}`));
+  showSuccess('Deleted!');await loadFolders(type);
+}
+
+// =============================================
+//  VOCAB WORDS
+// =============================================
+async function loadAdminWords(type){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`${type}-words`));
+  const words=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  if(type==='sat')cachedSATWords=words;else cachedIELTSWords=words;
+  requestAnimationFrame(()=>{renderAdminWords(type,words);});
+}
+function renderAdminWords(type,words){
+  const el=document.getElementById(`${type}-words-list`);
+  if(!el)return;
+  const h=_wordsHash(words);
+  if(_lastWordsHash[type]===h)return;
+  _lastWordsHash[type]=h;
+  if(!words.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:14px;font-size:13px;">No words yet</p>';return;}
+  words.forEach(w=>_storeWord(type,w));
+  const grouped={};
+  words.forEach(w=>{const fn=w.folderName||'Uncategorized';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(w);});
+  el.innerHTML=Object.entries(grouped).map(([fn,ws])=>{
+    const fid=ws[0]?.folder||'';
+    const gid=`${type}-${fid}`;
+    return`<div style="margin-bottom:14px;">
+      <div style="background:var(--acc);color:#fff;padding:8px 13px;border-radius:9px 9px 0 0;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center;">
+        <span>📁 ${fn} (${ws.length})</span>
+        <button class="btn-del" style="font-size:11px;padding:4px 9px;" onclick="adminDeleteFolder2('${fid}','${fn}','${type}')">🗑️ Folder</button>
+      </div>
+      <div style="border:2px solid var(--acc);border-top:none;border-radius:0 0 11px 11px;padding:9px;">
+        <div class="bulk-bar">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <button class="sel-all-btn" onclick="selAll('${gid}')">Select All</button>
+            <span id="sel-cnt-${gid}" style="font-size:11px;color:#888;font-weight:700;">0 selected</span>
+          </div>
+          <button class="bulk-del-btn" id="bdel-${gid}" onclick="bulkDel('${gid}','${type}')">🗑️ Delete</button>
+        </div>
+        <div class="admin-word-group-inner">
+          ${ws.map(w=>`
+            <div class="word-row" id="wr-${w.id}">
+              <input type="checkbox" class="wchk" data-grp="${gid}" data-id="${w.id}" onchange="updateBulk('${gid}')">
+              <div class="word-info">
+                <div class="word-w">${w.w}</div>
+                <div class="word-d">${w.d}</div>
+                ${w.ant?`<div class="word-ant-tag">↔ ${w.ant}</div>`:''}
+              </div>
+              <div class="word-actions">
+                <button class="btn-edit" data-type="${type}" data-wid="${w.id}" onclick="startEditWordById(this)">✏️</button>
+                <button class="btn-del" data-type="${type}" data-wid="${w.id}" onclick="delWordById(this)">🗑️</button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function saveWord(type){
+  const saveBtn=document.getElementById(`${type}-word-btn`);
+  if(saveBtn&&saveBtn.disabled)return;
+  if(saveBtn){saveBtn.disabled=true;saveBtn.style.opacity='.55';}
+  const w=document.getElementById(`${type}-word`).value.trim();
+  const d=document.getElementById(`${type}-def`).value.trim();
+  const ant=document.getElementById(`${type}-ant`).value.trim();
+  const ex=document.getElementById(`${type}-ex`).value.trim();
+  const fid=document.getElementById(`${type}-folder-sel`).value;
+  if(!w||!d||!fid){if(saveBtn){saveBtn.disabled=false;saveBtn.style.opacity='';}alert('Fill word, definition and select folder');return;}
+  const{db,ref,get,set,push}=window.fb;
+  const fs=await get(ref(db,`${type}-folders/${fid}`));
+  const folderName=fs.val()?.name||'';
+  const payload={w,d,folder:fid,folderName};
+  if(ant)payload.ant=ant;
+  if(ex)payload.ex=ex;
+  if(editingWordId&&editingWordType===type){
+    await set(ref(db,`${type}-words/${editingWordId}`),payload);
+    showSuccess('Word updated! ✏️');cancelWord(type);
+  }else{
+    await set(push(ref(db,`${type}-words`)),payload);
+    showSuccess('Word added! ✅');
+  }
+  document.getElementById(`${type}-word`).value='';
+  document.getElementById(`${type}-def`).value='';
+  document.getElementById(`${type}-ant`).value='';
+  document.getElementById(`${type}-ex`).value='';
+  _lastWordsHash[type]='';
+  await loadAdminWords(type);
+  if(saveBtn){saveBtn.disabled=false;saveBtn.style.opacity='';}
+}
+function startEditWord(type,id,w,d,fid,ant,ex){
+  editingWordId=id;editingWordType=type;
+  document.getElementById(`${type}-word`).value=w||'';
+  document.getElementById(`${type}-def`).value=d||'';
+  document.getElementById(`${type}-ant`).value=ant||'';
+  document.getElementById(`${type}-ex`).value=ex||'';
+  document.getElementById(`${type}-folder-sel`).value=fid||'';
+  const wb=document.getElementById(`${type}-word-btn`);
+  wb.textContent='✏️ Update Word';wb.disabled=false;wb.style.opacity='';
+  document.getElementById(`${type}-word-cancel`).style.display='block';
+  const sec=`as-${type==='sat'?'sat':'ielts'}-vocab`;
+  document.getElementById(sec).classList.remove('collapsed');
+  document.querySelector(`#${sec} .admin-sec-body`).scrollIntoView({behavior:'smooth'});
+}
+function startEditWordById(btn){
+  const type=btn.dataset.type,id=btn.dataset.wid;
+  const w=_getWord(type,id);if(!w)return;
+  startEditWord(type,id,w.w,w.d,w.folder||'',w.ant||'',w.ex||'');
+}
+function delWordById(btn){
+  const type=btn.dataset.type,id=btn.dataset.wid;
+  const w=_getWord(type,id);if(!w)return;
+  delWord(type,id,w.w);
+}
+function cancelWord(type){
+  editingWordId=null;editingWordType=null;
+  ['word','def','ant','ex'].forEach(f=>document.getElementById(`${type}-${f}`).value='');
+  document.getElementById(`${type}-word-btn`).textContent='Add Word';
+  document.getElementById(`${type}-word-cancel`).style.display='none';
+}
+async function delWord(type,id,wordText){
+  const{db,ref,get,set,remove}=window.fb;
+  const snap=await get(ref(db,`${type}-words/${id}`));
+  const data=snap.val();
+  if(!data)return;
+  await remove(ref(db,`${type}-words/${id}`));
+  _lastWordsHash[type]='';
+  await loadAdminWords(type);
+  showUndoToast(`Deleted "${wordText}"`,async()=>{
+    await set(ref(db,`${type}-words/${id}`),data);
+    _lastWordsHash[type]='';
+    await loadAdminWords(type);
+  });
+}
+async function adminDeleteFolder2(fid,fname,type){
+  if(!confirm(`Delete folder "${fname}" and ALL its words?`))return;
+  const{db,ref,get,set,remove}=window.fb;
+  const ws=await get(ref(db,`${type}-words`));
+  const all=ws.val()||{};
+  const toDelete={};
+  for(const[k,v]of Object.entries(all))if(v.folder===fid)toDelete[k]=v;
+  const fs=await get(ref(db,`${type}-folders/${fid}`));
+  const fd=fs.val();
+  for(const k of Object.keys(toDelete))await remove(ref(db,`${type}-words/${k}`));
+  await remove(ref(db,`${type}-folders/${fid}`));
+  _lastWordsHash[type]='';
+  await loadAdminAll();
+  showUndoToast(`Deleted "${fname}" + ${Object.keys(toDelete).length} words`,async()=>{
+    await set(ref(db,`${type}-folders/${fid}`),fd);
+    for(const[k,v]of Object.entries(toDelete))await set(ref(db,`${type}-words/${k}`),v);
+    _lastWordsHash[type]='';
+    await loadAdminAll();
+  });
+}
+function updateBulk(gid){
+  const cbs=[...document.querySelectorAll(`.wchk[data-grp="${gid}"]`)];
+  const checked=cbs.filter(c=>c.checked);
+  const el=document.getElementById(`sel-cnt-${gid}`);
+  const btn=document.getElementById(`bdel-${gid}`);
+  if(el)el.textContent=checked.length?`${checked.length} selected`:'0 selected';
+  if(btn){btn.classList.toggle('vis',checked.length>0);btn.textContent=`🗑️ Delete ${checked.length}`;}
+}
+function selAll(gid){
+  const cbs=[...document.querySelectorAll(`.wchk[data-grp="${gid}"]`)];
+  const all=cbs.every(c=>c.checked);
+  cbs.forEach(c=>c.checked=!all);updateBulk(gid);
+}
+async function bulkDel(gid,type){
+  const ids=[...document.querySelectorAll(`.wchk[data-grp="${gid}"]:checked`)].map(c=>c.dataset.id);
+  if(!ids.length)return;
+  const{db,ref,get,set,remove}=window.fb;
+  const snaps={};
+  for(const id of ids){const s=await get(ref(db,`${type}-words/${id}`));if(s.val())snaps[id]=s.val();}
+  for(const id of ids)await remove(ref(db,`${type}-words/${id}`));
+  _lastWordsHash[type]='';
+  await loadAdminWords(type);
+  showUndoToast(`Deleted ${ids.length} word${ids.length!==1?'s':''}`,async()=>{
+    for(const[id,d]of Object.entries(snaps))await set(ref(db,`${type}-words/${id}`),d);
+    _lastWordsHash[type]='';
+    await loadAdminWords(type);
+  });
+}
+
+// =============================================
+//  UNDO TOAST
+// =============================================
+function showUndoToast(msg,onUndo){
+  if(undoTimer)clearTimeout(undoTimer);
+  undoState={onUndo};
+  document.getElementById('undo-msg').textContent=msg;
+  document.getElementById('undo-toast').classList.add('show');
+  undoTimer=setTimeout(()=>{document.getElementById('undo-toast').classList.remove('show');undoState=null;},5000);
+}
+function doUndo(){
+  if(!undoState)return;
+  clearTimeout(undoTimer);
+  document.getElementById('undo-toast').classList.remove('show');
+  undoState.onUndo();undoState=null;
+}
+
+// =============================================
+//  CONTENT ITEMS (Rules)
+// =============================================
+async function createContentFolder(type){
+  const inp=document.getElementById(`${type}-folder-name`);
+  const name=inp.value.trim();if(!name){alert('Enter name');return;}
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,`${type}-folders`)),{name,createdAt:Date.now()});
+  inp.value='';showSuccess('Folder created!');
+  await loadContentFolders(type);
+}
+async function loadContentFolders(type){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`${dp(type)}-folders`));
+  const folders=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  ['rules-folder-sel','rules-fq-folder-sel'].forEach(selId=>{
+    const sel=document.getElementById(selId);
+    if(sel)sel.innerHTML=`<option value="">Select...</option>`+folders.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  });
+  const el=document.getElementById(`${type}-folders-admin`);
+  if(el)el.innerHTML=folders.length?`<div style="background:#fff;padding:12px;border-radius:11px;margin-bottom:10px;"><div style="display:flex;flex-wrap:wrap;gap:7px;">${folders.map(f=>`<div style="background:var(--acc);color:#fff;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">📁 ${f.name}<button onclick="delContentFolder('${type}','${f.id}')" style="background:rgba(255,255,255,.3);border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:12px;padding:0;">×</button></div>`).join('')}</div></div>`:'';
+}
+async function delContentFolder(type,id){
+  if(!confirm('Delete folder?'))return;
+  await window.fb.remove(window.fb.ref(window.fb.db,`${dp(type)}-folders/${id}`));
+  showSuccess('Deleted!');await loadContentFolders(type);
+}
+async function saveFolderQuiz(type){
+  const fid=document.getElementById(`${type}-fq-folder-sel`).value;
+  const name=document.getElementById(`${type}-fq-name`).value.trim();
+  const raw=document.getElementById(`${type}-fq-data`).value.trim();
+  if(!fid||!name||!raw){alert('Fill folder, name and questions');return;}
+  let questions;
+  try{questions=JSON.parse(raw);}catch(e){alert('Invalid JSON: '+e.message);return;}
+  const{db,ref,set}=window.fb;
+  await set(ref(db,`${dp(type)}-folder-quizzes/${fid}`),{name,questions,updatedAt:Date.now()});
+  document.getElementById(`${type}-fq-name`).value='';
+  document.getElementById(`${type}-fq-data`).value='';
+  showSuccess('Folder quiz saved! ✅');
+  await loadContentItems(type);
+}
+async function saveContentItem(type){
+  const fid=document.getElementById(`${type}-folder-sel`).value;
+  const title=document.getElementById(`${type}-title`).value.trim();
+  const body=document.getElementById(`${type}-body`).value.trim();
+  if(!fid||!title||!body){alert('Fill folder, title and content');return;}
+  const{db,ref,get,set,push}=window.fb;
+  const fs=await get(ref(db,`${dp(type)}-folders/${fid}`));
+  const folderName=fs.val()?.name||'';
+  const q=document.getElementById(`${type}-q`)?.value.trim();
+  const a=document.getElementById(`${type}-a`)?.value.trim();
+  const b=document.getElementById(`${type}-b`)?.value.trim();
+  const c=document.getElementById(`${type}-c`)?.value.trim();
+  const d=document.getElementById(`${type}-d`)?.value.trim();
+  const correct=document.getElementById(`${type}-correct`)?.value;
+  const explain=document.getElementById(`${type}-explain`)?.value.trim();
+  const item={title,body,folder:fid,folderName};
+  if(q&&a&&b&&correct)item.quiz={q,options:{A:a,B:b,C:c,D:d},correct,explain};
+  if(editingContentId&&editingContentType===type){
+    const ex=(await get(ref(db,`${dp(type)}-items/${editingContentId}`))).val()||{};
+    await set(ref(db,`${dp(type)}-items/${editingContentId}`),{...ex,...item});
+    showSuccess('Updated! ✅');cancelContentEdit(type);
+  }else{
+    await set(push(ref(db,`${dp(type)}-items`)),item);
+    showSuccess('Added! ✅');
+  }
+  ['title','body','q','a','b','c','d','explain'].forEach(f=>{const el=document.getElementById(`${type}-${f}`);if(el)el.value='';});
+  const cs=document.getElementById(`${type}-correct`);if(cs)cs.value='';
+  await loadContentItems(type);
+}
+async function loadContentItems(type){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`${dp(type)}-items`)).catch(()=>({val:()=>null}));
+  const items=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  let folderQuizzes={};
+  try{const fqSnap=await get(ref(db,`${dp(type)}-folder-quizzes`));folderQuizzes=fqSnap.val()||{};}catch(e){}
+  const el=document.getElementById(`${type}-items-list`);
+  if(!el)return;
+  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No items yet</p>';return;}
+  const grouped={};
+  items.forEach(it=>{const fn=it.folderName||'General';if(!grouped[fn])grouped[fn]=[];grouped[fn].push(it);});
+  el.innerHTML=Object.entries(grouped).map(([fn,its])=>`
+    <div style="margin-top:13px;">
+      <div style="background:var(--acc);color:#fff;padding:7px 12px;border-radius:9px;font-weight:800;font-size:12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;">
+        <span>📁 ${fn}</span>
+        ${its[0]?.folder&&folderQuizzes[its[0].folder]?`<span style="background:rgba(255,255,255,.25);padding:2px 8px;border-radius:5px;font-size:10px;">🧩 Quiz attached</span>`:''}
+      </div>
+      ${its.map(it=>`<div class="item-row">
+        <div class="item-row-info">
+          <div class="item-row-title">${it.title}</div>
+          <div class="item-row-sub">${(it.body||'').substring(0,60)}…${it.quiz?'  🧠 quiz':''}</div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-edit" onclick="startEditContent('${type}','${it.id}')">✏️</button>
+          <button class="btn-del" onclick="delContentItem('${type}','${it.id}')">🗑️</button>
+        </div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+async function startEditContent(type,id){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`${dp(type)}-items/${id}`));
+  const it=snap.val();if(!it)return;
+  editingContentId=id;editingContentType=type;
+  document.getElementById(`${type}-title`).value=it.title||'';
+  document.getElementById(`${type}-body`).value=it.body||'';
+  const fsel=document.getElementById(`${type}-folder-sel`);if(fsel)fsel.value=it.folder||'';
+  if(it.quiz){
+    ['q','a','b','c','d','explain'].forEach(f=>{const el=document.getElementById(`${type}-${f}`);if(el)el.value=it.quiz[f]||it.quiz?.options?.[f.toUpperCase()]||'';});
+    const cs=document.getElementById(`${type}-correct`);if(cs)cs.value=it.quiz.correct||'';
+  }
+  document.getElementById(`${type}-save-btn`).textContent='✏️ Update';
+  document.getElementById(`${type}-cancel-btn`).style.display='block';
+  document.getElementById(`as-${type}-rules`).classList.remove('collapsed');
+  document.querySelector(`#as-${type}-rules .admin-sec-body`).scrollIntoView({behavior:'smooth'});
+}
+function cancelContentEdit(type){
+  editingContentId=null;editingContentType=null;
+  ['title','body','q','a','b','c','d','explain'].forEach(f=>{const el=document.getElementById(`${type}-${f}`);if(el)el.value='';});
+  const cs=document.getElementById(`${type}-correct`);if(cs)cs.value='';
+  document.getElementById(`${type}-save-btn`).textContent='Add Rule';
+  document.getElementById(`${type}-cancel-btn`).style.display='none';
+}
+async function delContentItem(type,id){
+  await window.fb.remove(window.fb.ref(window.fb.db,`${dp(type)}-items/${id}`));
+  showSuccess('Deleted!');await loadContentItems(type);
+}
+
+// =============================================
+//  PRACTICE TESTS
+// =============================================
+async function addPracticeTest(){
+  const t=document.getElementById('pt-title').value.trim();
+  const u=document.getElementById('pt-url').value.trim();
+  const d=document.getElementById('pt-desc').value.trim();
+  if(!t||!u){alert('Title and URL required');return;}
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,'practice-tests')),{title:t,url:u,desc:d});
+  ['pt-title','pt-url','pt-desc'].forEach(id=>document.getElementById(id).value='');
+  showSuccess('Added!');await loadPracticeTests();
+}
+async function loadPracticeTests(){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,'practice-tests'));
+  const tests=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  const el=document.getElementById('pt-list');
+  if(el)el.innerHTML=tests.map(t=>`<div class="item-row"><div class="item-row-info"><div class="item-row-title">${t.title}</div><div class="item-row-sub">${t.desc||t.url}</div></div><button class="btn-del" onclick="delPracticeTest('${t.id}')">🗑️</button></div>`).join('')||'<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No tests yet</p>';
+}
+async function delPracticeTest(id){
+  await window.fb.remove(window.fb.ref(window.fb.db,`practice-tests/${id}`));
+  showSuccess('Deleted!');await loadPracticeTests();
+}
+
+// =============================================
+//  QUIZZES
+// =============================================
+async function saveQuiz(){
+  const name=document.getElementById('qz-name').value.trim();
+  const type=document.getElementById('qz-type').value;
+  const raw=document.getElementById('qz-data').value.trim();
+  if(!name||!raw){alert('Fill name and questions');return;}
+  let questions;
+  try{questions=JSON.parse(raw);}catch(e){alert('Invalid JSON: '+e.message);return;}
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,'quizzes')),{name,type,questions,createdAt:Date.now()});
+  document.getElementById('qz-name').value='';
+  document.getElementById('qz-data').value='';
+  showSuccess('Quiz saved!');await loadQuizzes();
+}
+async function loadQuizzes(){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,'quizzes'));
+  const quizzes=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+  const TYPE_LABELS={mc:'Multiple Choice',match:'Matching',open:'Open Questions',real:'Real Exam'};
+  const el=document.getElementById('qz-list');
+  if(el)el.innerHTML=quizzes.map(q=>`<div class="item-row"><div class="item-row-info"><div class="item-row-title">${q.name}</div><div class="item-row-sub">${TYPE_LABELS[q.type]||q.type} · ${(q.questions||[]).length} questions</div></div><div style="display:flex;gap:5px;"><button class="btn-edit" onclick="launchQuiz('${q.id}')">▶ Preview</button><button class="btn-del" onclick="delQuiz('${q.id}')">🗑️</button></div></div>`).join('')||'<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No quizzes yet</p>';
+}
+async function delQuiz(id){
+  await window.fb.remove(window.fb.ref(window.fb.db,`quizzes/${id}`));
+  showSuccess('Deleted!');await loadQuizzes();
+}
+async function launchQuiz(id){
+  const{db,ref,get}=window.fb;
+  const snap=await get(ref(db,`quizzes/${id}`));
+  const q=snap.val();if(!q)return;
+  startQuiz(q.questions,q.name,q.type);
+}
+
+// =============================================
+//  QUIZ ENGINE (preview)
+// =============================================
+let quizState={qs:[],idx:0,score:0,type:'mc',title:'',answered:false};
+function startQuiz(questions,title,type){
+  const qs=[...questions].sort(()=>Math.random()-.5);
+  quizState={qs,idx:0,score:0,type,title,answered:false};
+  document.getElementById('qz-title').textContent=title+' (Preview)';
+  document.getElementById('qz-result').classList.remove('show');
+  document.getElementById('qz-body').style.display='flex';
+  document.getElementById('qz-body').style.flexDirection='column';
+  document.getElementById('qz-body').style.alignItems='center';
+  document.getElementById('qz-body').style.gap='14px';
+  document.getElementById('quizview').classList.add('active');
+  if(type==='match')renderMatchQuiz();else renderQuizQ();
+}
+function exitQuiz(){document.getElementById('quizview').classList.remove('active');}
+function renderQuizQ(){
+  if(quizState.idx>=quizState.qs.length){showQuizResult();return;}
+  const q=quizState.qs[quizState.idx];
+  const tot=quizState.qs.length;
+  document.getElementById('qz-counter').textContent=`${quizState.idx+1}/${tot}`;
+  document.getElementById('qz-prog').style.width=`${(quizState.idx/tot)*100}%`;
+  const body=document.getElementById('qz-body');
+  if(quizState.type==='open'){
+    body.innerHTML=`
+      <div class="quiz-qcard" style="width:100%;max-width:540px;"><div class="quiz-qlabel">Open Question</div><div class="quiz-qtext">${q.q}</div>${q.hint?`<div style="font-size:12px;color:#aaa;margin-top:8px;font-style:italic;">Hint: ${q.hint}</div>`:''}</div>
+      <textarea class="open-textarea" id="open-ans" placeholder="Write your answer here..."></textarea>
+      <button class="open-check-btn" onclick="submitOpen()">Submit Answer</button>
+      <div class="quiz-fb" id="quiz-fb"></div>
+      <button class="quiz-next" id="quiz-next" onclick="quizNext()">Next →</button>`;
+    quizState.answered=false;return;
+  }
+  const letters=['A','B','C','D'].filter(l=>q.options&&q.options[l]);
+  body.innerHTML=`
+    <div class="quiz-qcard" style="width:100%;max-width:540px;"><div class="quiz-qlabel">Multiple Choice</div><div class="quiz-qtext">${q.q}</div></div>
+    <div class="quiz-options" style="width:100%;max-width:540px;">
+      ${letters.map(l=>`<button class="quiz-opt" onclick="answerQ('${l}')" data-l="${l}"><span class="quiz-opt-letter">${l}</span><span>${q.options[l]}</span></button>`).join('')}
+    </div>
+    <div class="quiz-fb" id="quiz-fb"></div>
+    <button class="quiz-next" id="quiz-next" onclick="quizNext()">Next →</button>`;
+  quizState.answered=false;
+}
+function answerQ(letter){
+  if(quizState.answered)return;
+  quizState.answered=true;
+  const q=quizState.qs[quizState.idx];
+  const ok=letter===q.correct;
+  if(ok)quizState.score++;
+  document.querySelectorAll('.quiz-opt').forEach(btn=>{
+    btn.disabled=true;
+    const l=btn.dataset.l;
+    if(l===q.correct)btn.classList.add('correct');
+    if(l===letter&&!ok)btn.classList.add('wrong');
+  });
+  const fb=document.getElementById('quiz-fb');
+  fb.classList.add('show',ok?'correct':'wrong');
+  fb.innerHTML=ok?`<b>✓ Correct!</b>${q.explain?` — ${q.explain}`:''}`:`<b>✗ Answer: ${q.correct}</b> — ${q.options[q.correct]}${q.explain?`<br>💡 ${q.explain}`:''}`;
+  const nxt=document.getElementById('quiz-next');
+  nxt.textContent=quizState.idx+1>=quizState.qs.length?'See Results →':'Next →';
+  nxt.classList.add('show');
+}
+function submitOpen(){
+  const ans=(document.getElementById('open-ans')?.value||'').trim();
+  if(!ans){alert('Write an answer first!');return;}
+  quizState.answered=true;quizState.score++;
+  const fb=document.getElementById('quiz-fb');
+  fb.classList.add('show','correct');
+  fb.innerHTML=`<b>✓ Answer recorded!</b><br>Compare with model answer:<br><em>${quizState.qs[quizState.idx].hint||'Review your notes'}</em>`;
+  const nxt=document.getElementById('quiz-next');
+  nxt.textContent=quizState.idx+1>=quizState.qs.length?'See Results →':'Next →';
+  nxt.classList.add('show');
+}
+function quizNext(){
+  quizState.idx++;
+  if(quizState.idx>=quizState.qs.length)showQuizResult();
+  else{document.getElementById('qz-body').innerHTML='';renderQuizQ();}
+}
+let matchState={pairs:[],selected:null,matched:[],wrong:0};
+function renderMatchQuiz(){
+  const qs=quizState.qs;
+  const pairs=qs.map(q=>({term:q.term,def:q.def}));
+  const terms=[...pairs].sort(()=>Math.random()-.5).map(p=>({type:'term',val:p.term}));
+  const defs=[...pairs].sort(()=>Math.random()-.5).map(p=>({type:'def',val:p.def}));
+  matchState={pairs,selected:null,matched:[],wrong:0,terms,defs};
+  document.getElementById('qz-counter').textContent=`${quizState.qs.length} pairs`;
+  document.getElementById('qz-prog').style.width='0%';
+  renderMatchBoard();
+}
+function renderMatchBoard(){
+  const{terms,defs,matched}=matchState;
+  const body=document.getElementById('qz-body');
+  body.innerHTML=`
+    <div class="quiz-qcard" style="width:100%;max-width:540px;"><div class="quiz-qlabel">Matching Quiz</div><div class="quiz-qtext">Match each term with its definition</div></div>
+    <div class="match-grid" style="width:100%;max-width:540px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${terms.map((t,i)=>`<div class="match-item ${matched.includes(t.val)?'matched':''}" id="term-${i}" onclick="matchClick('term',${i},'${esc(t.val)}')">${t.val}</div>`).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${defs.map((d,i)=>`<div class="match-item ${matchState.matched.some(m=>matchState.pairs.find(p=>p.term===m&&p.def===d.val))?'matched':''}" id="def-${i}" onclick="matchClick('def',${i},'${esc(d.val)}')">${d.val}</div>`).join('')}
+      </div>
+    </div>`;
+}
+function matchClick(type,idx,val){
+  const ms=matchState;
+  if(ms.matched.includes(val))return;
+  if(!ms.selected){
+    ms.selected={type,idx,val};
+    document.getElementById(`${type}-${idx}`).classList.add('selected');
+  }else{
+    if(ms.selected.type===type){
+      document.getElementById(`${ms.selected.type}-${ms.selected.idx}`).classList.remove('selected');
+      ms.selected={type,idx,val};
+      document.getElementById(`${type}-${idx}`).classList.add('selected');
+      return;
+    }
+    const s=ms.selected;
+    const term=type==='term'?val:s.val;
+    const def=type==='def'?val:s.val;
+    const pair=ms.pairs.find(p=>p.term===term&&p.def===def);
+    if(pair){
+      ms.matched.push(term);ms.matched.push(def);quizState.score++;
+      document.getElementById(`${type}-${idx}`).classList.add('matched');
+      document.getElementById(`${s.type}-${s.idx}`).classList.remove('selected');
+      document.getElementById(`${s.type}-${s.idx}`).classList.add('matched');
+      if(ms.matched.length/2>=ms.pairs.length)setTimeout(showQuizResult,600);
+      else document.getElementById('qz-prog').style.width=`${(ms.matched.length/2/ms.pairs.length)*100}%`;
+    }else{
+      ms.wrong++;
+      [idx,s.idx].forEach((i,n)=>{
+        const id=n===0?`${type}-${i}`:`${s.type}-${i}`;
+        const el=document.getElementById(id);
+        el.classList.add('wrong-flash');
+        setTimeout(()=>{el.classList.remove('wrong-flash','selected');},400);
+      });
+    }
+    ms.selected=null;
+  }
+}
+function showQuizResult(){
+  const tot=quizState.qs.length;
+  const sc=quizState.score;
+  const pct=Math.round(sc/tot*100);
+  document.getElementById('qz-prog').style.width='100%';
+  document.getElementById('qz-body').style.display='none';
+  const res=document.getElementById('qz-result');
+  res.classList.add('show');
+  document.getElementById('qz-res-pct').textContent=pct+'%';
+  document.getElementById('qz-res-ring').style.setProperty('--pct',pct+'%');
+  let emoji='🎉',title='Great job!',sub=`${sc}/${tot} correct`;
+  if(pct===100){emoji='🏆';title='Perfect score!';}
+  else if(pct>=80){emoji='🌟';title='Excellent!';}
+  else if(pct>=60){emoji='👍';title='Good effort!';}
+  else{emoji='📖';title='Keep practicing!';}
+  document.getElementById('qz-res-emoji').textContent=emoji;
+  document.getElementById('qz-res-title').textContent=title;
+  document.getElementById('qz-res-sub').textContent=sub;
+}
+function retryQuiz(){
+  quizState.idx=0;quizState.score=0;quizState.answered=false;
+  quizState.qs=[...quizState.qs].sort(()=>Math.random()-.5);
+  document.getElementById('qz-result').classList.remove('show');
+  document.getElementById('qz-body').style.display='flex';
+  if(quizState.type==='match')renderMatchQuiz();else renderQuizQ();
+}
+
+// =============================================
+//  PODCASTS
+// =============================================
+async function addPodcast(){
+  const t=document.getElementById('pod-title').value.trim();
+  const u=document.getElementById('pod-url').value.trim();
+  if(!t||!u){alert('Fill all fields');return;}
+  let vid='';
+  if(u.includes('youtu.be/'))vid=u.split('youtu.be/')[1].split('?')[0];
+  else if(u.includes('watch?v='))vid=u.split('v=')[1].split('&')[0];
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,'podcasts')),{t,u,i:`https://img.youtube.com/vi/${vid}/mqdefault.jpg`});
+  document.getElementById('pod-title').value='';document.getElementById('pod-url').value='';
+  showSuccess('Podcast added!');await loadAdminAll();
+}
+async function delPodcast(id){
+  await window.fb.remove(window.fb.ref(window.fb.db,`podcasts/${id}`));
+  loadAdminAll();
+}
+function renderAdminPodcasts(pods){
+  const el=document.getElementById('pod-list');
+  if(!el)return;
+  el.innerHTML=pods.map(p=>`<div class="item-row"><div class="item-row-info"><div class="item-row-title">${p.t}</div></div><button class="btn-del" onclick="delPodcast('${p.id}')">🗑️</button></div>`).join('')||'<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No podcasts yet</p>';
+}
+
+// =============================================
+//  PHOTO SECTIONS
+// =============================================
+function renderAdminPhotoSections(){
+  const el=document.getElementById('admin-photo-sections');
+  if(!el)return;
+  el.innerHTML=PHOTO_SUBS.map(sub=>`
+    <div style="background:var(--bg);border-radius:13px;padding:14px;margin-bottom:12px;border:1.5px solid rgba(217,185,155,.25);">
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px;">${sub.emoji} ${sub.title}</div>
+      <div style="background:#fff;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:800;color:#888;margin-bottom:7px;text-transform:uppercase;letter-spacing:1px;">✍️ Add Text Block</div>
+        <input type="text" id="text-title-${sub.id}" placeholder="Title (optional)" style="width:100%;padding:8px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:6px;">
+        <textarea id="text-body-${sub.id}" placeholder="Write text content here..." style="width:100%;padding:9px 11px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-family:inherit;font-size:13px;min-height:72px;resize:vertical;outline:none;"></textarea>
+        <button onclick="addTextBlock('${sub.id}')" style="margin-top:7px;background:var(--acc);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;width:100%;">✍️ Add Text</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:9px;align-items:flex-end;flex-wrap:wrap;">
+        <input type="text" id="photo-title-${sub.id}" placeholder="Image caption (optional)" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:9px;font-family:inherit;font-size:13px;outline:none;">
+        <label style="background:#6c757d;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+          📷 Upload
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadPhoto(this,'${sub.id}')">
+        </label>
+      </div>
+      <div id="admin-photos-${sub.id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+      <div id="admin-texts-${sub.id}" style="margin-top:8px;"></div>
+    </div>`).join('');
+  // Photos loaded lazily when section is first expanded (see toggleSec)
+}
+async function addTextBlock(subId){
+  const title=(document.getElementById(`text-title-${subId}`)?.value||'').trim();
+  const body=(document.getElementById(`text-body-${subId}`)?.value||'').trim();
+  if(!body){alert('Write some text first');return;}
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,`photo-sections-text/${subId}`)),{title,body,addedAt:Date.now()});
+  document.getElementById(`text-title-${subId}`).value='';
+  document.getElementById(`text-body-${subId}`).value='';
+  loadAdminTexts(subId);showSuccess('Text added!');
+}
+async function loadAdminTexts(subId){
+  try{
+    const{db,ref,get}=window.fb;
+    const snap=await get(ref(db,`photo-sections-text/${subId}`));
+    const texts=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+    const el=document.getElementById(`admin-texts-${subId}`);
+    if(!el)return;
+    if(!texts.length){el.innerHTML='';return;}
+    el.innerHTML=`<div style="font-size:11px;color:#aaa;font-weight:700;margin-bottom:5px;">TEXT BLOCKS (${texts.length})</div>`+
+      texts.map(t=>`<div style="background:#fff8f0;border:1px solid var(--acc);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:12px;display:flex;align-items:flex-start;gap:8px;">
+        <div style="flex:1;"><b>${t.title||'(No title)'}</b><div style="color:#666;margin-top:2px;">${(t.body||'').substring(0,80)}${t.body&&t.body.length>80?'…':''}</div></div>
+        <button onclick="deleteTextBlock('${subId}','${t.id}')" style="background:#ff4444;border:none;color:#fff;width:18px;height:18px;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+      </div>`).join('');
+  }catch(e){}
+}
+async function deleteTextBlock(subId,textId){
+  await window.fb.remove(window.fb.ref(window.fb.db,`photo-sections-text/${subId}/${textId}`));
+  loadAdminTexts(subId);
+}
+async function uploadPhoto(input,subId){
+  const file=input.files[0];if(!file)return;
+  const title=(document.getElementById(`photo-title-${subId}`)?.value||'').trim();
+  showSuccess('Uploading… ⏳');
+  try{
+    const{storage,ref:sr,uploadBytes,getDownloadURL}=window.fbStorage;
+    const snap=await uploadBytes(sr(storage,`photo-sections/${subId}/${Date.now()}_${file.name.replace(/[^\w.-]/g,'_')}`),file);
+    const url=await getDownloadURL(snap.ref);
+    const{db,ref,push,set}=window.fb;
+    await set(push(ref(db,`photo-sections/${subId}`)),{data:url,title,addedAt:Date.now()});
+    const titleEl=document.getElementById(`photo-title-${subId}`);if(titleEl)titleEl.value='';
+    input.value='';
+    loadAdminPhotos(subId);showSuccess('Photo uploaded! ✅');
+  }catch(e){
+    alert('Upload failed: '+e.message+'\n\nMake sure Firebase Storage rules allow writes (see instructions).');
+  }
+}
+async function loadAdminPhotos(subId){
+  try{
+    const{db,ref,get}=window.fb;
+    const snap=await get(ref(db,`photo-sections/${subId}`));
+    const photos=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
+    const el=document.getElementById(`admin-photos-${subId}`);
+    if(!el)return;
+    el.innerHTML=photos.map(p=>`
+      <div style="position:relative;display:inline-block;">
+        <img src="${p.data}" style="width:60px;height:46px;object-fit:cover;border-radius:7px;cursor:pointer;" onclick="openLightbox(this.src)">
+        <button onclick="deletePhoto('${subId}','${p.id}')" style="position:absolute;top:-5px;right:-5px;background:#ff4444;border:none;color:#fff;width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+      </div>`).join('');
+  }catch(e){}
+}
+async function deletePhoto(subId,photoId){
+  await window.fb.remove(window.fb.ref(window.fb.db,`photo-sections/${subId}/${photoId}`));
+  loadAdminPhotos(subId);
+}
+function openLightbox(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('active');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('active');}
+function closePhotoPage(){document.getElementById('photo-page').classList.remove('active');}
+
+// =============================================
+//  JSON IMPORT
+// =============================================
+const _importData={sat:null,ielts:null};
+
+function toggleImport(type){
+  const body=document.getElementById(`${type}-import-body`);
+  const arrow=document.getElementById(`${type}-import-arrow`);
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  arrow.style.transform=open?'rotate(0deg)':'rotate(-90deg)';
+}
+
+function loadImportFile(input,type){
+  const file=input.files[0];if(!file)return;
+  document.getElementById(`${type}-import-filename`).textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById(`${type}-import-json`).value=e.target.result;
+    _importData[type]=null;
+    document.getElementById(`${type}-import-preview`).style.display='none';
+    document.getElementById(`${type}-import-btn`).style.display='none';
+  };
+  reader.readAsText(file);
+}
+
+function previewImport(type){
+  const raw=document.getElementById(`${type}-import-json`).value.trim();
+  if(!raw){alert('Paste JSON or upload a file first');return;}
+  let data;
+  try{data=JSON.parse(raw);}catch(e){alert('Invalid JSON:\n'+e.message);return;}
+  const entries=Object.entries(data);
+  if(!entries.length){alert('JSON is empty');return;}
+  // Validate first entry has required fields
+  const[,first]=entries[0];
+  if(!first.w||!first.d){alert('Each entry must have at minimum "w" (word) and "d" (definition) fields');return;}
+  _importData[type]=data;
+  // Count by folder
+  const folderCounts={};
+  entries.forEach(([,v])=>{
+    const fn=v.folderName||'Uncategorized';
+    folderCounts[fn]=(folderCounts[fn]||0)+1;
+  });
+  document.getElementById(`${type}-import-count`).textContent=entries.length;
+  document.getElementById(`${type}-import-folders`).textContent=
+    'Folders: '+Object.entries(folderCounts).map(([fn,c])=>`${fn} (${c})`).join(' · ');
+  document.getElementById(`${type}-import-preview`).style.display='block';
+  document.getElementById(`${type}-import-btn`).style.display='block';
+}
+
+async function runImport(type){
+  if(!_importData[type]){alert('Click Preview first');return;}
+  const entries=Object.entries(_importData[type]);
+  if(!entries.length)return;
+  const btn=document.getElementById(`${type}-import-btn`);
+  const progress=document.getElementById(`${type}-import-progress`);
+  const bar=document.getElementById(`${type}-import-bar`);
+  const status=document.getElementById(`${type}-import-status`);
+  btn.disabled=true;btn.style.opacity='.6';
+  progress.style.display='block';
+  const{db,ref,set}=window.fb;
+  let done=0,errors=0;
+  for(const[key,word]of entries){
+    try{
+      // Use the original key from JSON as the Firebase key
+      const payload={w:word.w,d:word.d,folder:word.folder||'',folderName:word.folderName||''};
+      if(word.ant)payload.ant=word.ant;
+      if(word.ex)payload.ex=word.ex;
+      await set(ref(db,`${type}-words/${key}`),payload);
+      done++;
+    }catch(e){errors++;}
+    const pct=Math.round(((done+errors)/entries.length)*100);
+    bar.style.width=pct+'%';
+    status.textContent=`${done+errors} / ${entries.length} imported...`;
+    // Small yield to keep UI responsive
+    if((done+errors)%10===0)await new Promise(r=>setTimeout(r,0));
+  }
+  status.textContent=errors
+    ?`✅ ${done} imported, ⚠️ ${errors} failed`
+    :`✅ All ${done} words imported successfully!`;
+  bar.style.background=errors?'#f59e0b':'#16a34a';
+  btn.disabled=false;btn.style.opacity='';
+  _importData[type]=null;
+  // Reset UI
+  setTimeout(()=>{
+    document.getElementById(`${type}-import-json`).value='';
+    document.getElementById(`${type}-import-filename`).textContent='No file selected';
+    document.getElementById(`${type}-import-preview`).style.display='none';
+    document.getElementById(`${type}-import-btn`).style.display='none';
+    progress.style.display='none';
+    bar.style.width='0%';bar.style.background='#1d4ed8';
+  },4000);
+  _lastWordsHash[type]='';
+  await loadAdminWords(type);
+  showSuccess(`Imported ${done} words! ✅`);
+}
+
+// =============================================
+//  INIT
+// =============================================
+// =============================================
+//  QUESTION BANK
+// =============================================
+async function loadQBankAdmin(){
+  const{db,ref,get}=window.fb2;
+  const [satSnap,ieltsSnap]=await Promise.all([get(ref(db,'question-bank/sat')),get(ref(db,'question-bank/ielts'))]);
+  const items=[...Object.entries(satSnap.val()||{}).map(([k,v])=>({id:k,exam:'sat',...v})),...Object.entries(ieltsSnap.val()||{}).map(([k,v])=>({id:k,exam:'ielts',...v}))];
+  const el=document.getElementById('qb-list');
+  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:16px;font-size:13px;">No questions yet</p>';return;}
+  el.innerHTML=items.map(q=>`
+    <div class="item-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+        <div style="flex:1;">
+          <span style="font-size:10px;font-weight:800;background:#e8f0fe;color:#1d4ed8;padding:2px 8px;border-radius:10px;text-transform:uppercase;">${q.exam} · ${q.set||'general'}${q.tag?` · ${q.tag}`:''}</span>
+          <div class="item-row-title" style="margin-top:4px;">${q.q}</div>
+          <div class="item-row-sub">✓ ${q.correct} · ${q.options?.[q.correct]||''}</div>
+        </div>
+        <button class="btn-del" onclick="deleteQBankQuestion('${q.exam}','${q.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+async function addQBankQuestion(){
+  const q=document.getElementById('qb-q').value.trim();
+  const a=document.getElementById('qb-a').value.trim();
+  const b=document.getElementById('qb-b').value.trim();
+  const c=document.getElementById('qb-c').value.trim();
+  const d=document.getElementById('qb-d').value.trim();
+  const correct=document.getElementById('qb-correct').value;
+  const exam=document.getElementById('qb-exam').value;
+  const section=document.getElementById('qb-section').value;
+  const tag=(exam==='sat'?document.getElementById('qb-tag').value:document.getElementById('qb-ielts-theme').value).trim();
+  const explain=document.getElementById('qb-explain').value.trim();
+  if(!q||!a||!b||!c||!d||!correct||!tag){alert('Fill question, section, theme, all options and correct answer');return;}
+  const{db,ref,push,set}=window.fb2;
+  const payload={q,options:{A:a,B:b,C:c,D:d},correct,set:section};
+  if(tag)payload.tag=tag;
+  if(explain)payload.explain=explain;
+  if(recordImages.qbank)payload.image=recordImages.qbank;
+  await set(push(ref(db,`question-bank/${exam}`)),payload);
+  ['qb-q','qb-a','qb-b','qb-c','qb-d','qb-explain','qb-ielts-theme'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('qb-correct').value='';
+  clearRecordImage('qbank');
+  showSuccess('Question added! ✅');
+  loadQBankAdmin();
+}
+async function deleteQBankQuestion(exam,id){
+  if(!confirm('Delete this question?'))return;
+  await window.fb2.remove(window.fb2.ref(window.fb2.db,`question-bank/${exam}/${id}`));
+  showSuccess('Deleted!');loadQBankAdmin();
+}
+
+// =============================================
+//  DAILY QUESTION (separate from Question Bank)
+// =============================================
+async function loadDailyQuestionAdmin(){
+  const el=document.getElementById('daily-admin-status');if(!el||!window.fb2)return;
+  const{db,ref,get}=window.fb2;
+  try{
+    const [sat,ielts]=await Promise.all([get(ref(db,'daily-questions/sat/current')),get(ref(db,'daily-questions/ielts/current'))]);
+    const cards=[['SAT',sat.val()],['IELTS',ielts.val()]].map(([exam,item])=>{
+      if(!item)return `<div class="item-row"><div class="item-row-info"><div class="item-row-title">${exam}</div><div class="item-row-sub">No active daily question</div></div></div>`;
+      const active=Number(item.expiresAt||0)>Date.now();
+      const expiry=Number(item.expiresAt||0)?new Date(Number(item.expiresAt)).toLocaleString():'';
+      return `<div class="item-row"><div class="item-row-info"><div class="item-row-title">${exam}: ${item.q||'Untitled question'}</div><div class="item-row-sub">${active?'Active until':'Expired'} ${expiry}</div></div></div>`;
+    });
+    el.innerHTML=cards.join('');
+  }catch(e){el.innerHTML=`<p style="color:#fca5a5;font-size:13px;">Could not load daily question: ${e.message}</p>`;}
+}
+
+async function publishDailyQuestion(){
+  const value=id=>document.getElementById(id).value.trim();
+  const exam=value('daily-exam'),set=value('daily-set'),tag=value('daily-tag'),q=value('daily-q'),passage=value('daily-passage');
+  const answers={A:value('daily-a'),B:value('daily-b'),C:value('daily-c'),D:value('daily-d')};
+  const correct=value('daily-correct'),explain=value('daily-explain');
+  if(!tag||!q||!correct||!Object.values(answers).every(Boolean)){alert('Fill topic, question, all four options, and the correct answer.');return;}
+  const publishedAt=Date.now();
+  const payload={q,options:answers,correct,set,tag,publishedAt,expiresAt:publishedAt+(24*60*60*1000)};
+  if(passage)payload.passage=passage;if(explain)payload.explain=explain;if(recordImages.daily)payload.image=recordImages.daily;
+  try{
+    const{db,ref,set:write}=window.fb2;await write(ref(db,`daily-questions/${exam}/current`),payload);
+    ['daily-tag','daily-passage','daily-q','daily-a','daily-b','daily-c','daily-d','daily-explain'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('daily-correct').value='';clearRecordImage('daily');
+    showSuccess('Daily question published for 24 hours.');loadDailyQuestionAdmin();
+  }catch(e){alert(`Could not publish: ${e.message}`);}
+}
+
+async function clearDailyQuestion(){
+  if(!confirm('Remove the current daily question for the selected exam?'))return;
+  const exam=document.getElementById('daily-exam').value;
+  try{await window.fb2.remove(window.fb2.ref(window.fb2.db,`daily-questions/${exam}/current`));showSuccess('Daily question removed.');loadDailyQuestionAdmin();}
+  catch(e){alert(`Could not remove: ${e.message}`);}
+}
+
+// =============================================
+//  MOCK TESTS
+// =============================================
+function switchMockTab(path, btn){
+  document.getElementById('mock-current-path').value = path;
+  document.querySelectorAll('.mock-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadMockTests();
+}
+async function loadMockTests(){
+  const path = document.getElementById('mock-current-path').value;
+  const{db,ref,get}=window.fb;
+  const snap = await get(ref(db,`mocks/${path}`));
+  const items = snap.val() ? Object.entries(snap.val()).map(([k,v])=>({id:k,...v})) : [];
+  const el = document.getElementById('mock-list');
+  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:16px;font-size:13px;">No tests yet</p>';return;}
+  el.innerHTML = items.map(t=>`
+    <div class="item-row">
+      <div class="item-row-info">
+        <div class="item-row-title">${t.title}</div>
+        <div class="item-row-sub">${t.url}${t.desc?` · ${t.desc}`:''}</div>
+      </div>
+      <button class="btn-del" onclick="deleteMockTest('${path}','${t.id}')">🗑️</button>
+    </div>`).join('');
+}
+async function addMockTest(){
+  const path = document.getElementById('mock-current-path').value;
+  const title = document.getElementById('mock-title').value.trim();
+  const url   = document.getElementById('mock-url').value.trim();
+  const desc  = document.getElementById('mock-desc').value.trim();
+  if(!title||!url){alert('Fill title and URL');return;}
+  const{db,ref,push,set}=window.fb;
+  await set(push(ref(db,`mocks/${path}`)),{title,url,...(desc?{desc}:{}),...(recordImages.mock?{image:recordImages.mock}:{})});
+  document.getElementById('mock-title').value='';
+  document.getElementById('mock-url').value='';
+  document.getElementById('mock-desc').value='';
+  clearRecordImage('mock');
+  showSuccess('Test added! ✅');
+  loadMockTests();
+}
+async function deleteMockTest(path,id){
+  if(!confirm('Delete this test?'))return;
+  await window.fb.remove(window.fb.ref(window.fb.db,`mocks/${path}/${id}`));
+  showSuccess('Deleted!');loadMockTests();
+}
+
+// =============================================
+//  INIT
+// =============================================
+window.addEventListener('fbReady',()=>{
+  initMaterialJsonImporters();
+  loadAdminAll();
+  loadMockTests();
+  loadQBankAdmin();
+  loadDailyQuestionAdmin();
+});
+if(window.fb){initMaterialJsonImporters();loadAdminAll();loadMockTests();loadQBankAdmin();loadDailyQuestionAdmin();}
+</script>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCdA6I-a8eYZz1NFUpctYLIa-h56Rh1jNU",
+    authDomain: "dataluminary.firebaseapp.com",
+    databaseURL: "https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "dataluminary",
+    storageBucket: "dataluminary.firebasestorage.app",
+    messagingSenderId: "136281703091",
+    appId: "1:136281703091:web:632b8d1bbb202f9d95a6c6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const storage = getStorage(app);
+  window.fbStorage = { storage, ref: sRef, uploadBytes, getDownloadURL };
+
+  const app2 = initializeApp({
+    apiKey: "AIzaSyDOt_G1cP7GKogZ4A_5LjPYX1VAO_JDR7M",
+    authDomain: "luminary-46748.firebaseapp.com",
+    databaseURL: "https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "luminary-46748",
+    storageBucket: "luminary-46748.firebasestorage.app",
+    messagingSenderId: "43189176496",
+    appId: "1:43189176496:web:dc79880e682e4dea7e9375"
+  }, 'secondary');
+  const db2 = getDatabase(app2);
+
+  window.fb  = { db,  ref, get, set, push, remove };
+  window.fb2 = { db: db2, ref, get, set, push, remove };
+  window.dispatchEvent(new Event('fbReady'));
+</script>
+</body>
+</html>

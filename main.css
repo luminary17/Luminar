@@ -315,10 +315,12 @@ button.question-counter:hover { border-color: var(--accent); color: var(--accent
   .test-topbar { padding: 8px 12px; }
   .directions-label { display: none; }
   .question-item { grid-column: auto; }
-  .test-body { overflow-y: auto; }
-  .question-workspace, .question-workspace.is-with-passage { grid-template-columns: 1fr; width: 100%; height: auto; min-height: 100%; }
-  .passage-copy { max-height: 42vh; border-right: 0; border-bottom: 1px solid var(--line); padding: 24px 20px; }
-  .answer-column { overflow: visible; }
+  .test-body { overflow: hidden; overscroll-behavior: none; }
+  .question-workspace, .question-workspace.is-with-passage { grid-template-columns: 1fr; width: 100%; height: 100%; min-height: 0; }
+  .question-workspace.is-with-passage { grid-template-rows: minmax(150px, 42vh) minmax(0, 1fr); }
+  .question-workspace:not(.is-with-passage) { grid-template-rows: minmax(0, 1fr); }
+  .passage-copy { max-height: none; border-right: 0; border-bottom: 1px solid var(--line); padding: 24px 20px; }
+  .answer-column { min-height: 0; overflow-y: auto; scrollbar-width: none; }
   .question-copy { padding: 28px 20px 20px; }
   .answer-list { padding: 0 20px; }
   .answer-row { grid-template-columns: minmax(0, 1fr) 32px; gap: 8px; }

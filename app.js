@@ -64,6 +64,7 @@ let explanationOpen = false;
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
 const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
+const dailyQuestionStore = { sat: { status: 'idle', question: null }, ielts: { status: 'idle', question: null } };
 const questionTopicCache = { sat: {}, ielts: {} };
 const questionBankLoads = {};
 let questionSetLoading = false;
@@ -185,14 +186,49 @@ function renderHome() {
     const days = Math.ceil((new Date(`${date}T12:00:00`) - new Date()) / 86400000);
     $('goal-countdown').textContent = days > 0 ? plural(days, 'day') : days === 0 ? 'Today' : 'Date passed';
   } else $('goal-countdown').textContent = 'Set your date';
+  const daily = dailyQuestionStore[state.profile.exam];
+  if (daily.status === 'idle') loadDailyQuestion(state.profile.exam);
   $('daily-title').textContent = isIelts ? 'Daily IELTS question' : 'Daily SAT question';
-  $('daily-copy').textContent = 'A separate daily task will appear here when its own material is connected.';
-  $('daily-action').disabled = true;
-  $('daily-action').textContent = 'Not available yet';
+  if (daily.status === 'loading') {
+    $('daily-copy').textContent = 'Loading today\'s separate question...';
+    $('daily-action').disabled = true;
+    $('daily-action').textContent = 'Loading';
+  } else if (daily.question) {
+    $('daily-copy').textContent = 'Available for today only.';
+    $('daily-action').disabled = false;
+    $('daily-action').textContent = 'Start daily question';
+  } else {
+    $('daily-copy').textContent = 'No daily question has been published for today.';
+    $('daily-action').disabled = true;
+    $('daily-action').textContent = 'Not available';
+  }
   $('stat-focus').textContent = isIelts ? 'IELTS' : 'SAT';
   $('stat-sessions').textContent = state.progress.sessions || 0;
   $('stat-streak').textContent = state.progress.streak || 0;
   $('sidebar-name').textContent = state.profile.name || 'Learner';
+}
+
+async function loadDailyQuestion(exam) {
+  const store = dailyQuestionStore[exam];
+  if (store.status === 'loading' || store.status === 'ready') return;
+  store.status = 'loading';
+  try {
+    const item = await fetchDatabaseData(QUESTION_DATABASE_URL, `daily-questions/${exam}/current`, 12000);
+    const expiresAt = Number(item?.expiresAt || 0);
+    if (!item || !expiresAt || expiresAt <= Date.now()) {
+      store.question = null;
+      store.status = 'expired';
+      return;
+    }
+    const question = remoteQuestion('current', item, `daily-${exam}-${Number(item.publishedAt || expiresAt)}`);
+    store.question = validRemoteQuestion(question) ? question : null;
+    store.status = store.question ? 'ready' : 'error';
+  } catch {
+    store.question = null;
+    store.status = 'error';
+  } finally {
+    if (state.profile.exam === exam) renderHome();
+  }
 }
 
 function getMaterials(category) {
@@ -1065,6 +1101,10 @@ function bindEvents() {
   $('explanation-toggle').addEventListener('click', () => { explanationOpen = !explanationOpen; renderQuestion(); });
   $('pause-timer').addEventListener('click', toggleTimer);
   $('hide-timer').addEventListener('click', toggleTimerVisibility);
+  $('daily-action').addEventListener('click', () => {
+    const question = dailyQuestionStore[state.profile.exam].question;
+    if (question) startPractice(question.set, 0, [question], 'daily');
+  });
   $('back-to-materials').addEventListener('click', backToMaterials);
   $('back-to-vocab').addEventListener('click', () => openPage('vocab'));
   $('back-to-vocab-study').addEventListener('click', () => openPage('vocab-study'));
