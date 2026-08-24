@@ -557,18 +557,18 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
   store.status = 'loading';
   questionBankLoads[exam] = (async () => {
     try {
-      const cachedItems = await readQuestionCache(exam);
-      if (cachedItems?.length) {
-        store.items = cachedItems;
-        store.status = 'ready';
-        return store.items;
-      }
       const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
       store.items = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
       store.status = 'ready';
       writeQuestionCache(exam, store.items);
       return store.items;
     } catch {
+      const cachedItems = await readQuestionCache(exam);
+      if (cachedItems?.length) {
+        store.items = cachedItems;
+        store.status = 'ready';
+        return store.items;
+      }
       store.status = 'error';
       return [];
     } finally {
