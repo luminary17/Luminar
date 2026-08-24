@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4efe7">
+  <meta name="theme-color" content="#111827">
   <title>Luminary</title>
-  <link rel="stylesheet" href="main.css?v=23">
+  <link rel="stylesheet" href="main.css?v=24">
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar" aria-label="Luminary navigation">
+    <aside class="sidebar" id="sidebar" aria-label="Luminary navigation">
       <button class="brand" type="button" data-page="home"><span class="brand-square">L</span><span><b>Luminary</b><small>Student workspace</small></span></button>
       <div class="exam-toggle" aria-label="Exam selection">
         <button class="exam-choice is-active" data-exam="sat" type="button">SAT</button>
@@ -29,8 +29,9 @@
       <button class="auth-button" id="auth-button" type="button">Continue with Google</button>
     </aside>
 
+    <button class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" type="button" aria-label="Close navigation"></button>
     <main class="content">
-      <header class="mobile-header"><button class="brand-square" type="button" data-page="home">L</button><div class="exam-toggle"><button class="exam-choice is-active" data-exam="sat" type="button">SAT</button><button class="exam-choice" data-exam="ielts" type="button">IELTS</button></div></header>
+      <header class="mobile-header"><button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation"><span></span><span></span><span></span></button><button class="brand-square" type="button" data-page="home">L</button><div class="exam-toggle"><button class="exam-choice is-active" data-exam="sat" type="button">SAT</button><button class="exam-choice" data-exam="ielts" type="button">IELTS</button></div></header>
 
       <section class="page is-active" id="home-page">
         <div class="page-intro"><p class="kicker" id="home-kicker">SAT plan</p><h1>Your goal, clearly.</h1><p id="home-copy">Choose one focused task and keep moving.</p></div>
@@ -112,7 +113,7 @@
     <section class="question-navigator is-hidden" id="question-navigator" role="dialog" aria-modal="true" aria-labelledby="navigator-title"><div class="navigator-card"><header><h2 id="navigator-title">Questions</h2><button class="tool-button" id="close-question-navigator" type="button">Close</button></header><div class="navigator-grid" id="navigator-grid"></div></div></section>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=7"></script>

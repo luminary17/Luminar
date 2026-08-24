@@ -3,7 +3,7 @@
 window.luminaryAppLoaded = true;
 
 const THEMES = {
-  coffee: { name: 'Beige & White', bg: '#f4efe7', surface: '#fffdf9', surfaceRaised: '#ffffff', sidebar: '#31251d', sidebarSurface: '#4a382b', text: '#30251c', textSoft: '#786958', textMuted: '#958677', line: '#dfd1bd', accent: '#ca983e', accentHover: '#ae7e30', accentSoft: '#f1dfbb', onAccent: '#2d2118', sideText: '#fffaf2', sideMuted: '#cbbba8', success: '#2d7a58', danger: '#af4c43' },
+  coffee: { name: 'Cappuccino White', bg: '#f5f0e8', surface: '#fffdfa', surfaceRaised: '#ffffff', sidebar: '#3b2a21', sidebarSurface: '#554035', text: '#30251f', textSoft: '#786758', textMuted: '#9b8978', line: '#dfcfbd', accent: '#b7854b', accentHover: '#966a37', accentSoft: '#f0dfc7', onAccent: '#2d2119', sideText: '#fffaf4', sideMuted: '#d5c2ae', success: '#2d7a58', danger: '#af4c43' },
   dark: { name: 'Dark', bg: '#171717', surface: '#222222', surfaceRaised: '#2b2b2b', sidebar: '#101010', sidebarSurface: '#303030', text: '#f7f3ed', textSoft: '#c2bbb1', textMuted: '#938b82', line: '#42403d', accent: '#d3a75a', accentHover: '#e2bb73', accentSoft: '#40331e', onAccent: '#241b10', sideText: '#faf7f1', sideMuted: '#bdb6ad', success: '#69bb8c', danger: '#ed8279' },
   navy: { name: 'Dark Blue', bg: '#111827', surface: '#182235', surfaceRaised: '#202c42', sidebar: '#0b1220', sidebarSurface: '#1c2b43', text: '#f3f7ff', textSoft: '#b7c4d9', textMuted: '#8594ab', line: '#34445c', accent: '#71b5ee', accentHover: '#9bcdf3', accentSoft: '#183b5d', onAccent: '#09253d', sideText: '#f5f9ff', sideMuted: '#b5c2d7', success: '#65c5a1', danger: '#ef8c92' },
   purple: { name: 'Dark Purple', bg: '#1b1422', surface: '#251b30', surfaceRaised: '#30223d', sidebar: '#120d18', sidebarSurface: '#372744', text: '#faf4ff', textSoft: '#d2c1dc', textMuted: '#a791b2', line: '#4b395b', accent: '#c69ce6', accentHover: '#dcbaef', accentSoft: '#442c58', onAccent: '#281537', sideText: '#fff8ff', sideMuted: '#d0bfd9', success: '#75bd9b', danger: '#ef92a0' },
@@ -12,7 +12,7 @@ const THEMES = {
 };
 
 const DEFAULT_STATE = {
-  profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' },
+  profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'navy' },
   progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [] },
   studyPlan: { setup: null, generatedAt: 0, tasks: [] }
 };
@@ -115,7 +115,7 @@ function mergeState(next) {
       tasks: Array.isArray(next?.studyPlan?.tasks) ? next.studyPlan.tasks : []
     }
   };
-  if (!THEMES[state.profile.theme]) state.profile.theme = 'coffee';
+  if (!THEMES[state.profile.theme] || state.profile.theme === 'coffee') state.profile.theme = 'navy';
   if (!['sat', 'ielts'].includes(state.profile.exam)) state.profile.exam = 'sat';
   const savedGoals = next?.profile?.goals || {};
   state.profile.goals = {
@@ -155,7 +155,7 @@ async function persist() {
 }
 
 function applyTheme(themeId) {
-  const id = THEMES[themeId] ? themeId : 'coffee';
+  const id = THEMES[themeId] ? themeId : 'navy';
   state.profile.theme = id;
   const palette = THEMES[id];
   Object.entries(palette).forEach(([key, value]) => {
@@ -171,6 +171,16 @@ function showToast(message) {
   toast.classList.add('is-shown');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('is-shown'), 2800);
+}
+
+function setMobileDrawer(open) {
+  const sidebar = $('sidebar');
+  const backdrop = $('mobile-drawer-backdrop');
+  if (!sidebar || !backdrop) return;
+  sidebar.classList.toggle('is-open', open);
+  backdrop.classList.toggle('is-visible', open);
+  $('mobile-menu-button').setAttribute('aria-expanded', String(open));
+  document.body.classList.toggle('is-drawer-open', open);
 }
 
 function setExam(exam, returnHome = true) {
@@ -1360,9 +1370,9 @@ function bindEvents() {
   window.addEventListener('luminary:auth-error', (event) => showToast(event.detail));
   document.addEventListener('click', (event) => {
     const exam = event.target.closest('[data-exam]');
-    if (exam) { setExam(exam.dataset.exam); persist(); return; }
+    if (exam) { setExam(exam.dataset.exam); setMobileDrawer(false); persist(); return; }
     const page = event.target.closest('[data-page]');
-    if (page) { currentSkill = page.dataset.skill || ''; openPage(page.dataset.page); renderLearn(); renderVocab(); renderProblems(); renderMocks(); return; }
+    if (page) { currentSkill = page.dataset.skill || ''; openPage(page.dataset.page); setMobileDrawer(false); renderLearn(); renderVocab(); renderProblems(); renderMocks(); return; }
     const theme = event.target.closest('[data-theme]');
     if (theme) { applyTheme(theme.dataset.theme); persist(); showToast(`${THEMES[theme.dataset.theme].name} palette selected.`); return; }
     const mock = event.target.closest('[data-start-mock]');
@@ -1418,6 +1428,9 @@ function bindEvents() {
   $('explanation-toggle').addEventListener('click', () => { explanationOpen = !explanationOpen; renderQuestion(); });
   $('pause-timer').addEventListener('click', toggleTimer);
   $('hide-timer').addEventListener('click', toggleTimerVisibility);
+  $('mobile-menu-button').addEventListener('click', () => setMobileDrawer(!$('sidebar').classList.contains('is-open')));
+  $('mobile-drawer-backdrop').addEventListener('click', () => setMobileDrawer(false));
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMobileDrawer(false); });
   $('daily-action').addEventListener('click', () => {
     const question = dailyQuestionStore[state.profile.exam].question;
     if (question) startPractice(question.set, 0, [question], 'daily');
