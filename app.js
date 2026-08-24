@@ -57,6 +57,7 @@ let timerRunning = false;
 let timerHidden = false;
 let timerHandle = null;
 let toastTimer;
+let goalSaveTimer;
 let draftAnswers = {};
 let checkedAnswers = {};
 let practiceMode = 'bank';
@@ -1034,6 +1035,12 @@ function previewGoal() {
   renderHome();
 }
 
+function saveGoalChoice() {
+  previewGoal();
+  clearTimeout(goalSaveTimer);
+  goalSaveTimer = setTimeout(() => persist(), 250);
+}
+
 function applyAuthenticatedUser(user) {
   if (!user?.name || state.profile.name) return;
   state.profile.name = user.name;
@@ -1127,9 +1134,10 @@ function bindEvents() {
     syncProfileForm();
     renderHome();
   });
-  $('profile-score').addEventListener('change', previewGoal);
-  $('profile-sat-date').addEventListener('change', previewGoal);
-  $('profile-date').addEventListener('change', previewGoal);
+  ['profile-score', 'profile-sat-date', 'profile-date'].forEach((id) => {
+    $(id).addEventListener('change', saveGoalChoice);
+    $(id).addEventListener('input', saveGoalChoice);
+  });
   $('profile-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const exam = $('profile-exam').value;
