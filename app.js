@@ -13,7 +13,8 @@ const THEMES = {
 
 const DEFAULT_STATE = {
   profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' },
-  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {} }
+  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [] },
+  studyPlan: { setup: null, generatedAt: 0, tasks: [] }
 };
 
 const SAT_DATES = ['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03'];
@@ -61,6 +62,8 @@ let goalSaveTimer;
 let draftAnswers = {};
 let checkedAnswers = {};
 let practiceMode = 'bank';
+let activePlanTaskId = '';
+let questionOpenedAt = 0;
 let explanationOpen = false;
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
@@ -103,7 +106,13 @@ function mergeState(next) {
       lastSessionDate: String(progress.lastSessionDate || ''),
       answers: { ...DEFAULT_STATE.progress.answers, ...(progress.answers || {}) },
       marked: { ...DEFAULT_STATE.progress.marked, ...(progress.marked || {}) },
-      eliminated: { ...DEFAULT_STATE.progress.eliminated, ...(progress.eliminated || {}) }
+      eliminated: { ...DEFAULT_STATE.progress.eliminated, ...(progress.eliminated || {}) },
+      questionHistory: Array.isArray(progress.questionHistory) ? progress.questionHistory.slice(-600) : []
+    },
+    studyPlan: {
+      ...DEFAULT_STATE.studyPlan,
+      ...(next?.studyPlan || {}),
+      tasks: Array.isArray(next?.studyPlan?.tasks) ? next.studyPlan.tasks : []
     }
   };
   if (!THEMES[state.profile.theme]) state.profile.theme = 'coffee';
@@ -113,6 +122,10 @@ function mergeState(next) {
     sat: { ...DEFAULT_STATE.profile.goals.sat, ...(savedGoals.sat || {}) },
     ielts: { ...DEFAULT_STATE.profile.goals.ielts, ...(savedGoals.ielts || {}) }
   };
+  // Exam dates are intentionally session-only until date persistence is enabled.
+  state.profile.goals.sat.date = '';
+  state.profile.goals.ielts.date = '';
+  if (state.studyPlan.setup) state.studyPlan.setup.date = '';
   if (!savedGoals.sat && !savedGoals.ielts) {
     state.profile.goals[state.profile.exam] = { target: state.profile.target || '', date: state.profile.date || '' };
   }
@@ -132,8 +145,13 @@ function setActiveGoal(target, date) {
 }
 
 async function persist() {
-  try { await api('/api/state', { method: 'PUT', body: JSON.stringify(state) }); }
-  catch { localStorage.setItem('luminary-state', JSON.stringify(state)); showToast('Saved in this browser while the local server is unavailable.'); }
+  const savedState = structuredClone(state);
+  savedState.profile.goals.sat.date = '';
+  savedState.profile.goals.ielts.date = '';
+  savedState.profile.date = '';
+  if (savedState.studyPlan.setup) savedState.studyPlan.setup.date = '';
+  try { await api('/api/state', { method: 'PUT', body: JSON.stringify(savedState) }); }
+  catch { localStorage.setItem('luminary-state', JSON.stringify(savedState)); showToast('Saved in this browser while the local server is unavailable.'); }
 }
 
 function applyTheme(themeId) {
@@ -173,6 +191,7 @@ function setExam(exam, returnHome = true) {
   renderVocab();
   renderProblems();
   renderMocks();
+  renderStudyPlan();
   if (returnHome) openPage('home');
 }
 
@@ -207,6 +226,272 @@ function renderHome() {
   $('stat-sessions').textContent = state.progress.sessions || 0;
   $('stat-streak').textContent = state.progress.streak || 0;
   $('sidebar-name').textContent = state.profile.name || 'Learner';
+  const plan = state.studyPlan;
+  const todayTask = plan.tasks.find((task) => task.date === localDateKey(new Date()) && task.status !== 'completed' && task.status !== 'skipped');
+  $('home-plan-card').hidden = isIelts || !plan.setup;
+  if (!isIelts && plan.setup) {
+    $('home-plan-copy').textContent = todayTask ? `${todayTask.title} · about ${todayTask.minutes} min` : 'Today is clear. Review your upcoming plan.';
+    $('home-plan-action').textContent = todayTask ? 'Start today\'s task' : 'Open study plan';
+    $('home-plan-action').dataset.planTask = todayTask?.id || '';
+  }
+}
+
+function localDateKey(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+}
+
+function planDayOffset(date, days) {
+  const copy = new Date(`${date}T12:00:00`);
+  copy.setDate(copy.getDate() + days);
+  return localDateKey(copy);
+}
+
+function satGoalOptions() {
+  return Array.from({ length: 121 }, (_, index) => String(400 + index * 10));
+}
+
+function balancedSectionScore(total, preferred = 0) {
+  const value = Math.max(400, Math.min(1600, Number(total) || 400));
+  const split = preferred || Math.round(value / 20) * 10;
+  return Math.max(200, Math.min(800, split));
+}
+
+function emptyPlanSetup() {
+  const goal = state.profile.goals.sat || {};
+  const target = goal.target || '';
+  const targetRw = target ? balancedSectionScore(target) : '';
+  return { currentTotal: '', currentRw: '', currentMath: '', target, targetRw, targetMath: target ? String(Number(target) - Number(targetRw)) : '', weakTopics: [], date: goal.date || '', minutes: 60 };
+}
+
+function estimateDomainStats() {
+  const history = state.progress.questionHistory || [];
+  const domains = SAT_CATEGORIES.rw.concat(SAT_CATEGORIES.math);
+  return Object.fromEntries(domains.map((domain) => {
+    const attempts = history.filter((entry) => entry.exam === 'sat' && entry.domain === domain);
+    const correct = attempts.filter((entry) => entry.correct).length;
+    const recent = attempts.slice(-30);
+    const recentCorrect = recent.filter((entry) => entry.correct).length;
+    const responseSeconds = recent.map((entry) => Number(entry.responseSeconds) || 0).filter(Boolean);
+    return [domain, { attempts: attempts.length, accuracy: attempts.length ? correct / attempts.length : null, recentAccuracy: recent.length ? recentCorrect / recent.length : null, repeatedErrors: recent.filter((entry) => !entry.correct).length, averageSeconds: responseSeconds.length ? responseSeconds.reduce((sum, value) => sum + value, 0) / responseSeconds.length : null }];
+  }));
+}
+
+function planPhase(daysLeft) {
+  if (daysLeft <= 10) return 'Final review';
+  if (daysLeft <= 30) return 'Performance phase';
+  if (daysLeft <= 75) return 'Skill-building phase';
+  return 'Foundation phase';
+}
+
+function rankedPlanDomains(setup) {
+  const stats = estimateDomainStats();
+  const rwGap = Math.max(0, Number(setup.targetRw || 0) - Number(setup.currentRw || 0));
+  const mathGap = Math.max(0, Number(setup.targetMath || 0) - Number(setup.currentMath || 0));
+  const selected = new Set(setup.weakTopics || []);
+  const defaults = ['Standard English Conventions', 'Information and Ideas', 'Advanced Math', 'Algebra', 'Problem-Solving and Data Analysis', 'Craft and Structure', 'Expression of Ideas', 'Geometry and Trigonometry'];
+  return [...SAT_CATEGORIES.rw, ...SAT_CATEGORIES.math].sort((a, b) => {
+    const score = (domain) => {
+      const item = stats[domain];
+      const selectedDomain = [...selected].some((topic) => topic === domain || topic.startsWith(`${domain}::`));
+      const goalGap = SAT_CATEGORIES.rw.includes(domain) ? rwGap : mathGap;
+      const observed = item?.recentAccuracy ?? item?.accuracy;
+      const weakness = observed === null || observed === undefined ? 55 : (1 - observed) * 100;
+      const recentDecline = item?.recentAccuracy !== null && item?.accuracy !== null ? Math.max(0, item.accuracy - item.recentAccuracy) * 45 : 0;
+      const repeatWeight = Math.min(item?.repeatedErrors || 0, 8) * 2;
+      const paceWeight = item?.averageSeconds && item.averageSeconds > 75 ? Math.min(12, (item.averageSeconds - 75) / 8) : 0;
+      const selfReport = selectedDomain ? 24 : 0;
+      const exposure = Math.min(item?.attempts || 0, 20) * .25;
+      return -(weakness + goalGap * .13 + recentDecline + repeatWeight + paceWeight + selfReport - exposure) + defaults.indexOf(domain) * .01;
+    };
+    return score(a) - score(b);
+  });
+}
+
+function makePlanTask(date, domain, index, setup, phase) {
+  const set = SAT_CATEGORIES.rw.includes(domain) ? 'rw' : 'math';
+  const minutes = Number(setup.minutes) || 60;
+  const selectedSkills = (setup.weakTopics || []).filter((topic) => topic.startsWith(`${domain}::`)).map((topic) => topic.split('::')[1]);
+  const skill = selectedSkills[index % Math.max(1, selectedSkills.length)] || '';
+  const stats = estimateDomainStats()[domain];
+  const weaknessFactor = stats?.recentAccuracy === null || stats?.recentAccuracy === undefined ? 1 : Math.max(.7, 1.45 - stats.recentAccuracy);
+  const accuracy = stats?.recentAccuracy ?? stats?.accuracy;
+  const difficulty = accuracy === null || accuracy === undefined ? '' : accuracy >= .82 ? 'Hard' : accuracy <= .62 ? 'Easy' : 'Medium';
+  const count = Math.max(4, Math.min(18, Math.round((minutes / 7) * weaknessFactor)));
+  return {
+    id: `plan-${date}-${domain.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${index}`,
+    date,
+    type: 'practice',
+    set,
+    domain,
+    skill,
+    difficulty,
+    title: skill ? `${domain}: ${skill}` : `${domain} practice`,
+    minutes: Math.min(minutes, Math.max(20, count * 5)),
+    questionCount: count,
+    phase,
+    status: 'not_started',
+    createdAt: Date.now(),
+    completedAt: 0,
+    performance: null
+  };
+}
+
+function generateStudyPlan(setup, preserveCompleted = true) {
+  const savedTasks = preserveCompleted ? state.studyPlan.tasks.filter((task) => task.status === 'completed' || task.status === 'skipped' || task.status === 'in_progress') : [];
+  const today = localDateKey(new Date());
+  const daysLeft = setup.date ? Math.max(1, Math.ceil((new Date(`${setup.date}T12:00:00`) - new Date()) / 86400000)) : 28;
+  const horizon = Math.min(21, Math.max(7, daysLeft));
+  const phase = planPhase(daysLeft);
+  const domains = rankedPlanDomains(setup);
+  const tasks = [];
+  for (let index = 0; index < horizon; index += 1) {
+    const date = planDayOffset(today, index);
+    const completedForDay = savedTasks.find((task) => task.date === date);
+    if (completedForDay) continue;
+    tasks.push(makePlanTask(date, domains[index % domains.length], index, setup, phase));
+  }
+  state.studyPlan = { setup: { ...setup }, generatedAt: Date.now(), tasks: [...savedTasks, ...tasks] };
+  persist();
+}
+
+function renderStudyPlan() {
+  const page = $('plan-page');
+  const isSat = state.profile.exam === 'sat';
+  page.querySelector('.plan-sat-only').hidden = !isSat;
+  page.querySelector('.plan-unsupported').hidden = isSat;
+  if (!isSat) return;
+  const plan = state.studyPlan;
+  const setup = plan.setup;
+  $('plan-setup').hidden = Boolean(setup);
+  $('plan-dashboard').hidden = !setup;
+  if (!setup) {
+    const draft = emptyPlanSetup();
+    const scores = satGoalOptions();
+    const sectionScores = Array.from({ length: 61 }, (_, index) => String(200 + index * 10));
+    const optionList = (items, label) => `<option value="">${label}</option>${items.map((value) => `<option value="${value}">${value}</option>`).join('')}`;
+    $('plan-current-total').innerHTML = optionList(scores, 'Choose score');
+    $('plan-current-rw').innerHTML = optionList(sectionScores, 'Optional');
+    $('plan-current-math').innerHTML = optionList(sectionScores, 'Optional');
+    $('plan-target').innerHTML = optionList(scores, 'Choose target');
+    $('plan-target-rw').innerHTML = optionList(sectionScores, 'Choose target');
+    $('plan-target-math').innerHTML = optionList(sectionScores, 'Choose target');
+    $('plan-date').innerHTML = `<option value="">Choose test date</option>${SAT_DATES.map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
+    $('plan-current-total').value = draft.currentTotal;
+    $('plan-current-rw').value = draft.currentRw;
+    $('plan-current-math').value = draft.currentMath;
+    $('plan-target').value = draft.target;
+    $('plan-target-rw').value = draft.targetRw;
+    $('plan-target-math').value = draft.targetMath;
+    $('plan-date').value = draft.date;
+    $('plan-minutes').value = String(draft.minutes);
+    $('plan-weaknesses').innerHTML = ['rw', 'math'].map((set) => `<section class="plan-weakness-set"><h3>${questionSetName(set)}</h3>${(SAT_TOPIC_GROUPS[set] || []).map((group) => `<div class="plan-weakness-group"><label><input type="checkbox" data-plan-weak="${escapeHtml(group.title)}"><strong>${escapeHtml(group.title)}</strong></label><div>${group.topics.map((topic) => `<label><input type="checkbox" data-plan-weak="${escapeHtml(`${group.title}::${topic}`)}">${escapeHtml(topic)}</label>`).join('')}</div></div>`).join('')}</section>`).join('');
+    return;
+  }
+  const today = localDateKey(new Date());
+  const daysLeft = setup.date ? Math.max(0, Math.ceil((new Date(`${setup.date}T12:00:00`) - new Date()) / 86400000)) : null;
+  const todayTask = plan.tasks.find((task) => task.date === today && task.status !== 'completed' && task.status !== 'skipped');
+  const completed = plan.tasks.filter((task) => task.status === 'completed').length;
+  $('plan-phase').textContent = planPhase(daysLeft ?? 999);
+  $('plan-summary').textContent = `${setup.currentTotal || 'Current score not set'} to ${setup.target || 'target not set'}${daysLeft !== null ? ` · ${plural(daysLeft, 'day')} left` : ''}`;
+  $('plan-completion').textContent = `${completed} completed`;
+  $('plan-today').innerHTML = todayTask ? renderPlanTask(todayTask, true) : '<article class="plan-empty"><strong>Nothing left for today.</strong><span>Your next focused task is already scheduled.</span></article>';
+  const upcoming = plan.tasks.filter((task) => task.date > today && task.status !== 'skipped').slice(0, 6);
+  $('plan-upcoming').innerHTML = upcoming.length ? upcoming.map((task) => renderPlanTask(task)).join('') : '<article class="plan-empty"><strong>Your schedule is clear.</strong></article>';
+  const week = Array.from({ length: 7 }, (_, index) => planDayOffset(today, index));
+  $('plan-calendar').innerHTML = week.map((date) => {
+    const task = plan.tasks.find((item) => item.date === date && item.status !== 'skipped');
+    return `<article class="plan-day ${task?.status === 'completed' ? 'is-complete' : ''}"><span>${dateText(date).replace(/, \d{4}/, '')}</span><strong>${task ? escapeHtml(task.domain) : 'Recovery'}</strong><small>${task ? `${task.minutes} min` : 'No task'}</small></article>`;
+  }).join('');
+}
+
+function renderPlanTask(task, featured = false) {
+  const status = task.status === 'completed' ? 'Completed' : task.status === 'in_progress' ? 'In progress' : `${task.questionCount} questions · ${task.minutes} min${task.difficulty ? ` · ${task.difficulty}` : ''}`;
+  return `<article class="plan-task ${featured ? 'is-featured' : ''} ${task.status === 'completed' ? 'is-complete' : ''}"><div><p>${escapeHtml(task.date === localDateKey(new Date()) ? 'Today' : dateText(task.date))}</p><h3>${escapeHtml(task.title)}</h3><span>${escapeHtml(task.phase)} · ${status}</span></div>${task.status === 'completed' ? '<strong class="task-complete">Completed</strong>' : `<div class="plan-task-actions"><button class="button button-quiet" data-plan-skip="${escapeHtml(task.id)}" type="button">Skip</button><button class="button button-primary" data-plan-task="${escapeHtml(task.id)}" type="button">Start</button></div>`}</article>`;
+}
+
+function syncTargetSections(changed) {
+  const total = Number($('plan-target').value);
+  if (!total) return;
+  const changedValue = Number($(changed).value);
+  const otherId = changed === 'plan-target-rw' ? 'plan-target-math' : 'plan-target-rw';
+  const other = total - changedValue;
+  if (changedValue < 200 || changedValue > 800 || other < 200 || other > 800 || changedValue % 10 !== 0 || other % 10 !== 0) {
+    const fallbackRw = balancedSectionScore(total, Number($('plan-target-rw').value));
+    $('plan-target-rw').value = String(fallbackRw);
+    $('plan-target-math').value = String(total - fallbackRw);
+  } else {
+    $(otherId).value = String(other);
+  }
+  $('plan-target-note').textContent = `Reading & Writing ${$('plan-target-rw').value} + Math ${$('plan-target-math').value} = ${total}.`;
+}
+
+function syncCurrentTotal(changed) {
+  if (changed === 'plan-current-rw' || changed === 'plan-current-math') {
+    const rw = Number($('plan-current-rw').value);
+    const math = Number($('plan-current-math').value);
+    if (rw && math) $('plan-current-total').value = String(rw + math);
+  } else {
+    const total = Number($('plan-current-total').value);
+    if (!total) return;
+    const rw = balancedSectionScore(total, Number($('plan-current-rw').value));
+    $('plan-current-rw').value = String(rw);
+    $('plan-current-math').value = String(total - rw);
+  }
+}
+
+function planSetupFromForm() {
+  const weakTopics = [...document.querySelectorAll('[data-plan-weak]:checked')].map((input) => input.dataset.planWeak);
+  return {
+    currentTotal: $('plan-current-total').value,
+    currentRw: $('plan-current-rw').value,
+    currentMath: $('plan-current-math').value,
+    target: $('plan-target').value,
+    targetRw: $('plan-target-rw').value,
+    targetMath: $('plan-target-math').value,
+    weakTopics,
+    date: $('plan-date').value,
+    minutes: Number($('plan-minutes').value)
+  };
+}
+
+async function startPlanTask(taskId) {
+  const task = state.studyPlan.tasks.find((item) => item.id === taskId);
+  if (!task || task.status === 'completed') return;
+  const loaded = await loadQuestionTopics('sat', [task.domain]);
+  const seen = new Set((state.progress.questionHistory || []).filter((entry) => entry.exam === 'sat').map((entry) => entry.id));
+  const unseen = loaded.filter((question) => !seen.has(question.id));
+  const matchingSkill = task.skill ? loaded.filter((question) => String(question.skill || question.domain).toLowerCase() === task.skill.toLowerCase()) : [];
+  const skillPool = matchingSkill.length ? matchingSkill : loaded;
+  const matchingDifficulty = task.difficulty ? skillPool.filter((question) => String(question.difficulty || '').toLowerCase() === task.difficulty.toLowerCase()) : [];
+  const pool = matchingDifficulty.length ? matchingDifficulty : skillPool;
+  const unseenPool = pool.filter((question) => !seen.has(question.id));
+  const questions = (unseenPool.length ? unseenPool : pool).slice(0, task.questionCount);
+  if (!questions.length) { showToast('No Question Bank questions are available for this topic yet.'); return; }
+  task.status = 'in_progress';
+  activePlanTaskId = task.id;
+  await persist();
+  startPractice(task.set, 0, questions, 'plan', task.id);
+}
+
+function skipPlanTask(taskId) {
+  const task = state.studyPlan.tasks.find((item) => item.id === taskId);
+  if (!task || task.status === 'completed') return;
+  task.status = 'skipped';
+  task.completedAt = Date.now();
+  persist();
+  renderStudyPlan();
+  renderHome();
+}
+
+function completePlanTask() {
+  const task = state.studyPlan.tasks.find((item) => item.id === activePlanTaskId);
+  if (!task) return;
+  const checked = practiceQuestions.filter((question) => checkedAnswers[question.id] !== undefined);
+  const correct = checked.filter((question) => checkedAnswers[question.id] === question.correct).length;
+  task.status = 'completed';
+  task.completedAt = Date.now();
+  task.performance = { correct, total: checked.length };
+  activePlanTaskId = '';
 }
 
 async function loadDailyQuestion(exam) {
@@ -543,7 +828,7 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
   const rawQuestion = item.q || '';
   const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
-  return { id: `${prefix}-${id}`, domain, set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
+  return { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(item.difficulty || item.level || ''), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
 }
 
 function validRemoteQuestion(question) {
@@ -720,6 +1005,7 @@ function saveActivePractice() {
       set: currentSet,
       question: currentQuestion,
       mode: practiceMode,
+      planTaskId: activePlanTaskId,
       draftAnswers,
       checkedAnswers,
       timerSeconds,
@@ -742,7 +1028,8 @@ function restoreActivePractice() {
     practiceQuestions = saved.questions;
     currentSet = saved.set || 'math';
     currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
-    practiceMode = saved.mode === 'mock' ? 'mock' : 'bank';
+    practiceMode = saved.mode === 'mock' ? 'mock' : saved.mode === 'plan' ? 'plan' : 'bank';
+    activePlanTaskId = saved.planTaskId || '';
     draftAnswers = saved.draftAnswers || {};
     checkedAnswers = saved.checkedAnswers || {};
     timerSeconds = Math.max(0, Number(saved.timerSeconds) || 0);
@@ -885,13 +1172,15 @@ function renderQuestion() {
   renderQuestionNavigator();
 }
 
-function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank') {
+function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '') {
   currentSet = set;
   practiceQuestions = questions || [];
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
   checkedAnswers = {};
   practiceMode = mode;
+  activePlanTaskId = planTaskId;
+  questionOpenedAt = Date.now();
   explanationOpen = false;
   openPage('questions');
   $('test-experience').classList.remove('is-hidden');
@@ -907,6 +1196,7 @@ function leavePractice() {
   $('question-navigator').classList.add('is-hidden');
   stopTimer();
   clearActivePractice();
+  activePlanTaskId = '';
 }
 
 function answerQuestion(index) {
@@ -927,6 +1217,12 @@ function checkAnswer() {
   if (practiceMode === 'mock' || choice === undefined || checkedAnswers[question.id] !== undefined) return;
   checkedAnswers[question.id] = choice;
   state.progress.answers[question.id] = choice;
+  const history = state.progress.questionHistory || (state.progress.questionHistory = []);
+  const previous = history.findIndex((entry) => entry.id === question.id && entry.activePlanTaskId === activePlanTaskId);
+  const record = { id: question.id, exam: state.profile.exam, set: question.set || currentSet, domain: question.domain || '', skill: question.skill || '', difficulty: question.difficulty || '', correct: choice === question.correct, responseSeconds: questionOpenedAt ? Math.max(1, Math.round((Date.now() - questionOpenedAt) / 1000)) : 0, answeredAt: Date.now(), activePlanTaskId };
+  if (previous >= 0) history.splice(previous, 1, record);
+  else history.push(record);
+  if (history.length > 600) history.splice(0, history.length - 600);
   delete draftAnswers[question.id];
   renderQuestion();
   persist();
@@ -954,7 +1250,6 @@ function toggleMark() {
 function moveQuestion(delta) {
   const next = currentQuestion + delta;
   if (next >= practiceQuestions.length) {
-    const localDateKey = (date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
     const now = new Date();
     const yesterdayDate = new Date(now);
     yesterdayDate.setDate(now.getDate() - 1);
@@ -963,14 +1258,17 @@ function moveQuestion(delta) {
     state.progress.sessions += 1;
     state.progress.streak = state.progress.lastSessionDate === today ? Math.max(1, state.progress.streak) : state.progress.lastSessionDate === yesterday ? state.progress.streak + 1 : 1;
     state.progress.lastSessionDate = today;
+    if (practiceMode === 'plan') completePlanTask();
     persist();
     renderHome();
-    showToast(practiceMode === 'mock' ? 'Mock complete. Your responses were saved.' : 'Practice set complete. Progress saved.');
+    renderStudyPlan();
+    showToast(practiceMode === 'mock' ? 'Mock complete. Your responses were saved.' : practiceMode === 'plan' ? 'Plan task complete. Your next task is ready.' : 'Practice set complete. Progress saved.');
     leavePractice();
     return;
   }
   if (next < 0) return;
   currentQuestion = next;
+  questionOpenedAt = Date.now();
   explanationOpen = false;
   renderQuestion();
   saveActivePractice();
@@ -992,6 +1290,7 @@ function toggleQuestionNavigator() {
 function jumpToQuestion(index) {
   if (!Number.isInteger(index) || index < 0 || index >= practiceQuestions.length) return;
   currentQuestion = index;
+  questionOpenedAt = Date.now();
   explanationOpen = false;
   $('question-navigator').classList.add('is-hidden');
   renderQuestion();
@@ -1004,6 +1303,7 @@ function openPage(page) {
   document.querySelectorAll('.nav-link').forEach((link) => link.classList.toggle('is-active', link.dataset.page === page && (!link.dataset.skill || link.dataset.skill === currentSkill)));
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
+  if (page === 'plan') renderStudyPlan();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1037,6 +1337,12 @@ function previewGoal() {
 
 function saveGoalChoice() {
   previewGoal();
+  if (state.profile.exam === 'sat' && state.studyPlan.setup) {
+    state.studyPlan.setup.target = state.profile.target;
+    state.studyPlan.setup.date = state.profile.date;
+    generateStudyPlan(state.studyPlan.setup, true);
+    renderStudyPlan();
+  }
   clearTimeout(goalSaveTimer);
   goalSaveTimer = setTimeout(() => persist(), 250);
 }
@@ -1069,6 +1375,10 @@ function bindEvents() {
     if (vocabulary) { openVocabularyFolder(vocabulary.dataset.openVocab, vocabulary.dataset.vocabFolder); return; }
     const review = event.target.closest('[data-vocab-review]');
     if (review) { respondVocabularyReview(review.dataset.vocabReview); return; }
+    const planTask = event.target.closest('[data-plan-task]');
+    if (planTask) { startPlanTask(planTask.dataset.planTask); return; }
+    const skipTask = event.target.closest('[data-plan-skip]');
+    if (skipTask) { skipPlanTask(skipTask.dataset.planSkip); return; }
     const confirm = event.target.closest('[data-check-answer]');
     if (confirm) { checkAnswer(); return; }
     const jump = event.target.closest('[data-jump-question]');
@@ -1112,6 +1422,44 @@ function bindEvents() {
     const question = dailyQuestionStore[state.profile.exam].question;
     if (question) startPractice(question.set, 0, [question], 'daily');
   });
+  $('home-plan-action').addEventListener('click', () => {
+    const taskId = $('home-plan-action').dataset.planTask;
+    if (taskId) startPlanTask(taskId);
+    else openPage('plan');
+  });
+  $('create-study-plan').addEventListener('click', () => {
+    const setup = planSetupFromForm();
+    if (!setup.currentTotal || !setup.currentRw || !setup.currentMath || !setup.target || !setup.targetRw || !setup.targetMath || !setup.date) { showToast('Complete your current scores, target scores, and SAT date.'); return; }
+    if (Number(setup.currentRw) + Number(setup.currentMath) !== Number(setup.currentTotal)) { showToast('Your current Reading & Writing and Math scores must equal your current total.'); return; }
+    if (Number(setup.targetRw) + Number(setup.targetMath) !== Number(setup.target)) { showToast('Your target Reading & Writing and Math scores must equal your target total.'); return; }
+    if (Number(setup.target) <= Number(setup.currentTotal)) { showToast('Your target score should be above your current score.'); return; }
+    state.profile.goals.sat = { target: setup.target, date: setup.date };
+    if (state.profile.exam === 'sat') { state.profile.target = setup.target; state.profile.date = setup.date; }
+    generateStudyPlan(setup, false);
+    renderStudyPlan();
+    renderHome();
+    showToast('Your SAT study plan is ready.');
+  });
+  $('refresh-study-plan').addEventListener('click', () => {
+    if (!state.studyPlan.setup) return;
+    generateStudyPlan(state.studyPlan.setup, true);
+    renderStudyPlan();
+    renderHome();
+    showToast('Your future tasks were updated from your latest work.');
+  });
+  $('plan-target').addEventListener('change', () => {
+    const total = Number($('plan-target').value);
+    if (!total) return;
+    const rw = balancedSectionScore(total, Number($('plan-target-rw').value));
+    $('plan-target-rw').value = String(rw);
+    $('plan-target-math').value = String(total - rw);
+    syncTargetSections('plan-target-rw');
+  });
+  $('plan-target-rw').addEventListener('change', () => syncTargetSections('plan-target-rw'));
+  $('plan-target-math').addEventListener('change', () => syncTargetSections('plan-target-math'));
+  $('plan-current-total').addEventListener('change', () => syncCurrentTotal('plan-current-total'));
+  $('plan-current-rw').addEventListener('change', () => syncCurrentTotal('plan-current-rw'));
+  $('plan-current-math').addEventListener('change', () => syncCurrentTotal('plan-current-math'));
   $('back-to-materials').addEventListener('click', backToMaterials);
   $('back-to-vocab').addEventListener('click', () => openPage('vocab'));
   $('back-to-vocab-study').addEventListener('click', () => openPage('vocab-study'));
@@ -1146,6 +1494,11 @@ function bindEvents() {
     state.profile.name = $('profile-name').value.trim();
     state.profile.exam = exam;
     setActiveGoal(target, date);
+    if (exam === 'sat' && state.studyPlan.setup) {
+      state.studyPlan.setup.target = target;
+      state.studyPlan.setup.date = date;
+      generateStudyPlan(state.studyPlan.setup, true);
+    }
     setExam(exam, false);
     syncProfileForm();
     renderHome();
@@ -1165,7 +1518,10 @@ async function init() {
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
-  restoreActivePractice();
+  if (window.matchMedia('(max-width: 620px)').matches) {
+    clearActivePractice();
+    openPage('home');
+  } else restoreActivePractice();
   applyAuthenticatedUser(window.luminaryAuthUser);
 }
 

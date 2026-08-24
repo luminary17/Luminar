@@ -84,6 +84,50 @@ h1 { margin-bottom: 8px; font-size: clamp(34px, 4vw, 52px); letter-spacing: 0; l
 .daily-card:hover, .mock-list article:hover { transform: translateY(-2px); box-shadow: 0 20px 42px rgba(0, 0, 0, .13); }
 .daily-card h2 { margin: 0 0 4px; font-size: 22px; }
 .daily-card p:last-child { margin-bottom: 0; color: var(--text-soft); }
+.plan-setup, .plan-overview, .plan-task, .plan-day, .plan-empty { border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.plan-setup { max-width: 940px; border-radius: var(--radius-xl); padding: clamp(22px, 4vw, 38px); }
+.plan-setup-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 26px; color: var(--text-soft); font-size: 13px; }
+.plan-setup-heading span { color: var(--accent-hover); font-size: 11px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.plan-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-bottom: 24px; }
+.plan-form-grid label { display: grid; gap: 7px; color: var(--text); font-size: 13px; font-weight: 800; }
+.plan-form-grid select { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; background: var(--surface-raised); color: var(--text); touch-action: manipulation; }
+.plan-score-block + .plan-score-block, .plan-weakness-block, .plan-final-fields { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--line); }
+.plan-score-block h2, .plan-weakness-block h2 { margin: 0 0 16px; color: var(--text); font-size: 21px; }
+.plan-score-note, .plan-weakness-block > div > p:last-child { margin: -4px 0 0; color: var(--text-soft); font-size: 13px; }
+.plan-weaknesses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.plan-weakness-set { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-raised); }
+.plan-weakness-set h3 { margin: 0; padding: 15px 17px; border-bottom: 1px solid var(--line); color: var(--text); font-size: 16px; }
+.plan-weakness-group { padding: 14px 17px; border-bottom: 1px solid var(--line); }
+.plan-weakness-group:last-child { border-bottom: 0; }
+.plan-weakness-group > label, .plan-weakness-group > div label { display: flex; align-items: flex-start; gap: 9px; color: var(--text); font-size: 13px; line-height: 1.35; }
+.plan-weakness-group > label { margin-bottom: 10px; }
+.plan-weakness-group > div { display: grid; gap: 8px; padding-left: 4px; }
+.plan-weakness-group > div label { color: var(--text-soft); font-size: 12px; }
+.plan-weaknesses input { width: 17px; height: 17px; flex: 0 0 auto; margin: 0; accent-color: var(--accent); }
+.plan-dashboard { max-width: 1060px; }
+.plan-overview { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; border-radius: var(--radius-xl); padding: clamp(22px, 4vw, 34px); }
+.plan-overview h2 { margin: 0 0 8px; font-size: clamp(27px, 3vw, 38px); line-height: 1.05; }
+.plan-overview p:last-child { margin: 0; color: var(--text-soft); }
+.plan-overview-stat { display: grid; justify-items: end; gap: 12px; white-space: nowrap; }
+.plan-overview-stat strong { color: var(--accent-hover); font-size: 13px; }
+.plan-task, .plan-empty { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-radius: var(--radius-lg); padding: 18px 20px; }
+.plan-task.is-featured { min-height: 122px; border-color: var(--accent); background: color-mix(in srgb, var(--accent-soft) 38%, var(--surface)); }
+.plan-task p { margin: 0 0 5px; color: var(--accent-hover); font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.plan-task h3 { margin: 0 0 4px; color: var(--text); font-size: 18px; }
+.plan-task span, .plan-empty span { color: var(--text-soft); font-size: 13px; }
+.plan-task-actions { display: flex; flex: 0 0 auto; gap: 9px; }
+.plan-task-actions .button { min-width: 64px; }
+.task-complete { color: var(--success); font-size: 12px; }
+.plan-task.is-complete { opacity: .7; }
+.plan-upcoming { display: grid; gap: 10px; }
+.plan-calendar { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+.plan-day { min-height: 116px; border-radius: var(--radius-md); padding: 15px; }
+.plan-day.is-complete { border-color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--surface)); }
+.plan-day span, .plan-day strong, .plan-day small { display: block; }
+.plan-day span { color: var(--text-muted); font-size: 11px; font-weight: 800; }
+.plan-day strong { margin: 11px 0 4px; color: var(--text); font-size: 14px; line-height: 1.2; }
+.plan-day small { color: var(--text-soft); font-size: 12px; }
+.plan-empty { display: grid; justify-content: start; min-height: 88px; color: var(--text); }
 .button { min-height: 42px; border-radius: 14px; padding: 10px 16px; font-weight: 800; transition: transform .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease); }
 .button:active, .tool-button:active { transform: scale(.97); }
 .button:disabled { cursor: not-allowed; opacity: .48; }
@@ -314,6 +358,12 @@ button.question-counter:hover { border-color: var(--accent); color: var(--accent
   .mock-spec { padding: 14px 0 0; border-top: 1px solid var(--line); border-left: 0; }
   .vocab-toolbar input { width: 100%; }
   .daily-card .button, .mock-list .button { width: 100%; }
+  .plan-form-grid { grid-template-columns: 1fr; }
+  .plan-weaknesses { grid-template-columns: 1fr; }
+  .plan-setup-heading, .plan-overview, .plan-task { align-items: stretch; flex-direction: column; }
+  .plan-overview-stat { justify-items: start; }
+  .plan-task-actions { width: 100%; }
+  .plan-task-actions .button { flex: 1; }
   .test-topbar { padding: 8px 12px; }
   .directions-label { display: none; }
   .question-item { grid-column: auto; }

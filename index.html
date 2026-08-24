@@ -20,7 +20,7 @@
         <div class="nav-section sat-only"><span>Learn</span><button class="nav-link" data-page="learn" type="button">Rules</button><button class="nav-link" data-page="vocab" type="button">Vocabulary</button><button class="nav-link" data-page="problems" type="button">Problems &amp; Solutions</button></div>
         <div class="nav-section ielts-only"><span>Learn</span><button class="nav-link" data-page="learn" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="learn" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="learn" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="learn" data-skill="Speaking" type="button">Speaking</button></div>
         <div class="nav-section ielts-only"><span>Vocab</span><button class="nav-link" data-page="vocab" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="vocab" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="vocab" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="vocab" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section"><span>Practice</span><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
+        <div class="nav-section"><span>Practice</span><button class="nav-link sat-only" data-page="plan" type="button">Study plan</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
         <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
         <div class="nav-section ielts-only"><span>Mocks</span><button class="nav-link" data-page="mocks" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="mocks" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="mocks" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="mocks" data-skill="Speaking" type="button">Speaking</button></div>
         <div class="nav-section"><span>Personal</span><button class="nav-link" data-page="profile" type="button">Profile</button></div>
@@ -37,6 +37,7 @@
         <section class="goal-strip" aria-label="Exam goal"><article><span>Target score</span><strong id="goal-score">--</strong></article><article><span>Exam date</span><strong id="goal-date">Not selected</strong></article><article><span>Time left</span><strong id="goal-countdown">Set your date</strong></article></section>
         <div class="section-heading"><h2>Today</h2><span></span></div>
         <article class="daily-card"><div><p class="kicker">Daily question</p><h2 id="daily-title">Daily question</h2><p id="daily-copy">A separate daily task will appear here when its own material is connected.</p></div><button class="button button-primary" id="daily-action" type="button" disabled>Not available yet</button></article>
+        <article class="daily-card" id="home-plan-card" hidden><div><p class="kicker">Study plan</p><h2>Today’s focused work</h2><p id="home-plan-copy"></p></div><button class="button button-primary" id="home-plan-action" type="button">Open study plan</button></article>
         <div class="section-heading"><h2>Progress</h2><span></span></div>
         <section class="stats"><article><strong id="stat-focus">SAT</strong><span>Current focus</span></article><article><strong id="stat-sessions">0</strong><span>Sessions completed</span></article><article><strong id="stat-streak">0</strong><span>Day streak</span></article></section>
       </section>
@@ -67,6 +68,27 @@
       <section class="page" id="questions-page">
         <div class="practice-header"><div><p class="kicker">Practice</p><h1>Question Bank</h1><p id="question-bank-copy">Choose Reading &amp; Writing or Math.</p></div></div>
         <div class="question-library" id="question-library"></div>
+      </section>
+
+      <section class="page" id="plan-page">
+        <div class="plan-sat-only">
+          <div class="page-intro"><p class="kicker">SAT study plan</p><h1>One clear path to your score.</h1><p>A focused schedule that updates from the work you actually complete.</p></div>
+          <section class="plan-setup" id="plan-setup">
+            <div class="plan-setup-heading"><span>1 minute setup</span><strong>Your plan stays private in this workspace.</strong></div>
+            <div class="plan-score-block"><p class="kicker">Current</p><h2>Where are you now?</h2><div class="plan-form-grid"><label>Total score<select id="plan-current-total"></select></label><label>Reading &amp; Writing<select id="plan-current-rw"></select></label><label>Math<select id="plan-current-math"></select></label></div></div>
+            <div class="plan-score-block"><p class="kicker">Target</p><h2>Where do you want to go?</h2><div class="plan-form-grid"><label>Target SAT score<select id="plan-target"></select></label><label>Target Reading &amp; Writing<select id="plan-target-rw"></select></label><label>Target Math<select id="plan-target-math"></select></label></div><p class="plan-score-note" id="plan-target-note">Your section targets always equal your total target.</p></div>
+            <div class="plan-weakness-block"><div><p class="kicker">Weak areas</p><h2>Where do you make the most mistakes?</h2><p>Select any domains or skills. Your real practice results will refine these priorities.</p></div><div class="plan-weaknesses" id="plan-weaknesses"></div></div>
+            <div class="plan-form-grid plan-final-fields"><label>Exam date<select id="plan-date"></select></label><label>Time per day<select id="plan-minutes"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option></select></label></div>
+            <button class="button button-primary" id="create-study-plan" type="button">Create my study plan</button>
+          </section>
+          <section class="plan-dashboard" id="plan-dashboard" hidden>
+            <div class="plan-overview"><div><p class="kicker" id="plan-phase">Foundation phase</p><h2>Today, with purpose.</h2><p id="plan-summary"></p></div><div class="plan-overview-stat"><strong id="plan-completion">0 completed</strong><button class="button button-quiet" id="refresh-study-plan" type="button">Update plan</button></div></div>
+            <div class="section-heading"><h2>Today’s plan</h2><span></span></div><div id="plan-today"></div>
+            <div class="section-heading"><h2>Upcoming</h2><span></span></div><div class="plan-upcoming" id="plan-upcoming"></div>
+            <div class="section-heading"><h2>This week</h2><span></span></div><div class="plan-calendar" id="plan-calendar"></div>
+          </section>
+        </div>
+        <section class="plan-unsupported" hidden><div class="page-intro"><p class="kicker">Study plan</p><h1>SAT plan</h1><p>Your personalised SAT plan is available when SAT is selected.</p></div><button class="button button-primary" data-exam="sat" type="button">Switch to SAT</button></section>
       </section>
 
       <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">Practice</p><h1 id="mocks-title">SAT Mocks</h1><p>Practice under a timer when you are ready.</p></div><div class="mock-list" id="mock-list"><article class="empty-state"><strong>Loading mocks...</strong></article></div></section>
