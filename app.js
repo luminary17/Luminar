@@ -3,9 +3,10 @@
 window.luminaryAppLoaded = true;
 
 const THEMES = {
-  coffee: { name: 'Cappuccino White', bg: '#f5f0e8', surface: '#fffdfa', surfaceRaised: '#ffffff', sidebar: '#3b2a21', sidebarSurface: '#554035', text: '#30251f', textSoft: '#786758', textMuted: '#9b8978', line: '#dfcfbd', accent: '#b7854b', accentHover: '#966a37', accentSoft: '#f0dfc7', onAccent: '#2d2119', sideText: '#fffaf4', sideMuted: '#d5c2ae', success: '#2d7a58', danger: '#af4c43' },
+  coffee: { name: 'Cappuccino White', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#f2e7da', sidebarSurface: '#e5d2bd', text: '#2f2924', textSoft: '#75685c', textMuted: '#998b7e', line: '#e7ddd2', accent: '#c38b4a', accentHover: '#9d6933', accentSoft: '#f4e4d1', onAccent: '#ffffff', sideText: '#2f2924', sideMuted: '#75685c', success: '#2d7a58', danger: '#af4c43' },
   dark: { name: 'Dark', bg: '#171717', surface: '#222222', surfaceRaised: '#2b2b2b', sidebar: '#101010', sidebarSurface: '#303030', text: '#f7f3ed', textSoft: '#c2bbb1', textMuted: '#938b82', line: '#42403d', accent: '#d3a75a', accentHover: '#e2bb73', accentSoft: '#40331e', onAccent: '#241b10', sideText: '#faf7f1', sideMuted: '#bdb6ad', success: '#69bb8c', danger: '#ed8279' },
-  navy: { name: 'Dark Blue', bg: '#111827', surface: '#182235', surfaceRaised: '#202c42', sidebar: '#0b1220', sidebarSurface: '#1c2b43', text: '#f3f7ff', textSoft: '#b7c4d9', textMuted: '#8594ab', line: '#34445c', accent: '#71b5ee', accentHover: '#9bcdf3', accentSoft: '#183b5d', onAccent: '#09253d', sideText: '#f5f9ff', sideMuted: '#b5c2d7', success: '#65c5a1', danger: '#ef8c92' },
+  navy: { name: 'Dark Blue', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#101c30', sidebarSurface: '#1d304d', text: '#17263e', textSoft: '#60718a', textMuted: '#8593a6', line: '#dfe5ec', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#dcecfb', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#bdcbe0', success: '#287a58', danger: '#bf504d' },
+  navyFull: { name: 'Dark Blue Fully', bg: '#0a1628', surface: '#0f2035', surfaceRaised: '#162840', sidebar: '#07101e', sidebarSurface: '#172b45', text: '#edf5ff', textSoft: '#b8c9dc', textMuted: '#8199b3', line: '#29415d', accent: '#4a9eda', accentHover: '#70b8e8', accentSoft: '#183d5c', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#a9bfd7', success: '#69bb8c', danger: '#ed8279' },
   purple: { name: 'Dark Purple', bg: '#1b1422', surface: '#251b30', surfaceRaised: '#30223d', sidebar: '#120d18', sidebarSurface: '#372744', text: '#faf4ff', textSoft: '#d2c1dc', textMuted: '#a791b2', line: '#4b395b', accent: '#c69ce6', accentHover: '#dcbaef', accentSoft: '#442c58', onAccent: '#281537', sideText: '#fff8ff', sideMuted: '#d0bfd9', success: '#75bd9b', danger: '#ef92a0' },
   forest: { name: 'Forest', bg: '#15211c', surface: '#1d2d25', surfaceRaised: '#283b30', sidebar: '#0e1813', sidebarSurface: '#2a4535', text: '#f4fbf5', textSoft: '#c1d2c4', textMuted: '#91a896', line: '#3c5445', accent: '#88c99e', accentHover: '#aadab9', accentSoft: '#224d37', onAccent: '#0d2d1c', sideText: '#f6fff7', sideMuted: '#bdd2c1', success: '#8ad0a0', danger: '#f2948b' },
   sunset: { name: 'Sunset', bg: '#2a1b18', surface: '#38231e', surfaceRaised: '#482c24', sidebar: '#1d110f', sidebarSurface: '#4f2f25', text: '#fff6ed', textSoft: '#dec7b5', textMuted: '#b59680', line: '#624237', accent: '#ec8c57', accentHover: '#f2a06f', accentSoft: '#603222', onAccent: '#3a170d', sideText: '#fff7f0', sideMuted: '#dbc3b1', success: '#92c48d', danger: '#f08077' }
@@ -115,7 +116,7 @@ function mergeState(next) {
       tasks: Array.isArray(next?.studyPlan?.tasks) ? next.studyPlan.tasks : []
     }
   };
-  if (!THEMES[state.profile.theme] || state.profile.theme === 'coffee') state.profile.theme = 'navy';
+  if (!THEMES[state.profile.theme]) state.profile.theme = 'navy';
   if (!['sat', 'ielts'].includes(state.profile.exam)) state.profile.exam = 'sat';
   const savedGoals = next?.profile?.goals || {};
   state.profile.goals = {
