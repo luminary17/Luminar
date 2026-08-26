@@ -1370,6 +1370,15 @@ function bindEvents() {
   window.addEventListener('luminary:auth-state', (event) => applyAuthenticatedUser(event.detail));
   window.addEventListener('luminary:auth-error', (event) => showToast(event.detail));
   document.addEventListener('click', (event) => {
+    const goalEditor = event.target.closest('[data-edit-goal]');
+    if (goalEditor) {
+      openPage('profile');
+      setMobileDrawer(false);
+      syncProfileForm();
+      const field = $(goalEditor.dataset.editGoal === 'date' ? (state.profile.exam === 'sat' ? 'profile-sat-date' : 'profile-date') : 'profile-score');
+      requestAnimationFrame(() => { field.scrollIntoView({ block: 'center', behavior: 'smooth' }); field.focus({ preventScroll: true }); });
+      return;
+    }
     const exam = event.target.closest('[data-exam]');
     if (exam) { setExam(exam.dataset.exam); setMobileDrawer(false); persist(); return; }
     const page = event.target.closest('[data-page]');
