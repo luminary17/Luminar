@@ -34,6 +34,58 @@ const SAT_TOPIC_GROUPS = {
   ]
 };
 const SAT_CATEGORIES = Object.fromEntries(Object.entries(SAT_TOPIC_GROUPS).map(([set, groups]) => [set, groups.map((group) => group.title)]));
+const DAILY_QUOTES = [
+  'Make today small enough to start and meaningful enough to finish.',
+  'Your score changes when your habits become more precise.',
+  'One honest correction is worth more than ten rushed answers.',
+  'Train the reason you missed it, not only the question you missed.',
+  'Consistency makes difficult work feel familiar.',
+  'A focused twenty minutes can redirect an entire week.',
+  'Every mistake is useful once you name its cause.',
+  'Do the next clear thing. Momentum will handle the rest.',
+  'Accuracy first. Speed follows understanding.',
+  'Progress hides inside the questions you once avoided.',
+  'You do not need a perfect day to build a better result.',
+  'The strongest study plan changes when the evidence changes.',
+  'Confidence grows from keeping promises to yourself.',
+  'Slow thinking today creates fast decisions on test day.',
+  'Review is where practice turns into skill.',
+  'A weak area is simply a direction for your next session.',
+  'Small wins are how ambitious scores are built.',
+  'The question that frustrates you can become the one that teaches you most.',
+  'Your future score is being shaped by this ordinary session.',
+  'Learn the pattern, then make the pattern automatic.',
+  'Clarity beats intensity when intensity has no direction.',
+  'You are not behind; you are collecting the data needed to improve.',
+  'Repeat the skill, not the same mistake.',
+  'A calm mind notices what a hurried mind skips.',
+  'Today’s work only needs to be real, not impressive.',
+  'Measure progress by what has become easier to explain.',
+  'The best strategy is the one you can repeat tomorrow.',
+  'Difficult questions become manageable when the process stays simple.',
+  'Your mistakes are a map, not a verdict.',
+  'Practice with attention and the score will follow.',
+  'Mastery begins when you stop guessing why you were wrong.',
+  'Protect your focus; it is your fastest route forward.',
+  'A better method can save more points than more effort.',
+  'Each corrected misconception removes many future errors.',
+  'The goal is not more questions. The goal is fewer repeated mistakes.',
+  'Give one skill your full attention before asking for another.',
+  'Good preparation feels deliberate, not frantic.',
+  'Turn uncertainty into a question, then answer it.',
+  'The work you repeat becomes the confidence you carry.',
+  'You improve fastest when feedback changes your next move.',
+  'The score is an outcome; the system is what you control.',
+  'Finish one focused set before judging the whole journey.',
+  'Strong students are built by strong review loops.',
+  'What you understand deeply stays available under pressure.',
+  'The next five questions deserve more attention than the last fifty.',
+  'Practice is successful when tomorrow’s mistake becomes less likely.',
+  'Precision today becomes speed when the clock starts.',
+  'Your plan should follow your errors, not your mood.',
+  'A clear reason for studying makes starting easier.',
+  'Keep the session focused enough to learn from it.'
+];
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
@@ -75,7 +127,12 @@ const questionBankLoads = {};
 let questionSetLoading = false;
 const QUESTION_CACHE_DB = 'luminary-question-cache';
 const QUESTION_CACHE_MAX_AGE = 12 * 60 * 60 * 1000;
+const MATERIAL_CACHE_PREFIX = 'luminary-material-cache:';
+const MATERIAL_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 const ACTIVE_PRACTICE_KEY = 'luminary-active-practice';
+let activeAccountId = '';
+let practiceXp = 0;
+let practiceStreak = 0;
 const vocabularyStores = {
   sat: { folders: [], words: [], status: 'idle' },
   ielts: { folders: [], words: [], status: 'idle' }
@@ -123,10 +180,6 @@ function mergeState(next) {
     sat: { ...DEFAULT_STATE.profile.goals.sat, ...(savedGoals.sat || {}) },
     ielts: { ...DEFAULT_STATE.profile.goals.ielts, ...(savedGoals.ielts || {}) }
   };
-  // Exam dates are intentionally session-only until date persistence is enabled.
-  state.profile.goals.sat.date = '';
-  state.profile.goals.ielts.date = '';
-  if (state.studyPlan.setup) state.studyPlan.setup.date = '';
   if (!savedGoals.sat && !savedGoals.ielts) {
     state.profile.goals[state.profile.exam] = { target: state.profile.target || '', date: state.profile.date || '' };
   }
@@ -147,12 +200,14 @@ function setActiveGoal(target, date) {
 
 async function persist() {
   const savedState = structuredClone(state);
-  savedState.profile.goals.sat.date = '';
-  savedState.profile.goals.ielts.date = '';
-  savedState.profile.date = '';
-  if (savedState.studyPlan.setup) savedState.studyPlan.setup.date = '';
+  localStorage.setItem(stateStorageKey(), JSON.stringify(savedState));
+  if (activeAccountId) return;
   try { await api('/api/state', { method: 'PUT', body: JSON.stringify(savedState) }); }
-  catch { localStorage.setItem('luminary-state', JSON.stringify(savedState)); showToast('Saved in this browser while the local server is unavailable.'); }
+  catch { /* Published accounts use the account-scoped browser store. */ }
+}
+
+function stateStorageKey(accountId = activeAccountId) {
+  return accountId ? `luminary-state:${accountId}` : 'luminary-state';
 }
 
 function applyTheme(themeId) {
@@ -206,11 +261,95 @@ function setExam(exam, returnHome = true) {
   if (returnHome) openPage('home');
 }
 
+function dailyQuote() {
+  const now = new Date();
+  const day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+  const identity = `${activeAccountId}:${state.profile.name}`;
+  const identitySeed = [...identity].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+  return DAILY_QUOTES[(day + identitySeed) % DAILY_QUOTES.length];
+}
+
+function personalRecommendations() {
+  const exam = state.profile.exam;
+  const history = (state.progress.questionHistory || []).filter((entry) => entry.exam === exam).slice(-160);
+  const groups = new Map();
+  history.forEach((entry, index) => {
+    const topic = compactDisplayText(entry.domain || entry.skill || entry.set || 'Practice');
+    const key = `${entry.set || ''}:${topic}`;
+    const item = groups.get(key) || { topic, set: entry.set || (exam === 'sat' ? 'math' : 'reading'), attempts: 0, errors: 0, recentErrors: 0 };
+    item.attempts += 1;
+    if (!entry.correct) {
+      item.errors += 1;
+      if (index >= history.length - 40) item.recentErrors += 1;
+    }
+    groups.set(key, item);
+  });
+  const ranked = [...groups.values()]
+    .filter((item) => item.errors > 0)
+    .map((item) => ({ ...item, accuracy: Math.round(((item.attempts - item.errors) / item.attempts) * 100), priority: item.errors * 2 + item.recentErrors * 3 + Math.max(0, 5 - item.attempts) }))
+    .sort((left, right) => right.priority - left.priority)
+    .slice(0, 3);
+  if (ranked.length) return ranked;
+  return exam === 'sat'
+    ? [
+      { topic: 'Standard English Conventions', set: 'rw', attempts: 0, errors: 0 },
+      { topic: 'Algebra', set: 'math', attempts: 0, errors: 0 },
+      { topic: 'Information and Ideas', set: 'rw', attempts: 0, errors: 0 }
+    ]
+    : ['Listening', 'Reading', 'Writing'].map((topic) => ({ topic, set: topic.toLowerCase(), attempts: 0, errors: 0 }));
+}
+
+function renderRecommendations() {
+  const recommendations = personalRecommendations();
+  const hasEvidence = recommendations.some((item) => item.attempts > 0);
+  $('recommendation-copy').textContent = hasEvidence
+    ? 'Built from your recent wrong answers. Completing a set updates the order automatically.'
+    : 'Complete a few questions and Luminary will replace these starters with your personal weak areas.';
+  $('recommendation-grid').innerHTML = recommendations.map((item, index) => {
+    const evidence = item.attempts ? `${item.accuracy}% accuracy · ${item.errors} ${item.errors === 1 ? 'error' : 'errors'}` : 'Starter diagnostic';
+    return `<article class="recommendation-card"><span>${index === 0 && hasEvidence ? 'Highest priority' : `Focus ${index + 1}`}</span><strong>${escapeHtml(item.topic)}</strong><p>${escapeHtml(evidence)}</p><div class="recommendation-actions"><button class="button button-primary" data-train-topic="${escapeHtml(item.topic)}" data-train-set="${escapeHtml(item.set)}" type="button">Train now</button>${state.profile.exam === 'sat' ? `<button class="recommendation-link" data-review-topic="${escapeHtml(item.topic)}" type="button">Review</button>` : ''}</div></article>`;
+  }).join('');
+}
+
+async function startRecommendedTraining(topic, set) {
+  showToast(`Building a focused ${topic} set...`);
+  let questions = await loadQuestionTopics(state.profile.exam, [topic]);
+  if (!questions.length) {
+    try {
+      const query = `orderBy=${encodeURIComponent('"$key"')}&limitToFirst=60`;
+      const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${state.profile.exam}?${query}`, 18000);
+      const starterQuestions = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${state.profile.exam}-starter`)).filter(validRemoteQuestion);
+      questions = starterQuestions.filter((question) => question.set === set);
+      if (!questions.length) questions = starterQuestions;
+    } catch { questions = []; }
+  }
+  const recentIds = new Set((state.progress.questionHistory || []).slice(-120).map((entry) => entry.id));
+  const ordered = [...questions.filter((question) => !recentIds.has(question.id)), ...questions.filter((question) => recentIds.has(question.id))].slice(0, 10);
+  if (!ordered.length) { showToast('No questions are available for this focus yet.'); return; }
+  startPractice(set || ordered[0].set, 0, ordered, 'adaptive');
+}
+
+async function openRecommendedMaterial(topic) {
+  await loadRemoteMaterials('rules');
+  const words = topic.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 3);
+  const material = getMaterials('rules').find((item) => {
+    const searchable = `${item.title} ${(item.body || []).map((block) => `${block.heading} ${block.text}`).join(' ')}`.toLowerCase();
+    return words.some((word) => searchable.includes(word));
+  });
+  if (material) openMaterial('rules', material.id);
+  else { currentSkill = ''; openPage('learn'); renderLearn(); showToast('Opening the closest available rule library.'); }
+}
+
 function renderHome() {
   const isIelts = state.profile.exam === 'ielts';
   const { target, date } = activeGoal();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  $('home-greeting').textContent = `${greeting}${state.profile.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}.`;
+  $('daily-quote').textContent = dailyQuote();
+  $('daily-quote-day').textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
   $('home-kicker').textContent = isIelts ? 'IELTS plan' : 'SAT plan';
-  $('home-copy').textContent = isIelts ? 'Keep Listening, Reading, Writing, and Speaking in balance.' : 'Choose one focused task and keep moving.';
+  $('home-copy').textContent = isIelts ? 'Your next useful IELTS session is ready.' : 'Your next useful SAT session is ready.';
   $('goal-score').textContent = target || '--';
   $('goal-date').textContent = date ? dateText(date) : 'Not selected';
   if (date) {
@@ -237,6 +376,7 @@ function renderHome() {
   $('stat-sessions').textContent = state.progress.sessions || 0;
   $('stat-streak').textContent = state.progress.streak || 0;
   $('sidebar-name').textContent = state.profile.name || 'Learner';
+  renderRecommendations();
   const plan = state.studyPlan;
   const todayTask = plan.tasks.find((task) => task.date === localDateKey(new Date()) && task.status !== 'completed' && task.status !== 'skipped');
   $('home-plan-card').hidden = isIelts || !plan.setup;
@@ -533,7 +673,20 @@ function getMaterials(category) {
 }
 
 async function fetchMaterialData(path) {
-  return fetchDatabaseData(MATERIAL_DATABASE_URL, path);
+  const key = `${MATERIAL_CACHE_PREFIX}${path}`;
+  let cached = null;
+  try {
+    cached = JSON.parse(localStorage.getItem(key) || 'null');
+    if (cached && Date.now() - cached.savedAt < MATERIAL_CACHE_MAX_AGE) return cached.data;
+  } catch { /* Ignore a malformed cache entry. */ }
+  try {
+    const data = await fetchDatabaseData(MATERIAL_DATABASE_URL, path);
+    try { localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), data })); } catch { /* Large image collections may exceed browser storage. */ }
+    return data;
+  } catch (error) {
+    if (cached?.data) return cached.data;
+    throw error;
+  }
 }
 
 function openQuestionCache() {
@@ -637,10 +790,12 @@ function hackMaterialShell(section) {
 function refreshMaterialCategory(category) {
   if (category === 'rules' && currentPage === 'learn') renderLearn();
   if (category === 'problems' && currentPage === 'problems') renderProblems();
+  if (category === 'rules' && currentPage === 'home') renderRecommendations();
 }
 
 function loadRemoteMaterials(category) {
-  if (state.profile.exam !== 'sat' || remoteMaterialLoads[category]) return;
+  if (state.profile.exam !== 'sat') return Promise.resolve();
+  if (remoteMaterialLoads[category]) return remoteMaterialLoads[category];
   remoteMaterialLoads[category] = (async () => {
     try {
       if (category === 'rules') {
@@ -668,6 +823,7 @@ function loadRemoteMaterials(category) {
       // The connected material database is temporarily unavailable.
     }
   })();
+  return remoteMaterialLoads[category];
 }
 
 function resourceCards(items, target, category, emptyCopy = 'Loading your Luminary material library...') {
@@ -881,8 +1037,16 @@ async function loadQuestionTopics(exam, topics) {
   const databaseTopics = exam === 'sat' ? [...new Set(topics.map((topic) => topic.split('::')[0]))] : topics;
   const missingTopics = databaseTopics.filter((topic) => !cache[topic]);
   if (!missingTopics.length) return databaseTopics.flatMap((topic) => cache[topic]);
-  const allQuestions = await loadRemoteQuestionBank(exam);
-  missingTopics.forEach((topic) => { cache[topic] = allQuestions.filter((question) => question.domain === topic); });
+  await Promise.all(missingTopics.map(async (topic) => {
+    try {
+      const query = `orderBy=${encodeURIComponent('"tag"')}&equalTo=${encodeURIComponent(JSON.stringify(topic))}`;
+      const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}?${query}`, 18000);
+      cache[topic] = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-topic`)).filter(validRemoteQuestion);
+    } catch {
+      const available = remotePractice.questions[exam].items.length ? remotePractice.questions[exam].items : (await readQuestionCache(exam)) || [];
+      cache[topic] = available.filter((question) => question.domain === topic);
+    }
+  }));
   return databaseTopics.flatMap((topic) => cache[topic] || []);
 }
 
@@ -1019,6 +1183,8 @@ function saveActivePractice() {
       planTaskId: activePlanTaskId,
       draftAnswers,
       checkedAnswers,
+      practiceXp,
+      practiceStreak,
       timerSeconds,
       timerRunning,
       timerHidden
@@ -1039,10 +1205,12 @@ function restoreActivePractice() {
     practiceQuestions = saved.questions;
     currentSet = saved.set || 'math';
     currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
-    practiceMode = saved.mode === 'mock' ? 'mock' : saved.mode === 'plan' ? 'plan' : 'bank';
+    practiceMode = ['mock', 'plan', 'adaptive'].includes(saved.mode) ? saved.mode : 'bank';
     activePlanTaskId = saved.planTaskId || '';
     draftAnswers = saved.draftAnswers || {};
     checkedAnswers = saved.checkedAnswers || {};
+    practiceXp = Math.max(0, Number(saved.practiceXp) || 0);
+    practiceStreak = Math.max(0, Number(saved.practiceStreak) || 0);
     timerSeconds = Math.max(0, Number(saved.timerSeconds) || 0);
     timerRunning = saved.timerRunning !== false;
     timerHidden = Boolean(saved.timerHidden);
@@ -1086,7 +1254,7 @@ function renderQuestionBank() {
   const library = $('question-library');
   library.classList.toggle('question-topic-list', questionBankView === 'topics');
   const exam=state.profile.exam,store=remotePractice.questions[exam];
-  if(store.status === 'idle') loadRemoteQuestionBank(exam);
+  if(store.status === 'idle' && currentPage === 'questions') loadRemoteQuestionBank(exam);
   const sections=exam==='sat'?['rw','math']:['listening','reading','writing','speaking'];
   const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
@@ -1153,6 +1321,10 @@ function renderQuestion() {
   $('question-counter').textContent = `Question ${currentQuestion + 1} of ${practiceQuestions.length}`;
   $('test-module').textContent = `${section} / Module 1`;
   $('test-domain').textContent = question.domain;
+  const completed = practiceMode === 'mock' ? Object.keys(draftAnswers).length : Object.keys(checkedAnswers).length;
+  $('test-progress-fill').style.width = `${Math.min(100, Math.round((completed / Math.max(1, practiceQuestions.length)) * 100))}%`;
+  $('test-xp').textContent = `${practiceXp} XP`;
+  $('test-streak').textContent = practiceStreak ? `${practiceStreak} correct in a row` : 'Start your streak';
   $('question-domain-label').textContent = question.domain;
   $('question-prompt').textContent = compactDisplayText(question.prompt);
   const passage = compactDisplayText(question.passage);
@@ -1189,6 +1361,8 @@ function startPractice(set = 'math', questionIndex = 0, questions = null, mode =
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
   checkedAnswers = {};
+  practiceXp = 0;
+  practiceStreak = 0;
   practiceMode = mode;
   activePlanTaskId = planTaskId;
   questionOpenedAt = Date.now();
@@ -1227,6 +1401,12 @@ function checkAnswer() {
   const choice = draftAnswers[question.id];
   if (practiceMode === 'mock' || choice === undefined || checkedAnswers[question.id] !== undefined) return;
   checkedAnswers[question.id] = choice;
+  if (choice === question.correct) {
+    practiceStreak += 1;
+    practiceXp += 10 + Math.min(20, (practiceStreak - 1) * 2);
+  } else {
+    practiceStreak = 0;
+  }
   state.progress.answers[question.id] = choice;
   const history = state.progress.questionHistory || (state.progress.questionHistory = []);
   const previous = history.findIndex((entry) => entry.id === question.id && entry.activePlanTaskId === activePlanTaskId);
@@ -1236,6 +1416,7 @@ function checkAnswer() {
   if (history.length > 600) history.splice(0, history.length - 600);
   delete draftAnswers[question.id];
   renderQuestion();
+  renderHome();
   persist();
   saveActivePractice();
 }
@@ -1359,17 +1540,33 @@ function saveGoalChoice() {
 }
 
 function applyAuthenticatedUser(user) {
-  if (!user?.name || state.profile.name) return;
-  state.profile.name = user.name;
+  const nextAccountId = user?.uid || '';
+  if (nextAccountId !== activeAccountId) {
+    activeAccountId = nextAccountId;
+    try {
+      const saved = JSON.parse(localStorage.getItem(stateStorageKey()) || 'null');
+      if (saved) mergeState(saved);
+      else if (nextAccountId) localStorage.setItem(stateStorageKey(), JSON.stringify(state));
+    } catch { /* Keep the current session if stored account data is unavailable. */ }
+    applyTheme(state.profile.theme);
+    setExam(state.profile.exam, false);
+  }
+  const suggestedName = user?.name || String(user?.email || '').split('@')[0];
+  if (suggestedName && !state.profile.name) state.profile.name = suggestedName;
   syncProfileForm();
   renderHome();
-  persist();
+  renderStudyPlan();
+  if (user) persist();
 }
 
 function bindEvents() {
   window.addEventListener('luminary:auth-state', (event) => applyAuthenticatedUser(event.detail));
   window.addEventListener('luminary:auth-error', (event) => showToast(event.detail));
   document.addEventListener('click', (event) => {
+    const training = event.target.closest('[data-train-topic]');
+    if (training) { startRecommendedTraining(training.dataset.trainTopic, training.dataset.trainSet); return; }
+    const reviewTopic = event.target.closest('[data-review-topic]');
+    if (reviewTopic) { openRecommendedMaterial(reviewTopic.dataset.reviewTopic); return; }
     const goalEditor = event.target.closest('[data-edit-goal]');
     if (goalEditor) {
       openPage('profile');
@@ -1541,6 +1738,7 @@ async function init() {
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
+  loadRemoteMaterials('rules');
   if (window.matchMedia('(max-width: 620px)').matches) {
     clearActivePractice();
     openPage('home');

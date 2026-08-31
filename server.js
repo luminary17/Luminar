@@ -7,7 +7,7 @@ const fs = require('node:fs/promises');
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8012);
 const STORE = path.join(ROOT, 'luminary-data.json');
-const DEFAULT_STATE = { profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' }, progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {} } };
+const DEFAULT_STATE = { profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' }, progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [] }, studyPlan: { setup: null, generatedAt: 0, tasks: [] } };
 const SAT_DATES = new Set(['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' };
 
@@ -34,6 +34,19 @@ function cleanState(input) {
   const activeGoal = goals[exam];
   const marked = typeof progress.marked === 'object' && progress.marked ? progress.marked : {};
   const eliminated = typeof progress.eliminated === 'object' && progress.eliminated ? progress.eliminated : {};
+  const questionHistory = Array.isArray(progress.questionHistory) ? progress.questionHistory.slice(-600).map((entry) => ({
+    id: String(entry?.id || '').slice(0, 180),
+    exam: entry?.exam === 'ielts' ? 'ielts' : 'sat',
+    set: String(entry?.set || '').slice(0, 32),
+    domain: String(entry?.domain || '').slice(0, 120),
+    skill: String(entry?.skill || '').slice(0, 120),
+    difficulty: String(entry?.difficulty || '').slice(0, 32),
+    correct: Boolean(entry?.correct),
+    responseSeconds: Math.max(0, Math.min(36000, Number(entry?.responseSeconds) || 0)),
+    answeredAt: Math.max(0, Number(entry?.answeredAt) || 0),
+    activePlanTaskId: String(entry?.activePlanTaskId || '').slice(0, 180)
+  })).filter((entry) => entry.id) : [];
+  const studyPlan = input?.studyPlan && typeof input.studyPlan === 'object' ? input.studyPlan : {};
   return {
     profile: {
       name: String(profile.name || '').slice(0, 36),
@@ -41,7 +54,7 @@ function cleanState(input) {
       target: activeGoal.target,
       date: activeGoal.date,
       goals,
-      theme: ['coffee', 'dark', 'navy', 'purple', 'forest', 'sunset'].includes(profile.theme) ? profile.theme : 'coffee'
+      theme: ['coffee', 'dark', 'navy', 'navyFull', 'purple', 'forest', 'sunset'].includes(profile.theme) ? profile.theme : 'coffee'
     },
     progress: {
       sessions: Math.max(0, Math.min(100000, Number(progress.sessions) || 0)),
@@ -49,7 +62,13 @@ function cleanState(input) {
       lastSessionDate: /^\d{4}-\d{2}-\d{2}$/.test(progress.lastSessionDate || '') ? progress.lastSessionDate : '',
       answers: typeof progress.answers === 'object' && progress.answers ? progress.answers : {},
       marked,
-      eliminated
+      eliminated,
+      questionHistory
+    },
+    studyPlan: {
+      setup: studyPlan.setup && typeof studyPlan.setup === 'object' ? studyPlan.setup : null,
+      generatedAt: Math.max(0, Number(studyPlan.generatedAt) || 0),
+      tasks: Array.isArray(studyPlan.tasks) ? studyPlan.tasks.slice(0, 400) : []
     }
   };
 }
