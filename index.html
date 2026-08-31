@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>Luminary</title>
-  <link rel="stylesheet" href="main.css?v=26">
+  <link rel="stylesheet" href="main.css?v=27">
 </head>
 <body>
   <div class="app-shell">
@@ -23,10 +23,10 @@
         <div class="nav-section"><span>Practice</span><button class="nav-link sat-only" data-page="plan" type="button">Study plan</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
         <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
         <div class="nav-section ielts-only"><span>Mocks</span><button class="nav-link" data-page="mocks" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="mocks" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="mocks" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="mocks" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section"><span>Personal</span><button class="nav-link" data-page="profile" type="button">Profile</button></div>
       </nav>
-      <div class="account-line"><span class="avatar" id="account-initial">L</span><span><b id="sidebar-name">Learner</b><small id="account-status">Local profile</small></span></div>
-      <button class="auth-button" id="auth-button" type="button">Link email account</button>
+      <div class="account-line"><span class="avatar" id="account-initial">L</span><span><b id="sidebar-name">Learner</b><small id="account-status">Progress saved on this device</small></span></div>
+      <div class="guest-auth-actions" id="guest-auth-actions"><button id="login-button" data-open-auth="login" type="button">Log in</button><span>|</span><button id="signup-button" data-open-auth="register" type="button">Sign up</button></div>
+      <button class="auth-button" id="auth-button" type="button" hidden>Sign out</button>
     </aside>
 
     <button class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" type="button" aria-label="Close navigation"></button>
@@ -39,6 +39,7 @@
           <blockquote><p id="daily-quote">Small, focused work compounds.</p><footer id="daily-quote-day">Today’s thought</footer></blockquote>
         </section>
         <section class="goal-strip" aria-label="Exam goal"><article><span>My goal</span><strong id="goal-score">--</strong><button class="goal-edit" data-edit-goal="score" type="button">Change goal</button></article><article><span>Exam date</span><strong id="goal-date">Not selected</strong><button class="goal-edit" data-edit-goal="date" type="button">Choose date</button></article><article><span>Time left</span><strong id="goal-countdown">Set your date</strong></article></section>
+        <section class="home-settings" id="home-settings"><div class="home-settings-heading"><div><p class="kicker">Quick edit</p><h2>Goal &amp; appearance</h2></div><p>Changes save automatically.</p></div><div class="home-settings-fields"><label>Target score<select id="home-score"></select><small id="score-help"></small></label><label>Exam date<select id="home-sat-date"></select><input id="home-date" type="date" min="2026-08-14" max="2028-12-31" hidden><small id="date-help"></small></label></div><div class="mini-appearance"><span>Color</span><div class="mini-theme-grid" id="theme-grid"></div></div></section>
         <div class="section-heading"><div><p class="kicker">Adaptive focus</p><h2>Your next wins</h2></div><span></span></div>
         <p class="section-copy" id="recommendation-copy">We will adapt this area as you answer questions.</p>
         <section class="recommendation-grid" id="recommendation-grid"></section>
@@ -100,7 +101,6 @@
 
       <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">Practice</p><h1 id="mocks-title">SAT Mocks</h1><p>Practice under a timer when you are ready.</p></div><div class="mock-list" id="mock-list"><article class="empty-state"><strong>Loading mocks...</strong></article></div></section>
 
-      <section class="page" id="profile-page"><div class="page-intro"><p class="kicker">Profile</p><h1>Personal settings</h1><p>Your information is saved locally in this workspace.</p></div><form id="profile-form" class="settings-form"><label>Name<input id="profile-name" maxlength="36" placeholder="Your name"></label><label>Exam<select id="profile-exam"><option value="sat">SAT</option><option value="ielts">IELTS</option></select></label><label>Target score<select id="profile-score"></select><small id="score-help"></small></label><label>Exam date<select id="profile-sat-date"></select><input id="profile-date" type="date" min="2026-08-14" max="2028-12-31" hidden><small id="date-help"></small></label><fieldset><legend>Appearance</legend><p>Choose a complete Luminary palette.</p><div class="theme-grid" id="theme-grid"></div></fieldset><button class="button button-primary" type="submit">Save settings</button></form></section>
     </main>
   </div>
   <section class="test-experience is-hidden" id="test-experience" aria-label="Practice test">
@@ -119,20 +119,14 @@
     <footer class="test-actions"><button class="question-counter" id="question-counter" type="button" aria-haspopup="dialog">Question 1 of 6</button><div><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-primary" id="next-question" type="button">Next</button></div></footer>
     <section class="question-navigator is-hidden" id="question-navigator" role="dialog" aria-modal="true" aria-labelledby="navigator-title"><div class="navigator-card"><header><h2 id="navigator-title">Questions</h2><button class="tool-button" id="close-question-navigator" type="button">Close</button></header><div class="navigator-grid" id="navigator-grid"></div></div></section>
   </section>
-  <section class="auth-modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
-    <div class="auth-card">
-      <button class="auth-close" id="auth-close" type="button" aria-label="Close">×</button>
-      <p class="kicker">Student account</p>
-      <h2 id="auth-title">Link your progress</h2>
-      <p>Enter your email. We’ll send a secure sign-in link — no password needed.</p>
-      <form id="email-auth-form"><label>Email<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required></label><button class="button button-primary" id="email-auth-submit" type="submit">Send sign-in link</button></form>
-      <p class="auth-status" id="auth-status" aria-live="polite"></p>
-    </div>
+  <section class="auth-view" id="auth-view" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+    <aside class="auth-poster"><button class="auth-brand" type="button" data-close-auth><span>L</span><strong>Luminary</strong></button><div class="poster-orbit" aria-hidden="true"><i></i><i></i><i></i></div><div class="poster-copy"><p>Your next score starts here</p><h2>Practice with a reason. Improve with evidence.</h2><span>Every answer shapes what Luminary gives you next.</span></div></aside>
+    <div class="auth-panel"><button class="auth-close" id="auth-close" data-close-auth type="button" aria-label="Close">×</button><div class="auth-form-wrap"><p class="kicker">Student access</p><h1 id="auth-title">Welcome back</h1><p id="auth-copy">Log in to continue your personal study path.</p><form id="account-auth-form"><label>Email<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required></label><button class="button button-primary auth-primary" id="account-auth-submit" type="submit">Log in</button></form><div class="auth-divider"><span>or</span></div><button class="google-auth-button" id="google-auth-button" type="button"><span>G</span>Continue with Google</button><p class="auth-switch"><span id="auth-switch-copy">New to Luminary?</span><button id="auth-switch" type="button">Register</button></p><p class="auth-status" id="auth-status" aria-live="polite"></p></div></div>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
-  <script src="firebase-auth.js?v=8"></script>
+  <script src="firebase-auth.js?v=9"></script>
 </body>
 </html>

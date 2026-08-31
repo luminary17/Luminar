@@ -3,7 +3,7 @@
 window.luminaryAppLoaded = true;
 
 const THEMES = {
-  coffee: { name: 'Cappuccino White', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#f2e7da', sidebarSurface: '#e5d2bd', text: '#2f2924', textSoft: '#75685c', textMuted: '#998b7e', line: '#e7ddd2', accent: '#c38b4a', accentHover: '#9d6933', accentSoft: '#f4e4d1', onAccent: '#ffffff', sideText: '#2f2924', sideMuted: '#75685c', success: '#2d7a58', danger: '#af4c43' },
+  coffee: { name: 'Cappuccino White', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#fbfbfa', sidebar: '#f7f7f5', sidebarSurface: '#eceeed', text: '#20252b', textSoft: '#68717b', textMuted: '#929aa3', line: '#e2e6e9', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#e3f0fb', onAccent: '#ffffff', sideText: '#20252b', sideMuted: '#68717b', success: '#2d7a58', danger: '#af4c43' },
   dark: { name: 'Dark', bg: '#171717', surface: '#222222', surfaceRaised: '#2b2b2b', sidebar: '#101010', sidebarSurface: '#303030', text: '#f7f3ed', textSoft: '#c2bbb1', textMuted: '#938b82', line: '#42403d', accent: '#d3a75a', accentHover: '#e2bb73', accentSoft: '#40331e', onAccent: '#241b10', sideText: '#faf7f1', sideMuted: '#bdb6ad', success: '#69bb8c', danger: '#ed8279' },
   navy: { name: 'Dark Blue', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#101c30', sidebarSurface: '#1d304d', text: '#17263e', textSoft: '#60718a', textMuted: '#8593a6', line: '#dfe5ec', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#dcecfb', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#bdcbe0', success: '#287a58', danger: '#bf504d' },
   navyFull: { name: 'Dark Blue Fully', bg: '#0a1628', surface: '#0f2035', surfaceRaised: '#162840', sidebar: '#07101e', sidebarSurface: '#172b45', text: '#edf5ff', textSoft: '#b8c9dc', textMuted: '#8199b3', line: '#29415d', accent: '#4a9eda', accentHover: '#70b8e8', accentSoft: '#183d5c', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#a9bfd7', success: '#69bb8c', danger: '#ed8279' },
@@ -249,9 +249,8 @@ function setExam(exam, returnHome = true) {
   document.querySelectorAll('[data-exam]').forEach((button) => button.classList.toggle('is-active', button.dataset.exam === state.profile.exam));
   document.querySelectorAll('.sat-only').forEach((item) => { item.hidden = state.profile.exam !== 'sat'; });
   document.querySelectorAll('.ielts-only').forEach((item) => { item.hidden = state.profile.exam !== 'ielts'; });
-  $('profile-exam').value = state.profile.exam;
   renderQuestionBank();
-  renderProfileControls();
+  renderHomeControls();
   renderHome();
   renderLearn();
   renderVocab();
@@ -1141,7 +1140,7 @@ function backToMaterials() {
 }
 
 function renderThemes() {
-  $('theme-grid').innerHTML = Object.entries(THEMES).map(([id, theme]) => `<button class="theme-card ${id === state.profile.theme ? 'is-selected' : ''}" type="button" data-theme="${id}"><span class="theme-preview" style="--preview-bg:${theme.bg};--preview-surface:${theme.surface};--preview-accent:${theme.accent}"><i></i><b></b><em></em></span><span><strong>${theme.name}</strong><small>Background, surface, accent</small></span><span class="selected-label">Selected</span></button>`).join('');
+  $('theme-grid').innerHTML = Object.entries(THEMES).map(([id, theme]) => `<button class="mini-theme ${id === state.profile.theme ? 'is-selected' : ''}" type="button" data-theme="${id}" title="${escapeHtml(theme.name)}" aria-label="${escapeHtml(theme.name)}" style="--preview-sidebar:${theme.sidebar};--preview-accent:${theme.accent}"><i></i></button>`).join('');
 }
 
 function formatTimer() {
@@ -1499,31 +1498,24 @@ function openPage(page) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderProfileControls() {
+function renderHomeControls() {
   const isSat = state.profile.exam === 'sat';
   const goal = activeGoal();
   const scores = isSat ? Array.from({ length: 121 }, (_, index) => String(400 + index * 10)) : Array.from({ length: 19 }, (_, index) => (index / 2).toFixed(1));
-  $('profile-score').innerHTML = `<option value="">Choose a target score</option>${scores.map((score) => `<option value="${score}">${score}</option>`).join('')}`;
-  $('profile-score').value = scores.includes(goal.target) ? goal.target : '';
+  $('home-score').innerHTML = `<option value="">Choose a target score</option>${scores.map((score) => `<option value="${score}">${score}</option>`).join('')}`;
+  $('home-score').value = scores.includes(goal.target) ? goal.target : '';
   $('score-help').textContent = isSat ? 'SAT scores are available from 400 to 1600 in 10-point steps.' : 'IELTS overall bands are available from 0.0 to 9.0 in 0.5-band steps.';
-  $('profile-sat-date').innerHTML = `<option value="">Choose an SAT test date</option>${SAT_DATES.map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
-  $('profile-sat-date').value = SAT_DATES.includes(goal.date) ? goal.date : '';
-  $('profile-sat-date').hidden = !isSat;
-  $('profile-date').hidden = isSat;
-  $('profile-date').value = !isSat ? goal.date : '';
+  $('home-sat-date').innerHTML = `<option value="">Choose an SAT test date</option>${SAT_DATES.map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
+  $('home-sat-date').value = SAT_DATES.includes(goal.date) ? goal.date : '';
+  $('home-sat-date').hidden = !isSat;
+  $('home-date').hidden = isSat;
+  $('home-date').value = !isSat ? goal.date : '';
   $('date-help').textContent = isSat ? 'Official and anticipated SAT dates through June 2028.' : 'Choose any IELTS date through December 2028.';
 }
 
-function syncProfileForm() {
-  $('profile-name').value = state.profile.name;
-  $('profile-exam').value = state.profile.exam;
-  renderProfileControls();
-}
-
 function previewGoal() {
-  const exam = $('profile-exam').value;
-  state.profile.exam = exam;
-  setActiveGoal($('profile-score').value, exam === 'sat' ? $('profile-sat-date').value : $('profile-date').value);
+  const exam = state.profile.exam;
+  setActiveGoal($('home-score').value, exam === 'sat' ? $('home-sat-date').value : $('home-date').value);
   renderHome();
 }
 
@@ -1553,7 +1545,7 @@ function applyAuthenticatedUser(user) {
   }
   const suggestedName = user?.name || String(user?.email || '').split('@')[0];
   if (suggestedName && !state.profile.name) state.profile.name = suggestedName;
-  syncProfileForm();
+  renderHomeControls();
   renderHome();
   renderStudyPlan();
   if (user) persist();
@@ -1569,11 +1561,11 @@ function bindEvents() {
     if (reviewTopic) { openRecommendedMaterial(reviewTopic.dataset.reviewTopic); return; }
     const goalEditor = event.target.closest('[data-edit-goal]');
     if (goalEditor) {
-      openPage('profile');
       setMobileDrawer(false);
-      syncProfileForm();
-      const field = $(goalEditor.dataset.editGoal === 'date' ? (state.profile.exam === 'sat' ? 'profile-sat-date' : 'profile-date') : 'profile-score');
-      requestAnimationFrame(() => { field.scrollIntoView({ block: 'center', behavior: 'smooth' }); field.focus({ preventScroll: true }); });
+      openPage('home');
+      renderHomeControls();
+      const field = $(goalEditor.dataset.editGoal === 'date' ? (state.profile.exam === 'sat' ? 'home-sat-date' : 'home-date') : 'home-score');
+      requestAnimationFrame(() => { $('home-settings').scrollIntoView({ block: 'center', behavior: 'smooth' }); field.focus({ preventScroll: true }); });
       return;
     }
     const exam = event.target.closest('[data-exam]');
@@ -1697,33 +1689,9 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
-  $('profile-exam').addEventListener('change', () => {
-    setExam($('profile-exam').value, false);
-    syncProfileForm();
-    renderHome();
-  });
-  ['profile-score', 'profile-sat-date', 'profile-date'].forEach((id) => {
+  ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
     $(id).addEventListener('change', saveGoalChoice);
     $(id).addEventListener('input', saveGoalChoice);
-  });
-  $('profile-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const exam = $('profile-exam').value;
-    const target = $('profile-score').value;
-    const date = exam === 'sat' ? $('profile-sat-date').value : $('profile-date').value;
-    state.profile.name = $('profile-name').value.trim();
-    state.profile.exam = exam;
-    setActiveGoal(target, date);
-    if (exam === 'sat' && state.studyPlan.setup) {
-      state.studyPlan.setup.target = target;
-      state.studyPlan.setup.date = date;
-      generateStudyPlan(state.studyPlan.setup, true);
-    }
-    setExam(exam, false);
-    syncProfileForm();
-    renderHome();
-    await persist();
-    showToast('Settings saved.');
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') saveActivePractice();
@@ -1734,7 +1702,7 @@ async function init() {
   try { mergeState(await api('/api/state')); }
   catch { try { mergeState(JSON.parse(localStorage.getItem('luminary-state') || '{}')); } catch { mergeState(DEFAULT_STATE); } }
   applyTheme(state.profile.theme);
-  syncProfileForm();
+  renderHomeControls();
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
