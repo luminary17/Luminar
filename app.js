@@ -1281,8 +1281,8 @@ function backToMaterials() {
 }
 
 function renderThemes() {
-  const grid = $('theme-grid');
-  if (grid) grid.innerHTML = Object.entries(THEMES).map(([id, theme]) => `<button class="mini-theme ${id === state.profile.theme ? 'is-selected' : ''}" type="button" data-theme="${id}" title="${escapeHtml(theme.name)}" aria-label="${escapeHtml(theme.name)}" style="--preview-sidebar:${theme.sidebar};--preview-accent:${theme.accent}"></button>`).join('');
+  const swatches = Object.entries(THEMES).map(([id, theme]) => `<button class="mini-theme ${id === state.profile.theme ? 'is-selected' : ''}" type="button" data-theme="${id}" title="${escapeHtml(theme.name)}" aria-label="${escapeHtml(theme.name)}" style="--preview-sidebar:${theme.sidebar};--preview-accent:${theme.accent}"></button>`).join('');
+  ['theme-grid', 'auth-theme-grid'].forEach((id) => { if ($(id)) $(id).innerHTML = swatches; });
   const current = THEMES[state.profile.theme] || THEMES.navy;
   const icon = $('current-theme-icon');
   if (icon) {
@@ -1290,6 +1290,7 @@ function renderThemes() {
     icon.style.setProperty('--preview-accent', current.accent);
   }
   if ($('current-theme-name')) $('current-theme-name').textContent = current.name;
+  if ($('auth-current-theme-name')) $('auth-current-theme-name').textContent = current.name;
 }
 
 function formatTimer() {
