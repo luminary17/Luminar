@@ -9,7 +9,7 @@ const PORT = Number(process.env.PORT || 8012);
 const STORE = path.join(ROOT, 'luminary-data.json');
 const DEFAULT_STATE = { profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee' }, progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [] }, studyPlan: { setup: null, generatedAt: 0, tasks: [] } };
 const SAT_DATES = new Set(['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03']);
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 
 function cleanGoal(exam, input = {}) {
   const rawTarget = String(input.target || '');
@@ -95,7 +95,7 @@ function send(response, status, body, type = 'application/json; charset=utf-8') 
 async function staticFile(url, response) {
   const pathname = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
   const file = path.resolve(ROOT, `.${pathname}`);
-  if (!file.startsWith(ROOT) || !['.html', '.css', '.js'].includes(path.extname(file))) return send(response, 404, { error: 'Not found' });
+  if (!file.startsWith(ROOT) || !['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg'].includes(path.extname(file))) return send(response, 404, { error: 'Not found' });
   try {
     const body = await fs.readFile(file);
     response.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });

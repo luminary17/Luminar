@@ -26,7 +26,7 @@
 * { box-sizing: border-box; }
 [hidden], .is-hidden { display: none !important; }
 html { background: var(--bg); }
-body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.45; }
+body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); font-family: Manrope, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.45; }
 body:has(.test-experience:not(.is-hidden)) { overflow: hidden; overscroll-behavior: none; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
@@ -123,7 +123,7 @@ h1 { margin-bottom: 8px; font-size: clamp(34px, 4vw, 52px); letter-spacing: 0; l
 .theme-popover strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .theme-popover .mini-theme-grid { flex-wrap: wrap; gap: 10px; }
 .theme-popover .mini-theme { width: 30px; height: 30px; }
-body.is-auth-open .global-theme-control, body.is-onboarding-open .global-theme-control { top: 16px; right: 66px; bottom: auto; }
+body.is-auth-open .global-theme-control, body.is-onboarding-open .global-theme-control { display: none; }
 body.is-auth-open .theme-popover, body.is-onboarding-open .theme-popover { top: 56px; bottom: auto; }
 body:has(.test-experience:not(.is-hidden)) .global-theme-control { display: none; }
 .section-heading { display: flex; align-items: center; gap: 16px; margin: 34px 0 14px; }
@@ -610,6 +610,95 @@ body.is-auth-open { overflow: hidden; }
   .speaking-ai-stage { min-height: 470px; padding: 30px 18px; }
   .speaking-ai-scores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .speaking-ai-feedback { grid-template-columns: 1fr; }
+}
+
+/* Focused onboarding */
+.onboarding-view { display: block; overflow-y: auto; background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 55%, var(--accent-soft) 160%); }
+.onboarding-topbar { position: fixed; z-index: 112; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; min-height: 82px; padding: 18px clamp(22px, 4vw, 56px); background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(18px); }
+.onboarding-brand { display: flex; align-items: center; gap: 10px; border: 0; padding: 0; background: transparent; color: var(--text); font-size: 17px; }
+.onboarding-brand span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 13px; background: var(--sidebar); color: var(--side-text); font-weight: 900; }
+.onboarding-skip { position: static; min-width: auto; min-height: 42px; border: 1px solid var(--line); border-radius: 999px; padding: 9px 17px; background: var(--surface); box-shadow: 0 8px 22px rgba(0,0,0,.05); color: var(--text-soft); font-size: 12px; }
+.onboarding-progress { position: fixed; z-index: 113; top: 80px; left: 0; right: 0; height: 3px; background: var(--line); }
+.onboarding-progress i { display: block; width: 16.666%; height: 100%; background: var(--accent); transition: width .35s var(--ease); }
+.onboarding-main { display: grid; width: min(100%, 920px); min-height: 100dvh; margin: 0 auto; overflow: visible; place-items: center; padding: 128px 28px 60px; }
+.onboarding-main form { width: min(100%, 720px); }
+.onboarding-main form > header { margin-bottom: 34px; text-align: center; }
+.onboarding-main form > header .kicker { margin-bottom: 14px; }
+.onboarding-main form > header h1 { margin-bottom: 14px; font-size: clamp(42px, 6vw, 68px); line-height: 1.02; letter-spacing: -.045em; }
+.onboarding-main form > header > p:last-child { max-width: 520px; margin: 0 auto; color: var(--text-soft); font-size: 16px; }
+.onboarding-error { min-height: 22px; margin: -18px 0 16px; color: var(--danger); text-align: center; }
+.onboarding-step { min-height: 210px; animation: page-in .32s var(--ease) both; }
+.exam-card-grid { gap: 14px; }
+.exam-card { min-height: 190px; border-radius: 24px; padding: 26px; box-shadow: 0 14px 38px rgba(40,27,19,.06); }
+.exam-card.is-selected { padding: 25px; box-shadow: 0 0 0 4px var(--accent-soft), 0 18px 42px rgba(40,27,19,.1); }
+.onboarding-single-field, .onboarding-date-field label, .onboarding-level-field label { display: grid; width: min(100%, 510px); gap: 10px; margin: 0 auto; color: var(--text-soft); font-size: 12px; font-weight: 800; }
+.onboarding-single-field select, .onboarding-date-field select, .onboarding-date-field input, .onboarding-level-field select { width: 100%; min-height: 66px; border: 1px solid var(--line); border-radius: 19px; padding: 14px 18px; background: var(--surface); box-shadow: 0 14px 34px rgba(40,27,19,.06); color: var(--text); font-size: 16px; }
+.onboarding-date-field, .onboarding-level-field { display: grid; min-height: 210px; place-items: center; }
+.onboarding-weaknesses, .onboarding-skill-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.onboarding-weaknesses label, .onboarding-skill-chips label { position: relative; }
+.onboarding-weaknesses input, .onboarding-skill-chips input { position: absolute; opacity: 0; pointer-events: none; }
+.onboarding-weaknesses span, .onboarding-skill-chips span { display: grid; min-height: 64px; place-items: center; border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: var(--surface); box-shadow: 0 10px 28px rgba(40,27,19,.05); color: var(--text); font-weight: 750; text-align: center; }
+.onboarding-weaknesses input:checked + span, .onboarding-skill-chips input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-hover); box-shadow: inset 0 0 0 1px var(--accent); }
+.onboarding-main form > footer { margin-top: 32px; padding-top: 18px; }
+.onboarding-main form > footer .button { min-height: 48px; border-radius: 15px; }
+
+/* Voice recognition test */
+.voice-lab { border: 1px solid var(--line); border-radius: 28px; padding: clamp(22px, 4vw, 42px); background: var(--surface); box-shadow: 0 20px 55px rgba(20,28,40,.08); }
+.voice-lab-control { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px; padding-bottom: 32px; }
+.voice-orb { position: relative; display: grid; width: 88px; height: 88px; place-items: center; border-radius: 28px; background: linear-gradient(145deg, var(--accent-soft), var(--surface-raised)); box-shadow: inset 0 0 0 1px var(--line); }
+.voice-orb span { width: 22px; height: 34px; border: 3px solid var(--accent); border-radius: 14px; }
+.voice-orb span::after { content: ""; display: block; width: 30px; height: 16px; margin: 17px 0 0 -7px; border: 3px solid var(--accent); border-top: 0; border-radius: 0 0 16px 16px; }
+.voice-orb i { position: absolute; inset: 0; border: 2px solid var(--accent); border-radius: inherit; opacity: 0; }
+.voice-orb.is-listening i { animation: voiceWave 1.5s ease-out infinite; }
+.voice-status-label { color: var(--accent-hover); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.voice-lab-control h2 { margin: 5px 0 7px; font-size: 27px; }
+.voice-lab-control p { margin: 0; color: var(--text-soft); }
+.voice-transcript { overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: var(--surface-raised); }
+.voice-transcript header { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.voice-transcript header > div { display: flex; align-items: center; gap: 9px; }
+.voice-transcript header span { font-size: 12px; font-weight: 850; }
+.voice-transcript header strong { color: var(--text-muted); font-size: 10px; }
+.voice-transcript header button { border: 0; padding: 7px 10px; background: transparent; color: var(--accent-hover); font-size: 11px; font-weight: 850; }
+#voice-transcript { min-height: 250px; padding: 26px; }
+#voice-transcript p { margin: 0; color: var(--text-muted); font-size: clamp(18px, 2.4vw, 27px); line-height: 1.55; }
+#voice-transcript p span { color: var(--text-soft); opacity: .7; }
+.voice-privacy { margin: 15px 0 0; color: var(--text-muted); font-size: 10px; text-align: center; }
+@keyframes voiceWave { from { transform: scale(.8); opacity: .7; } to { transform: scale(1.35); opacity: 0; } }
+
+/* Modern authorization */
+.auth-view { grid-template-columns: minmax(420px, 1.08fr) minmax(430px, .92fr); background: var(--surface); }
+.auth-poster { margin: 14px; min-height: calc(100dvh - 28px); border-radius: 28px; padding: 36px; background-image: linear-gradient(180deg, rgba(20,17,15,.08) 0%, rgba(20,17,15,.04) 46%, rgba(20,17,15,.82) 100%), url("assets/auth-study-v2.png"); background-position: center 48%; box-shadow: 0 20px 60px rgba(31,25,20,.15); }
+.auth-panel { min-height: 100dvh; padding: 70px clamp(34px, 7vw, 100px); }
+.auth-form-wrap { width: min(100%, 430px); }
+.auth-form-wrap h1 { margin-bottom: 12px; font-size: clamp(43px, 5vw, 64px); letter-spacing: -.045em; }
+.auth-form-wrap form { margin-top: 32px; }
+.auth-form-wrap input { min-height: 56px; border-radius: 16px; padding: 14px 16px; background: var(--surface-raised); }
+.auth-primary, .google-auth-button { min-height: 54px; border-radius: 16px; }
+.auth-test-button { min-height: 50px; border-style: solid; border-color: var(--line); background: var(--surface-raised); color: var(--text); }
+.auth-skip { position: absolute; top: 24px; right: 28px; border: 0; padding: 10px; background: transparent; color: var(--text-soft); font-size: 12px; font-weight: 800; }
+.poster-copy h2 { max-width: 560px; font-size: clamp(42px, 5vw, 72px); }
+
+@media (max-width: 760px) {
+  .onboarding-topbar { min-height: 72px; padding: 14px 18px; }
+  .onboarding-progress { top: 70px; }
+  .onboarding-main { padding: 108px 18px 40px; }
+  .onboarding-main form > header h1 { font-size: 40px; }
+  .onboarding-weaknesses, .onboarding-skill-chips { grid-template-columns: 1fr; }
+  .auth-view { display: block; overflow-y: auto; }
+  .auth-poster { min-height: 300px; margin: 10px; padding: 24px; background-position: center 45%; }
+  .poster-copy h2 { font-size: 38px; }
+  .auth-panel { min-height: auto; padding: 56px 22px 60px; }
+  .voice-lab-control { grid-template-columns: auto 1fr; }
+  .voice-lab-control .button { grid-column: 1 / -1; width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .onboarding-main form > header h1 { font-size: 34px; }
+  .exam-card-grid { grid-template-columns: 1fr; }
+  .exam-card { min-height: 145px; }
+  .voice-lab-control { grid-template-columns: 1fr; text-align: center; }
+  .voice-orb { margin: 0 auto; }
+  #voice-transcript { min-height: 220px; padding: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

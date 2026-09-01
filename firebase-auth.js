@@ -53,7 +53,7 @@ function setAuthMode(mode) {
   authMode = mode === 'register' ? 'register' : 'login';
   const registering = authMode === 'register';
   authTitle.textContent = registering ? 'Create your account' : 'Welcome back';
-  authCopy.textContent = registering ? 'Register to start a personal study path.' : 'Log in to continue your personal study path.';
+  authCopy.textContent = registering ? 'Create a workspace that remembers your progress.' : 'Continue where you left off.';
   authSubmit.textContent = registering ? 'Register' : 'Log in';
   authSwitchCopy.textContent = registering ? 'Already have an account?' : 'New to Luminary?';
   authSwitch.textContent = registering ? 'Log in' : 'Register';

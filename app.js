@@ -3,7 +3,7 @@
 window.luminaryAppLoaded = true;
 
 const THEMES = {
-  coffee: { name: 'Cappuccino White', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#fbfbfa', sidebar: '#f7f7f5', sidebarSurface: '#eceeed', text: '#20252b', textSoft: '#68717b', textMuted: '#929aa3', line: '#e2e6e9', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#e3f0fb', onAccent: '#ffffff', sideText: '#20252b', sideMuted: '#68717b', success: '#2d7a58', danger: '#af4c43' },
+  coffee: { name: 'Cappuccino White', bg: '#f6efe6', surface: '#fffaf4', surfaceRaised: '#f1e5d7', sidebar: '#35271f', sidebarSurface: '#4b382c', text: '#2d241f', textSoft: '#6d5a4d', textMuted: '#9a8271', line: '#e2d2c2', accent: '#a6633d', accentHover: '#854a2c', accentSoft: '#ead3bf', onAccent: '#fffaf4', sideText: '#fff9f1', sideMuted: '#d9c5b5', success: '#47745b', danger: '#b34f45' },
   dark: { name: 'Dark', bg: '#171717', surface: '#222222', surfaceRaised: '#2b2b2b', sidebar: '#101010', sidebarSurface: '#303030', text: '#f7f3ed', textSoft: '#c2bbb1', textMuted: '#938b82', line: '#42403d', accent: '#d3a75a', accentHover: '#e2bb73', accentSoft: '#40331e', onAccent: '#241b10', sideText: '#faf7f1', sideMuted: '#bdb6ad', success: '#69bb8c', danger: '#ed8279' },
   navy: { name: 'Dark Blue', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#101c30', sidebarSurface: '#1d304d', text: '#17263e', textSoft: '#60718a', textMuted: '#8593a6', line: '#dfe5ec', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#dcecfb', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#bdcbe0', success: '#287a58', danger: '#bf504d' },
   navyFull: { name: 'Dark Blue Fully', bg: '#0a1628', surface: '#0f2035', surfaceRaised: '#162840', sidebar: '#07101e', sidebarSurface: '#172b45', text: '#edf5ff', textSoft: '#b8c9dc', textMuted: '#8199b3', line: '#29415d', accent: '#4a9eda', accentHover: '#70b8e8', accentSoft: '#183d5c', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#a9bfd7', success: '#69bb8c', danger: '#ed8279' },
@@ -89,15 +89,6 @@ const DAILY_QUOTES = [
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
-const SPEAKING_AI_URL = 'https://lsatieltsai.crazy-dinow.workers.dev/speaking/analyze';
-const SPEAKING_PART_ONE_QUESTIONS = [
-  { topic: 'Studies', question: 'Do you work or are you a student?' },
-  { topic: 'Studies', question: 'What do you enjoy most about your studies or work?' },
-  { topic: 'Studies', question: 'Is there anything you would like to change about it?' },
-  { topic: 'Hometown', question: 'Where is your hometown?' },
-  { topic: 'Hometown', question: 'What do you like most about your hometown?' },
-  { topic: 'Hometown', question: 'Do you think your hometown is a good place for young people?' }
-];
 const HACK_SECTIONS = [
   { id: 'geo-problems', title: 'SAT Must-Solve Geometry Problems', set: 'math' },
   { id: 'desmos-solutions', title: 'Desmos Solutions for Hardest Questions', set: 'math' },
@@ -139,7 +130,7 @@ const QUESTION_CACHE_MAX_AGE = 12 * 60 * 60 * 1000;
 const MATERIAL_CACHE_PREFIX = 'luminary-material-cache:';
 const MATERIAL_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 const ACTIVE_PRACTICE_KEY = 'luminary-active-practice';
-const ONBOARDING_KEY = 'luminary-onboarding-v2-complete';
+const ONBOARDING_KEY = 'luminary-onboarding-v3-complete';
 let activeAccountId = '';
 let onboardingStep = 1;
 let onboardingExam = '';
@@ -151,7 +142,7 @@ const vocabularyStores = {
 };
 let vocabularyContext = { exam: 'sat', folder: '', query: '', page: 0 };
 let vocabularyReview = { words: [], index: 0, known: 0, revealed: false };
-let speakingAi = { index: 0, answers: [], recorder: null, stream: null, chunks: [], startedAt: 0, timer: null, recording: false };
+let voiceLab = { recognition: null, listening: false, finalText: '', interimText: '' };
 
 const $ = (id) => document.getElementById(id);
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -433,25 +424,21 @@ function onboardingOptionList(items, label) {
 
 function populateOnboarding(exam) {
   const totals = satGoalOptions();
-  const sections = Array.from({ length: 61 }, (_, index) => String(200 + index * 10));
   const bands = Array.from({ length: 19 }, (_, index) => (index / 2).toFixed(1));
   const futureSatDates = SAT_DATES.filter((date) => date >= localDateKey(new Date()));
   $('onboarding-goal').innerHTML = exam === 'sat' ? onboardingOptionList(totals, 'Choose target score') : onboardingOptionList(bands, 'Choose target band');
   $('onboarding-sat-date').innerHTML = `<option value="">Choose test date</option>${futureSatDates.map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
-  $('onboarding-sat-date').hidden = exam !== 'sat';
-  $('onboarding-ielts-date').hidden = exam === 'sat';
   $('onboarding-ielts-date').min = localDateKey(new Date());
   $('onboarding-current-total').innerHTML = onboardingOptionList(totals, 'Choose current score');
-  $('onboarding-current-rw').innerHTML = onboardingOptionList(sections, 'Choose section score');
-  $('onboarding-current-math').innerHTML = onboardingOptionList(sections, 'Choose section score');
-  $('onboarding-target-rw').innerHTML = onboardingOptionList(sections, 'Choose target');
-  $('onboarding-target-math').innerHTML = onboardingOptionList(sections, 'Choose target');
   $('onboarding-current-band').innerHTML = onboardingOptionList(bands, 'Choose current band');
-  $('onboarding-sat-details').hidden = exam !== 'sat';
-  $('onboarding-sat-time').hidden = exam !== 'sat';
-  $('onboarding-ielts-details').hidden = exam === 'sat';
+  $('onboarding-sat-date-wrap').hidden = exam !== 'sat';
+  $('onboarding-ielts-date-wrap').hidden = exam === 'sat';
+  $('onboarding-current-total-wrap').hidden = exam !== 'sat';
+  $('onboarding-current-band-wrap').hidden = exam === 'sat';
+  $('onboarding-sat-weaknesses').hidden = exam !== 'sat';
+  $('onboarding-ielts-weaknesses').hidden = exam === 'sat';
   if (!$('onboarding-sat-weaknesses').children.length) {
-    $('onboarding-sat-weaknesses').innerHTML = ['rw', 'math'].map((set) => `<section class="onboarding-weak-set"><h3>${questionSetName(set)}</h3>${(SAT_TOPIC_GROUPS[set] || []).map((group) => `<div class="onboarding-weak-group"><label><input type="checkbox" data-onboarding-weak="${escapeHtml(group.title)}"><strong>${escapeHtml(group.title)}</strong></label><div>${group.topics.map((topic) => `<label><input type="checkbox" data-onboarding-weak="${escapeHtml(`${group.title}::${topic}`)}">${escapeHtml(topic)}</label>`).join('')}</div></div>`).join('')}</section>`).join('');
+    $('onboarding-sat-weaknesses').innerHTML = ['rw', 'math'].flatMap((set) => (SAT_TOPIC_GROUPS[set] || []).map((group) => `<label><input type="checkbox" data-onboarding-weak="${escapeHtml(group.title)}"><span>${escapeHtml(group.title)}</span></label>`)).join('');
   }
   if (!$('onboarding-ielts-weaknesses').children.length) {
     $('onboarding-ielts-weaknesses').innerHTML = ['Listening', 'Reading', 'Writing', 'Speaking'].map((skill) => `<label><input type="checkbox" data-onboarding-weak="${skill}"><span>${skill}</span></label>`).join('');
@@ -460,54 +447,18 @@ function populateOnboarding(exam) {
 }
 
 function updateOnboardingGoalPreview() {
-  const goal = $('onboarding-goal').value;
-  const date = onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value;
-  const exam = onboardingExam.toUpperCase();
-  $('onboarding-goal-preview').textContent = goal ? `${exam} ${goal}${date ? ` · ${dateText(date)}` : ''}` : 'Choose a score to see your goal.';
-  if (onboardingExam === 'sat' && goal) {
-    const targetRw = balancedSectionScore(goal, Number($('onboarding-target-rw').value));
-    $('onboarding-target-rw').value = String(targetRw);
-    $('onboarding-target-math').value = String(Number(goal) - targetRw);
-    syncOnboardingTarget('onboarding-target-rw');
-  }
-}
-
-function syncOnboardingCurrent(changed) {
-  if (changed === 'onboarding-current-total') {
-    const total = Number($('onboarding-current-total').value);
-    if (!total) return;
-    const rw = balancedSectionScore(total, Number($('onboarding-current-rw').value));
-    $('onboarding-current-rw').value = String(rw);
-    $('onboarding-current-math').value = String(total - rw);
-    return;
-  }
-  const rw = Number($('onboarding-current-rw').value);
-  const math = Number($('onboarding-current-math').value);
-  if (rw && math) $('onboarding-current-total').value = String(rw + math);
-}
-
-function syncOnboardingTarget(changed) {
-  const total = Number($('onboarding-goal').value);
-  if (!total) return;
-  const changedValue = Number($(changed).value);
-  const otherId = changed === 'onboarding-target-rw' ? 'onboarding-target-math' : 'onboarding-target-rw';
-  const other = total - changedValue;
-  if (changedValue < 200 || changedValue > 800 || other < 200 || other > 800 || changedValue % 10 !== 0 || other % 10 !== 0) {
-    const rw = balancedSectionScore(total, Number($('onboarding-target-rw').value));
-    $('onboarding-target-rw').value = String(rw);
-    $('onboarding-target-math').value = String(total - rw);
-  } else {
-    $(otherId).value = String(other);
-  }
-  $('onboarding-target-note').textContent = `Reading & Writing ${$('onboarding-target-rw').value} + Math ${$('onboarding-target-math').value} = ${total}.`;
+  /* Individual onboarding screens no longer need a combined preview. */
 }
 
 function showOnboardingStep(step) {
-  onboardingStep = Math.max(1, Math.min(3, step));
+  onboardingStep = Math.max(1, Math.min(6, step));
   const content = {
-    1: ['Step 1 of 3', 'What are you preparing for?', 'We will shape the entire workspace around your exam.', 'Exam'],
-    2: ['Step 2 of 3', 'Where do you want to go?', 'Choose a goal that feels ambitious and specific.', 'Goal'],
-    3: ['Step 3 of 3', 'Let’s shape your study plan.', 'Your current level and weak areas decide what comes first.', 'Plan']
+    1: ['1 of 6', 'Choose your exam.', 'Your workspace will adapt around this choice.', 'Exam'],
+    2: ['2 of 6', 'Set a score to aim for.', 'A clear target helps Luminary measure useful progress.', 'Target'],
+    3: ['3 of 6', 'When will you take it?', 'Choose the date that sets your pace.', 'Date'],
+    4: ['4 of 6', 'Where are you today?', 'A starting point keeps recommendations realistic.', 'Current level'],
+    5: ['5 of 6', 'What needs more attention?', 'Pick any areas you want to strengthen first.', 'Focus'],
+    6: ['6 of 6', 'How much time feels sustainable?', 'Choose a daily rhythm you can actually keep.', 'Time']
   }[onboardingStep];
   $('onboarding-kicker').textContent = content[0];
   $('onboarding-title').textContent = content[1];
@@ -515,13 +466,9 @@ function showOnboardingStep(step) {
   $('onboarding-step-label').textContent = content[3];
   $('onboarding-error').textContent = '';
   document.querySelectorAll('[data-onboarding-step]').forEach((section) => { section.hidden = Number(section.dataset.onboardingStep) !== onboardingStep; });
-  document.querySelectorAll('[data-onboarding-progress]').forEach((item) => {
-    const itemStep = Number(item.dataset.onboardingProgress);
-    item.classList.toggle('is-current', itemStep === onboardingStep);
-    item.classList.toggle('is-complete', itemStep < onboardingStep);
-  });
+  $('onboarding-progress-fill').style.width = `${onboardingStep / 6 * 100}%`;
   $('onboarding-back').hidden = onboardingStep === 1;
-  $('onboarding-next').textContent = onboardingStep === 3 ? 'Continue to account' : 'Continue';
+  $('onboarding-next').textContent = onboardingStep === 6 ? 'Finish setup' : 'Continue';
   $('onboarding-main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
 }
 
@@ -545,23 +492,15 @@ function skipOnboarding() {
 
 function validateOnboardingStep() {
   if (onboardingStep === 1 && !onboardingExam) return 'Choose SAT or IELTS to continue.';
-  if (onboardingStep === 2) {
-    const date = onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value;
-    if (!$('onboarding-goal').value || !date) return 'Choose your goal and exam date.';
-  }
-  if (onboardingStep === 3 && onboardingExam === 'sat') {
+  if (onboardingStep === 2 && !$('onboarding-goal').value) return 'Choose your target score.';
+  if (onboardingStep === 3 && !(onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value)) return 'Choose your exam date.';
+  if (onboardingStep === 4 && onboardingExam === 'sat') {
     const currentTotal = Number($('onboarding-current-total').value);
-    const currentRw = Number($('onboarding-current-rw').value);
-    const currentMath = Number($('onboarding-current-math').value);
     const target = Number($('onboarding-goal').value);
-    const targetRw = Number($('onboarding-target-rw').value);
-    const targetMath = Number($('onboarding-target-math').value);
-    if (!currentTotal || !currentRw || !currentMath || !targetRw || !targetMath) return 'Complete your current and target section scores.';
-    if (currentRw + currentMath !== currentTotal) return 'Your current section scores must equal your total.';
-    if (targetRw + targetMath !== target) return 'Your target section scores must equal your goal.';
+    if (!currentTotal) return 'Choose your current SAT score.';
     if (target <= currentTotal) return 'Your target score should be above your current score.';
   }
-  if (onboardingStep === 3 && onboardingExam === 'ielts') {
+  if (onboardingStep === 4 && onboardingExam === 'ielts') {
     const current = Number($('onboarding-current-band').value);
     const target = Number($('onboarding-goal').value);
     if (!$('onboarding-current-band').value) return 'Choose your current IELTS band.';
@@ -575,26 +514,31 @@ async function completeOnboarding() {
   const date = onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value;
   const weakRoot = onboardingExam === 'sat' ? $('onboarding-sat-weaknesses') : $('onboarding-ielts-weaknesses');
   const weakTopics = [...weakRoot.querySelectorAll('[data-onboarding-weak]:checked')].map((input) => input.dataset.onboardingWeak);
-  const minutes = Number(onboardingExam === 'sat' ? $('onboarding-minutes').value : $('onboarding-ielts-minutes').value);
+  const minutes = Number($('onboarding-minutes').value);
+  const currentTotal = onboardingExam === 'sat' ? $('onboarding-current-total').value : '';
+  const currentRw = currentTotal ? String(balancedSectionScore(currentTotal)) : '';
+  const currentMath = currentTotal ? String(Number(currentTotal) - Number(currentRw)) : '';
+  const targetRw = onboardingExam === 'sat' ? String(balancedSectionScore(goal)) : '';
+  const targetMath = onboardingExam === 'sat' ? String(Number(goal) - Number(targetRw)) : '';
   state.profile.exam = onboardingExam;
   state.profile.goals[onboardingExam] = { target: goal, date };
   state.profile.target = goal;
   state.profile.date = date;
   state.profile.planPreferences = {
-    currentScore: onboardingExam === 'sat' ? $('onboarding-current-total').value : $('onboarding-current-band').value,
-    currentRw: onboardingExam === 'sat' ? $('onboarding-current-rw').value : '',
-    currentMath: onboardingExam === 'sat' ? $('onboarding-current-math').value : '',
+    currentScore: onboardingExam === 'sat' ? currentTotal : $('onboarding-current-band').value,
+    currentRw,
+    currentMath,
     minutes,
     weakTopics
   };
   if (onboardingExam === 'sat') {
     generateStudyPlan({
-      currentTotal: $('onboarding-current-total').value,
-      currentRw: $('onboarding-current-rw').value,
-      currentMath: $('onboarding-current-math').value,
+      currentTotal,
+      currentRw,
+      currentMath,
       target: goal,
-      targetRw: $('onboarding-target-rw').value,
-      targetMath: $('onboarding-target-math').value,
+      targetRw,
+      targetMath,
       weakTopics,
       date,
       minutes
@@ -1700,173 +1644,81 @@ function openPage(page) {
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
   if (page === 'plan') renderStudyPlan();
-  if (page !== 'speaking-ai' && speakingAi.recording) stopSpeakingRecording();
+  if (page !== 'speaking-ai' && voiceLab.listening) stopVoiceLab();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function speakingTime(seconds) {
-  const safe = Math.max(0, Math.floor(seconds));
-  return `${String(Math.floor(safe / 60)).padStart(2, '0')}:${String(safe % 60).padStart(2, '0')}`;
+function renderVoiceTranscript() {
+  const combined = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
+  $('voice-transcript').innerHTML = combined
+    ? `<p>${escapeHtml(voiceLab.finalText)}${voiceLab.interimText ? ` <span>${escapeHtml(voiceLab.interimText)}</span>` : ''}</p>`
+    : '<p>What the AI hears will appear here…</p>';
+  const wordCount = combined ? combined.split(/\s+/).length : 0;
+  $('voice-word-count').textContent = `${wordCount} word${wordCount === 1 ? '' : 's'}`;
 }
 
-function updateSpeakingProgress() {
-  const total = SPEAKING_PART_ONE_QUESTIONS.length;
-  const completed = speakingAi.answers.length;
-  $('speaking-ai-step').textContent = completed >= total ? 'Complete' : `Question ${Math.min(speakingAi.index + 1, total)} of ${total}`;
-  $('speaking-ai-progress-copy').textContent = completed ? `${completed} answer${completed === 1 ? '' : 's'} recorded` : `${total} questions · about 4 minutes`;
-  $('speaking-ai-progress-fill').style.width = `${Math.round(completed / total * 100)}%`;
+function setVoiceListening(listening) {
+  voiceLab.listening = listening;
+  $('voice-orb').classList.toggle('is-listening', listening);
+  $('voice-toggle').textContent = listening ? 'Stop listening' : 'Start listening';
+  $('voice-status').textContent = listening ? 'Listening now…' : 'Ready to listen';
+  $('voice-hint').textContent = listening ? 'Keep speaking. The transcript updates as words are recognized.' : 'Speak naturally. Your words will appear as the browser recognizes them.';
 }
 
-function resetSpeakingAi() {
-  if (speakingAi.timer) clearInterval(speakingAi.timer);
-  if (speakingAi.recorder?.state === 'recording') speakingAi.recorder.stop();
-  speakingAi.stream?.getTracks().forEach((track) => track.stop());
-  speakingAi = { index: 0, answers: [], recorder: null, stream: null, chunks: [], startedAt: 0, timer: null, recording: false };
-  $('speaking-ai-intro').hidden = false;
-  $('speaking-ai-question').hidden = true;
-  $('speaking-ai-loading').hidden = true;
-  $('speaking-ai-result').hidden = true;
-  $('speaking-ai-timer').textContent = '00:00';
-  $('speaking-ai-pulse').classList.remove('is-recording');
-  updateSpeakingProgress();
-}
-
-async function startSpeakingSession() {
-  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-    showToast('This browser does not support microphone recording.');
+function initVoiceLab() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    $('voice-toggle').disabled = true;
+    $('voice-status').textContent = 'Use Chrome or Edge';
+    $('voice-hint').textContent = 'Live speech recognition is not available in this browser.';
     return;
   }
+  voiceLab.recognition = new Recognition();
+  voiceLab.recognition.continuous = true;
+  voiceLab.recognition.interimResults = true;
+  voiceLab.recognition.lang = 'en-US';
+  voiceLab.recognition.onresult = (event) => {
+    let interim = '';
+    for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      const text = event.results[index][0].transcript.trim();
+      if (event.results[index].isFinal) voiceLab.finalText = `${voiceLab.finalText} ${text}`.trim();
+      else interim = `${interim} ${text}`.trim();
+    }
+    voiceLab.interimText = interim;
+    renderVoiceTranscript();
+  };
+  voiceLab.recognition.onerror = (event) => {
+    setVoiceListening(false);
+    if (event.error === 'not-allowed') showToast('Allow microphone access to test voice recognition.');
+    else if (event.error !== 'no-speech') showToast('Voice recognition stopped. Please try again.');
+  };
+  voiceLab.recognition.onend = () => {
+    if (!voiceLab.listening) return;
+    try { voiceLab.recognition.start(); } catch { setVoiceListening(false); }
+  };
+}
+
+function startVoiceLab() {
+  if (!voiceLab.recognition || voiceLab.listening) return;
+  voiceLab.interimText = '';
   try {
-    speakingAi.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-  } catch {
-    showToast('Microphone access is required for Speaking AI.');
-    return;
-  }
-  $('speaking-ai-intro').hidden = true;
-  $('speaking-ai-result').hidden = true;
-  $('speaking-ai-question').hidden = false;
-  showSpeakingQuestion();
+    voiceLab.recognition.start();
+    setVoiceListening(true);
+  } catch { showToast('The microphone could not start.'); }
 }
 
-function showSpeakingQuestion() {
-  const item = SPEAKING_PART_ONE_QUESTIONS[speakingAi.index];
-  if (!item) { submitSpeakingSession(); return; }
-  $('speaking-ai-topic').textContent = item.topic;
-  $('speaking-ai-question-copy').textContent = item.question;
-  $('speaking-ai-timer').textContent = '00:00';
-  $('speaking-ai-status').textContent = 'Press record when you are ready.';
-  $('speaking-ai-record').textContent = 'Record answer';
-  $('speaking-ai-record').disabled = false;
-  updateSpeakingProgress();
+function stopVoiceLab() {
+  if (!voiceLab.recognition || !voiceLab.listening) return;
+  setVoiceListening(false);
+  voiceLab.interimText = '';
+  voiceLab.recognition.stop();
+  renderVoiceTranscript();
 }
 
-function preferredAudioType() {
-  return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
-}
-
-function startSpeakingRecording() {
-  if (!speakingAi.stream || speakingAi.recording) return;
-  const mimeType = preferredAudioType();
-  speakingAi.chunks = [];
-  speakingAi.recorder = new MediaRecorder(speakingAi.stream, mimeType ? { mimeType } : undefined);
-  speakingAi.recorder.addEventListener('dataavailable', (event) => { if (event.data.size) speakingAi.chunks.push(event.data); });
-  speakingAi.recorder.addEventListener('stop', saveSpeakingAnswer, { once: true });
-  speakingAi.startedAt = Date.now();
-  speakingAi.recording = true;
-  speakingAi.recorder.start(500);
-  $('speaking-ai-record').textContent = 'Stop recording';
-  $('speaking-ai-status').textContent = 'Recording your answer…';
-  $('speaking-ai-pulse').classList.add('is-recording');
-  speakingAi.timer = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - speakingAi.startedAt) / 1000);
-    $('speaking-ai-timer').textContent = speakingTime(elapsed);
-    if (elapsed >= 90) stopSpeakingRecording();
-  }, 250);
-}
-
-function stopSpeakingRecording() {
-  if (!speakingAi.recording || speakingAi.recorder?.state !== 'recording') return;
-  speakingAi.recording = false;
-  clearInterval(speakingAi.timer);
-  speakingAi.timer = null;
-  $('speaking-ai-record').disabled = true;
-  $('speaking-ai-status').textContent = 'Saving answer…';
-  $('speaking-ai-pulse').classList.remove('is-recording');
-  speakingAi.recorder.stop();
-}
-
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function saveSpeakingAnswer() {
-  const durationSeconds = Math.max(1, Math.round((Date.now() - speakingAi.startedAt) / 1000));
-  if (durationSeconds < 3) {
-    $('speaking-ai-status').textContent = 'That was too short. Please answer for at least 3 seconds.';
-    $('speaking-ai-record').disabled = false;
-    $('speaking-ai-record').textContent = 'Record again';
-    return;
-  }
-  try {
-    const mimeType = speakingAi.recorder.mimeType || speakingAi.chunks[0]?.type || 'audio/webm';
-    const blob = new Blob(speakingAi.chunks, { type: mimeType });
-    speakingAi.answers.push({
-      question: SPEAKING_PART_ONE_QUESTIONS[speakingAi.index].question,
-      audioBase64: await blobToBase64(blob),
-      mimeType: mimeType.split(';')[0],
-      durationSeconds
-    });
-    speakingAi.index += 1;
-    showSpeakingQuestion();
-  } catch {
-    $('speaking-ai-status').textContent = 'The recording could not be saved. Please try again.';
-    $('speaking-ai-record').disabled = false;
-  }
-}
-
-async function submitSpeakingSession() {
-  speakingAi.stream?.getTracks().forEach((track) => track.stop());
-  speakingAi.stream = null;
-  $('speaking-ai-question').hidden = true;
-  $('speaking-ai-loading').hidden = false;
-  updateSpeakingProgress();
-  try {
-    const response = await fetch(SPEAKING_AI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: speakingAi.answers })
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || 'Assessment failed.');
-    renderSpeakingResult(result.assessment);
-  } catch (error) {
-    $('speaking-ai-loading').hidden = true;
-    $('speaking-ai-intro').hidden = false;
-    $('speaking-ai-intro').querySelector('h2').textContent = 'Assessment could not finish.';
-    $('speaking-ai-intro').querySelector('p').textContent = error.message || 'Please try another session.';
-    $('speaking-ai-start').textContent = 'Try again';
-  }
-}
-
-function renderSpeakingResult(result) {
-  $('speaking-ai-loading').hidden = true;
-  $('speaking-ai-result').hidden = false;
-  $('speaking-ai-overall').textContent = Number(result.overall).toFixed(1);
-  $('speaking-ai-confidence').textContent = `${Math.round((Number(result.confidence) || 0) * 100)}% assessment confidence`;
-  $('speaking-ai-scores').innerHTML = [
-    ['Fluency & coherence', result.fluency],
-    ['Lexical resource', result.vocabulary],
-    ['Grammar', result.grammar],
-    ['Pronunciation', result.pronunciation]
-  ].map(([label, score]) => `<article><span>${label}</span><strong>${Number(score).toFixed(1)}</strong></article>`).join('');
-  $('speaking-ai-summary').textContent = result.summary || 'Estimated from this Part 1 practice session.';
-  $('speaking-ai-strengths').innerHTML = (result.strengths?.length ? result.strengths : ['Complete more sessions to build a clearer profile.']).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-  $('speaking-ai-priorities').innerHTML = (result.priorities?.length ? result.priorities : ['Keep answers natural and develop each idea.']).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+function clearVoiceLab() {
+  voiceLab.finalText = '';
+  voiceLab.interimText = '';
+  renderVoiceTranscript();
 }
 
 function renderHomeControls() {
@@ -2030,21 +1882,15 @@ function bindEvents() {
   $('onboarding-next').addEventListener('click', async () => {
     const error = validateOnboardingStep();
     if (error) { $('onboarding-error').textContent = error; return; }
-    if (onboardingStep < 3) { showOnboardingStep(onboardingStep + 1); return; }
+    if (onboardingStep < 6) { showOnboardingStep(onboardingStep + 1); return; }
     $('onboarding-next').disabled = true;
     $('onboarding-next').textContent = 'Building your workspace...';
     try { await completeOnboarding(); }
     finally {
       $('onboarding-next').disabled = false;
-      $('onboarding-next').textContent = 'Continue to account';
+      $('onboarding-next').textContent = 'Finish setup';
     }
   });
-  ['onboarding-goal', 'onboarding-sat-date', 'onboarding-ielts-date'].forEach((id) => $(id).addEventListener('change', updateOnboardingGoalPreview));
-  $('onboarding-current-total').addEventListener('change', () => syncOnboardingCurrent('onboarding-current-total'));
-  $('onboarding-current-rw').addEventListener('change', () => syncOnboardingCurrent('onboarding-current-rw'));
-  $('onboarding-current-math').addEventListener('change', () => syncOnboardingCurrent('onboarding-current-math'));
-  $('onboarding-target-rw').addEventListener('change', () => syncOnboardingTarget('onboarding-target-rw'));
-  $('onboarding-target-math').addEventListener('change', () => syncOnboardingTarget('onboarding-target-math'));
   $('daily-action').addEventListener('click', () => {
     const question = dailyQuestionStore[state.profile.exam].question;
     if (question) startPractice(question.set, 0, [question], 'daily');
@@ -2104,9 +1950,8 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
-  $('speaking-ai-start').addEventListener('click', () => { resetSpeakingAi(); startSpeakingSession(); });
-  $('speaking-ai-record').addEventListener('click', () => speakingAi.recording ? stopSpeakingRecording() : startSpeakingRecording());
-  $('speaking-ai-again').addEventListener('click', resetSpeakingAi);
+  $('voice-toggle').addEventListener('click', () => voiceLab.listening ? stopVoiceLab() : startVoiceLab());
+  $('voice-clear').addEventListener('click', clearVoiceLab);
   ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
     $(id).addEventListener('change', saveGoalChoice);
     $(id).addEventListener('input', saveGoalChoice);
@@ -2124,7 +1969,7 @@ async function init() {
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
-  resetSpeakingAi();
+  initVoiceLab();
   loadRemoteMaterials('rules');
   if (window.matchMedia('(max-width: 620px)').matches) {
     clearActivePractice();
