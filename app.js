@@ -89,6 +89,15 @@ const DAILY_QUOTES = [
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
+const SPEAKING_AI_URL = 'https://lsatieltsai.crazy-dinow.workers.dev/speaking/analyze';
+const SPEAKING_PART_ONE_QUESTIONS = [
+  { topic: 'Studies', question: 'Do you work or are you a student?' },
+  { topic: 'Studies', question: 'What do you enjoy most about your studies or work?' },
+  { topic: 'Studies', question: 'Is there anything you would like to change about it?' },
+  { topic: 'Hometown', question: 'Where is your hometown?' },
+  { topic: 'Hometown', question: 'What do you like most about your hometown?' },
+  { topic: 'Hometown', question: 'Do you think your hometown is a good place for young people?' }
+];
 const HACK_SECTIONS = [
   { id: 'geo-problems', title: 'SAT Must-Solve Geometry Problems', set: 'math' },
   { id: 'desmos-solutions', title: 'Desmos Solutions for Hardest Questions', set: 'math' },
@@ -142,6 +151,7 @@ const vocabularyStores = {
 };
 let vocabularyContext = { exam: 'sat', folder: '', query: '', page: 0 };
 let vocabularyReview = { words: [], index: 0, known: 0, revealed: false };
+let speakingAi = { index: 0, answers: [], recorder: null, stream: null, chunks: [], startedAt: 0, timer: null, recording: false };
 
 const $ = (id) => document.getElementById(id);
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -1682,7 +1692,173 @@ function openPage(page) {
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
   if (page === 'plan') renderStudyPlan();
+  if (page !== 'speaking-ai' && speakingAi.recording) stopSpeakingRecording();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function speakingTime(seconds) {
+  const safe = Math.max(0, Math.floor(seconds));
+  return `${String(Math.floor(safe / 60)).padStart(2, '0')}:${String(safe % 60).padStart(2, '0')}`;
+}
+
+function updateSpeakingProgress() {
+  const total = SPEAKING_PART_ONE_QUESTIONS.length;
+  const completed = speakingAi.answers.length;
+  $('speaking-ai-step').textContent = completed >= total ? 'Complete' : `Question ${Math.min(speakingAi.index + 1, total)} of ${total}`;
+  $('speaking-ai-progress-copy').textContent = completed ? `${completed} answer${completed === 1 ? '' : 's'} recorded` : `${total} questions · about 4 minutes`;
+  $('speaking-ai-progress-fill').style.width = `${Math.round(completed / total * 100)}%`;
+}
+
+function resetSpeakingAi() {
+  if (speakingAi.timer) clearInterval(speakingAi.timer);
+  if (speakingAi.recorder?.state === 'recording') speakingAi.recorder.stop();
+  speakingAi.stream?.getTracks().forEach((track) => track.stop());
+  speakingAi = { index: 0, answers: [], recorder: null, stream: null, chunks: [], startedAt: 0, timer: null, recording: false };
+  $('speaking-ai-intro').hidden = false;
+  $('speaking-ai-question').hidden = true;
+  $('speaking-ai-loading').hidden = true;
+  $('speaking-ai-result').hidden = true;
+  $('speaking-ai-timer').textContent = '00:00';
+  $('speaking-ai-pulse').classList.remove('is-recording');
+  updateSpeakingProgress();
+}
+
+async function startSpeakingSession() {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    showToast('This browser does not support microphone recording.');
+    return;
+  }
+  try {
+    speakingAi.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  } catch {
+    showToast('Microphone access is required for Speaking AI.');
+    return;
+  }
+  $('speaking-ai-intro').hidden = true;
+  $('speaking-ai-result').hidden = true;
+  $('speaking-ai-question').hidden = false;
+  showSpeakingQuestion();
+}
+
+function showSpeakingQuestion() {
+  const item = SPEAKING_PART_ONE_QUESTIONS[speakingAi.index];
+  if (!item) { submitSpeakingSession(); return; }
+  $('speaking-ai-topic').textContent = item.topic;
+  $('speaking-ai-question-copy').textContent = item.question;
+  $('speaking-ai-timer').textContent = '00:00';
+  $('speaking-ai-status').textContent = 'Press record when you are ready.';
+  $('speaking-ai-record').textContent = 'Record answer';
+  $('speaking-ai-record').disabled = false;
+  updateSpeakingProgress();
+}
+
+function preferredAudioType() {
+  return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
+}
+
+function startSpeakingRecording() {
+  if (!speakingAi.stream || speakingAi.recording) return;
+  const mimeType = preferredAudioType();
+  speakingAi.chunks = [];
+  speakingAi.recorder = new MediaRecorder(speakingAi.stream, mimeType ? { mimeType } : undefined);
+  speakingAi.recorder.addEventListener('dataavailable', (event) => { if (event.data.size) speakingAi.chunks.push(event.data); });
+  speakingAi.recorder.addEventListener('stop', saveSpeakingAnswer, { once: true });
+  speakingAi.startedAt = Date.now();
+  speakingAi.recording = true;
+  speakingAi.recorder.start(500);
+  $('speaking-ai-record').textContent = 'Stop recording';
+  $('speaking-ai-status').textContent = 'Recording your answer…';
+  $('speaking-ai-pulse').classList.add('is-recording');
+  speakingAi.timer = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - speakingAi.startedAt) / 1000);
+    $('speaking-ai-timer').textContent = speakingTime(elapsed);
+    if (elapsed >= 90) stopSpeakingRecording();
+  }, 250);
+}
+
+function stopSpeakingRecording() {
+  if (!speakingAi.recording || speakingAi.recorder?.state !== 'recording') return;
+  speakingAi.recording = false;
+  clearInterval(speakingAi.timer);
+  speakingAi.timer = null;
+  $('speaking-ai-record').disabled = true;
+  $('speaking-ai-status').textContent = 'Saving answer…';
+  $('speaking-ai-pulse').classList.remove('is-recording');
+  speakingAi.recorder.stop();
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function saveSpeakingAnswer() {
+  const durationSeconds = Math.max(1, Math.round((Date.now() - speakingAi.startedAt) / 1000));
+  if (durationSeconds < 3) {
+    $('speaking-ai-status').textContent = 'That was too short. Please answer for at least 3 seconds.';
+    $('speaking-ai-record').disabled = false;
+    $('speaking-ai-record').textContent = 'Record again';
+    return;
+  }
+  try {
+    const mimeType = speakingAi.recorder.mimeType || speakingAi.chunks[0]?.type || 'audio/webm';
+    const blob = new Blob(speakingAi.chunks, { type: mimeType });
+    speakingAi.answers.push({
+      question: SPEAKING_PART_ONE_QUESTIONS[speakingAi.index].question,
+      audioBase64: await blobToBase64(blob),
+      mimeType: mimeType.split(';')[0],
+      durationSeconds
+    });
+    speakingAi.index += 1;
+    showSpeakingQuestion();
+  } catch {
+    $('speaking-ai-status').textContent = 'The recording could not be saved. Please try again.';
+    $('speaking-ai-record').disabled = false;
+  }
+}
+
+async function submitSpeakingSession() {
+  speakingAi.stream?.getTracks().forEach((track) => track.stop());
+  speakingAi.stream = null;
+  $('speaking-ai-question').hidden = true;
+  $('speaking-ai-loading').hidden = false;
+  updateSpeakingProgress();
+  try {
+    const response = await fetch(SPEAKING_AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: speakingAi.answers })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Assessment failed.');
+    renderSpeakingResult(result.assessment);
+  } catch (error) {
+    $('speaking-ai-loading').hidden = true;
+    $('speaking-ai-intro').hidden = false;
+    $('speaking-ai-intro').querySelector('h2').textContent = 'Assessment could not finish.';
+    $('speaking-ai-intro').querySelector('p').textContent = error.message || 'Please try another session.';
+    $('speaking-ai-start').textContent = 'Try again';
+  }
+}
+
+function renderSpeakingResult(result) {
+  $('speaking-ai-loading').hidden = true;
+  $('speaking-ai-result').hidden = false;
+  $('speaking-ai-overall').textContent = Number(result.overall).toFixed(1);
+  $('speaking-ai-confidence').textContent = `${Math.round((Number(result.confidence) || 0) * 100)}% assessment confidence`;
+  $('speaking-ai-scores').innerHTML = [
+    ['Fluency & coherence', result.fluency],
+    ['Lexical resource', result.vocabulary],
+    ['Grammar', result.grammar],
+    ['Pronunciation', result.pronunciation]
+  ].map(([label, score]) => `<article><span>${label}</span><strong>${Number(score).toFixed(1)}</strong></article>`).join('');
+  $('speaking-ai-summary').textContent = result.summary || 'Estimated from this Part 1 practice session.';
+  $('speaking-ai-strengths').innerHTML = (result.strengths?.length ? result.strengths : ['Complete more sessions to build a clearer profile.']).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  $('speaking-ai-priorities').innerHTML = (result.priorities?.length ? result.priorities : ['Keep answers natural and develop each idea.']).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
 }
 
 function renderHomeControls() {
@@ -1919,6 +2095,9 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
+  $('speaking-ai-start').addEventListener('click', () => { resetSpeakingAi(); startSpeakingSession(); });
+  $('speaking-ai-record').addEventListener('click', () => speakingAi.recording ? stopSpeakingRecording() : startSpeakingRecording());
+  $('speaking-ai-again').addEventListener('click', resetSpeakingAi);
   ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
     $(id).addEventListener('change', saveGoalChoice);
     $(id).addEventListener('input', saveGoalChoice);
@@ -1936,6 +2115,7 @@ async function init() {
   setExam(state.profile.exam, false);
   renderQuestionBank();
   bindEvents();
+  resetSpeakingAi();
   loadRemoteMaterials('rules');
   if (window.matchMedia('(max-width: 620px)').matches) {
     clearActivePractice();
