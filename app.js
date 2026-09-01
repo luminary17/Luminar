@@ -1639,6 +1639,7 @@ function jumpToQuestion(index) {
 
 function openPage(page) {
   currentPage = page;
+  document.body.classList.toggle('is-voice-lab-open', page === 'speaking-ai');
   document.querySelectorAll('.page').forEach((section) => section.classList.toggle('is-active', section.id === `${page}-page`));
   document.querySelectorAll('.nav-link').forEach((link) => link.classList.toggle('is-active', link.dataset.page === page && (!link.dataset.skill || link.dataset.skill === currentSkill)));
   if (page !== 'questions') leavePractice();
@@ -1952,6 +1953,8 @@ function bindEvents() {
   });
   $('voice-toggle').addEventListener('click', () => voiceLab.listening ? stopVoiceLab() : startVoiceLab());
   $('voice-clear').addEventListener('click', clearVoiceLab);
+  $('voice-lab-back').addEventListener('click', () => openPage('home'));
+  $('voice-lab-exit').addEventListener('click', () => openPage('home'));
   ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
     $(id).addEventListener('change', saveGoalChoice);
     $(id).addEventListener('input', saveGoalChoice);
