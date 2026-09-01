@@ -17,6 +17,7 @@ const emailInput = document.getElementById('auth-email');
 const passwordInput = document.getElementById('auth-password');
 const authSubmit = document.getElementById('account-auth-submit');
 const googleButton = document.getElementById('google-auth-button');
+const authTestButton = document.getElementById('auth-test-button');
 const authTitle = document.getElementById('auth-title');
 const authCopy = document.getElementById('auth-copy');
 const authSwitchCopy = document.getElementById('auth-switch-copy');
@@ -81,6 +82,10 @@ document.querySelectorAll('[data-open-auth]').forEach((button) => {
 });
 window.addEventListener('luminary:open-auth', (event) => showAuth(event.detail?.mode || 'register'));
 document.querySelectorAll('[data-close-auth]').forEach((button) => button.addEventListener('click', hideAuth));
+authTestButton.addEventListener('click', () => {
+  sessionStorage.setItem('luminary-test-session', '1');
+  hideAuth();
+});
 authSwitch.addEventListener('click', () => setAuthMode(authMode === 'login' ? 'register' : 'login'));
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !authView.hidden) hideAuth();

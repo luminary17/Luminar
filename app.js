@@ -535,6 +535,14 @@ function startOnboarding() {
   showOnboardingStep(1);
 }
 
+function skipOnboarding() {
+  localStorage.setItem(ONBOARDING_KEY, '1');
+  $('onboarding-view').hidden = true;
+  document.body.classList.remove('is-onboarding-open');
+  openPage('home');
+  showToast('Onboarding skipped. You can set your exam and goal anytime.');
+}
+
 function validateOnboardingStep() {
   if (onboardingStep === 1 && !onboardingExam) return 'Choose SAT or IELTS to continue.';
   if (onboardingStep === 2) {
@@ -2018,6 +2026,7 @@ function bindEvents() {
     $('global-theme-button').setAttribute('aria-expanded', String(open));
   });
   $('onboarding-back').addEventListener('click', () => showOnboardingStep(onboardingStep - 1));
+  $('onboarding-skip').addEventListener('click', skipOnboarding);
   $('onboarding-next').addEventListener('click', async () => {
     const error = validateOnboardingStep();
     if (error) { $('onboarding-error').textContent = error; return; }
