@@ -79,26 +79,37 @@ async function chat(request, env, origin) {
     return json({ error: error.message }, 400, origin);
   }
 
-  const geminiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': env.GEMINI_API_KEY
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: 'You are Luminary Voice Practice, a friendly English conversation partner for students. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25_000);
+  let geminiResponse;
+  try {
+    geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': env.GEMINI_API_KEY
         },
-        contents,
-        generationConfig: {
-          temperature: 0.65,
-          maxOutputTokens: 140
-        }
-      })
-    }
-  );
+        signal: controller.signal,
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: 'You are Luminary Voice Practice, a friendly English conversation partner for students. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
+          },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 140,
+            thinkingConfig: { thinkingLevel: 'low' }
+          }
+        })
+      }
+    );
+  } catch (error) {
+    if (error?.name === 'AbortError') return json({ error: 'Gemini took too long to reply. Please try again.' }, 504, origin);
+    return json({ error: 'The Worker could not reach Gemini.' }, 502, origin);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const geminiResult = await geminiResponse.json().catch(() => ({}));
   if (!geminiResponse.ok) {
@@ -200,7 +211,7 @@ async function assess(request, env, origin) {
       body: JSON.stringify({
         contents: [{ role: 'user', parts }],
         generationConfig: {
-          temperature: 0.1,
+          thinkingConfig: { thinkingLevel: 'low' },
           responseMimeType: 'application/json'
         }
       })
