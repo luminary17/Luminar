@@ -4,7 +4,7 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:8012'
 ]);
 
-const CHAT_MODEL = 'gemini-3.5-flash-lite';
+const CHAT_MODEL = 'gemini-3.1-flash-lite';
 const ASSESSMENT_MODEL = 'gemini-3.7-flash';
 const MAX_ANSWERS = 12;
 const MAX_BASE64_CHARS = 18_000_000;
@@ -81,7 +81,7 @@ async function chat(request, env, origin) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
+  const timeout = setTimeout(() => controller.abort(), 55_000);
   let geminiResponse;
   try {
     geminiResponse = await fetch(
