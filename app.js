@@ -3,7 +3,7 @@
 window.luminaryAppLoaded = true;
 
 const THEMES = {
-  coffee: { name: 'Cappuccino White', bg: '#f7f5f2', surface: '#fffefd', surfaceRaised: '#f1ece7', sidebar: '#49382e', sidebarSurface: '#5b473b', text: '#292421', textSoft: '#6b615a', textMuted: '#978d86', line: '#e2ddd8', accent: '#9a6a4a', accentHover: '#744a31', accentSoft: '#eee2da', onAccent: '#ffffff', sideText: '#fffaf6', sideMuted: '#ddd1c8', success: '#47745b', danger: '#b34f45' },
+  coffee: { name: 'Cappuccino White', bg: '#fbfaf8', surface: '#ffffff', surfaceRaised: '#f7f3ef', sidebar: '#514137', sidebarSurface: '#665247', text: '#292522', textSoft: '#756c66', textMuted: '#a39b95', line: '#ebe6e2', accent: '#a97758', accentHover: '#855a41', accentSoft: '#f3eae4', onAccent: '#ffffff', sideText: '#fffdfb', sideMuted: '#e4d9d2', success: '#47745b', danger: '#b34f45' },
   dark: { name: 'Dark', bg: '#171717', surface: '#222222', surfaceRaised: '#2b2b2b', sidebar: '#101010', sidebarSurface: '#303030', text: '#f7f3ed', textSoft: '#c2bbb1', textMuted: '#938b82', line: '#42403d', accent: '#d3a75a', accentHover: '#e2bb73', accentSoft: '#40331e', onAccent: '#241b10', sideText: '#faf7f1', sideMuted: '#bdb6ad', success: '#69bb8c', danger: '#ed8279' },
   navy: { name: 'Dark Blue', bg: '#ffffff', surface: '#ffffff', surfaceRaised: '#ffffff', sidebar: '#101c30', sidebarSurface: '#1d304d', text: '#17263e', textSoft: '#60718a', textMuted: '#8593a6', line: '#dfe5ec', accent: '#357fc4', accentHover: '#2467a8', accentSoft: '#dcecfb', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#bdcbe0', success: '#287a58', danger: '#bf504d' },
   navyFull: { name: 'Dark Blue Fully', bg: '#0a1628', surface: '#0f2035', surfaceRaised: '#162840', sidebar: '#07101e', sidebarSurface: '#172b45', text: '#edf5ff', textSoft: '#b8c9dc', textMuted: '#8199b3', line: '#29415d', accent: '#4a9eda', accentHover: '#70b8e8', accentSoft: '#183d5c', onAccent: '#ffffff', sideText: '#f8fbff', sideMuted: '#a9bfd7', success: '#69bb8c', danger: '#ed8279' },
@@ -89,6 +89,7 @@ const DAILY_QUOTES = [
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
+const SPEAKING_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
 const HACK_SECTIONS = [
   { id: 'geo-problems', title: 'SAT Must-Solve Geometry Problems', set: 'math' },
   { id: 'desmos-solutions', title: 'Desmos Solutions for Hardest Questions', set: 'math' },
@@ -142,7 +143,7 @@ const vocabularyStores = {
 };
 let vocabularyContext = { exam: 'sat', folder: '', query: '', page: 0 };
 let vocabularyReview = { words: [], index: 0, known: 0, revealed: false };
-let voiceLab = { recognition: null, listening: false, finalText: '', interimText: '' };
+let voiceLab = { recognition: null, listening: false, pending: false, finalText: '', interimText: '', messages: [] };
 
 const $ = (id) => document.getElementById(id);
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -1651,20 +1652,58 @@ function openPage(page) {
 }
 
 function renderVoiceTranscript() {
-  const combined = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
-  $('voice-transcript').innerHTML = combined
-    ? `<p>${escapeHtml(voiceLab.finalText)}${voiceLab.interimText ? ` <span>${escapeHtml(voiceLab.interimText)}</span>` : ''}</p>`
-    : '<p>What the AI hears will appear here…</p>';
-  const wordCount = combined ? combined.split(/\s+/).length : 0;
-  $('voice-word-count').textContent = `${wordCount} word${wordCount === 1 ? '' : 's'}`;
+  const draft = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
+  const turns = voiceLab.messages.map((message) => `<article class="voice-turn voice-turn-${message.role}"><span>${message.role === 'user' ? 'You' : message.role === 'model' ? 'Gemini' : 'Connection'}</span><p>${escapeHtml(message.text)}</p></article>`);
+  if (draft) turns.push(`<article class="voice-turn voice-turn-user is-draft"><span>You · listening</span><p>${escapeHtml(draft)}</p></article>`);
+  if (voiceLab.pending) turns.push('<article class="voice-turn voice-turn-model is-thinking"><span>Gemini</span><p><i></i><i></i><i></i></p></article>');
+  $('voice-transcript').innerHTML = turns.length ? turns.join('') : '<p class="voice-empty">Start talking when you are ready.</p>';
+  $('voice-word-count').textContent = `${voiceLab.messages.length} message${voiceLab.messages.length === 1 ? '' : 's'}`;
+  requestAnimationFrame(() => { $('voice-transcript').scrollTop = $('voice-transcript').scrollHeight; });
 }
 
 function setVoiceListening(listening) {
   voiceLab.listening = listening;
-  $('voice-orb').classList.toggle('is-listening', listening);
-  $('voice-toggle').textContent = listening ? 'Stop listening' : 'Start listening';
-  $('voice-status').textContent = listening ? 'Listening now…' : 'Ready to listen';
-  $('voice-hint').textContent = listening ? 'Keep speaking. The transcript updates as words are recognized.' : 'Speak naturally. Your words will appear as the browser recognizes them.';
+  $('speaking-ai-page').classList.toggle('is-listening', listening);
+  $('voice-toggle').textContent = listening ? 'Send to Gemini' : 'Start talking';
+  $('voice-toggle').disabled = voiceLab.pending;
+  $('voice-status').textContent = listening ? 'Listening…' : voiceLab.pending ? 'Gemini is thinking…' : 'Ready';
+  $('voice-hint').textContent = listening ? 'Speak naturally, then tap Send to Gemini.' : voiceLab.pending ? 'Your reply will appear here in a moment.' : 'Tap below, speak, then send your words to Gemini.';
+}
+
+function speakVoiceReply(text) {
+  if (!('speechSynthesis' in window) || !text) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.96;
+  window.speechSynthesis.speak(utterance);
+}
+
+async function sendVoiceTurn(text) {
+  const message = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!message) { showToast('I did not hear any words. Please try again.'); return; }
+  voiceLab.messages.push({ role: 'user', text: message });
+  voiceLab.pending = true;
+  setVoiceListening(false);
+  renderVoiceTranscript();
+
+  try {
+    const response = await fetch(`${SPEAKING_AI_SERVICE_URL}/speaking/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: voiceLab.messages.filter((item) => item.role !== 'error').slice(-12) })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.reply) throw new Error(data.error || 'Gemini could not reply.');
+    voiceLab.messages.push({ role: 'model', text: String(data.reply).trim() });
+    if (currentPage === 'speaking-ai') speakVoiceReply(data.reply);
+  } catch (error) {
+    voiceLab.messages.push({ role: 'error', text: error.message || 'Gemini could not reply. Please try again.' });
+  } finally {
+    voiceLab.pending = false;
+    setVoiceListening(false);
+    renderVoiceTranscript();
+  }
 }
 
 function initVoiceLab() {
@@ -1680,6 +1719,7 @@ function initVoiceLab() {
   voiceLab.recognition.interimResults = true;
   voiceLab.recognition.lang = 'en-US';
   voiceLab.recognition.onresult = (event) => {
+    if (!voiceLab.listening) return;
     let interim = '';
     for (let index = event.resultIndex; index < event.results.length; index += 1) {
       const text = event.results[index][0].transcript.trim();
@@ -1701,7 +1741,8 @@ function initVoiceLab() {
 }
 
 function startVoiceLab() {
-  if (!voiceLab.recognition || voiceLab.listening) return;
+  if (!voiceLab.recognition || voiceLab.listening || voiceLab.pending) return;
+  voiceLab.finalText = '';
   voiceLab.interimText = '';
   try {
     voiceLab.recognition.start();
@@ -1709,17 +1750,23 @@ function startVoiceLab() {
   } catch { showToast('The microphone could not start.'); }
 }
 
-function stopVoiceLab() {
+function stopVoiceLab(sendToGemini = false) {
   if (!voiceLab.recognition || !voiceLab.listening) return;
+  const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
   setVoiceListening(false);
+  voiceLab.finalText = '';
   voiceLab.interimText = '';
   voiceLab.recognition.stop();
   renderVoiceTranscript();
+  if (sendToGemini) sendVoiceTurn(message);
 }
 
 function clearVoiceLab() {
+  if (voiceLab.pending) { showToast('Wait for Gemini to finish replying.'); return; }
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   voiceLab.finalText = '';
   voiceLab.interimText = '';
+  voiceLab.messages = [];
   renderVoiceTranscript();
 }
 
@@ -1952,7 +1999,7 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
-  $('voice-toggle').addEventListener('click', () => voiceLab.listening ? stopVoiceLab() : startVoiceLab());
+  $('voice-toggle').addEventListener('click', () => voiceLab.listening ? stopVoiceLab(true) : startVoiceLab());
   $('voice-clear').addEventListener('click', clearVoiceLab);
   $('voice-lab-back').addEventListener('click', () => openPage('home'));
   $('voice-lab-exit').addEventListener('click', () => openPage('home'));

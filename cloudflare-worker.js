@@ -7,10 +7,15 @@ const ALLOWED_ORIGINS = new Set([
 const MODEL = 'gemini-3.7-flash';
 const MAX_ANSWERS = 12;
 const MAX_BASE64_CHARS = 18_000_000;
+const MAX_CHAT_MESSAGES = 12;
+
+function isAllowedOrigin(origin) {
+  return ALLOWED_ORIGINS.has(origin) || /^http:\/\/(127\.0\.0\.1|localhost):\d{2,5}$/.test(origin);
+}
 
 function corsHeaders(origin) {
   return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://luminary17.github.io',
+    'Access-Control-Allow-Origin': isAllowedOrigin(origin) ? origin : 'https://luminary17.github.io',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
@@ -45,6 +50,65 @@ function extractGeminiText(result) {
     ?.map((part) => part.text || '')
     .join('')
     .trim();
+}
+
+function validateChatMessages(input) {
+  if (!Array.isArray(input) || input.length < 1) throw new Error('Say something first.');
+  return input.slice(-MAX_CHAT_MESSAGES).map((message) => {
+    const role = message?.role === 'model' ? 'model' : 'user';
+    const text = cleanText(message?.text, 1200);
+    if (!text) throw new Error('A conversation message is empty.');
+    return { role, parts: [{ text }] };
+  });
+}
+
+async function chat(request, env, origin) {
+  if (!env.GEMINI_API_KEY) return json({ error: 'The conversation service is not configured.' }, 503, origin);
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: 'Send a valid JSON request.' }, 400, origin);
+  }
+
+  let contents;
+  try {
+    contents = validateChatMessages(payload.messages);
+  } catch (error) {
+    return json({ error: error.message }, 400, origin);
+  }
+
+  const geminiResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': env.GEMINI_API_KEY
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: 'You are Luminary Voice Practice, a friendly English conversation partner for students. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
+        },
+        contents,
+        generationConfig: {
+          temperature: 0.65,
+          maxOutputTokens: 140
+        }
+      })
+    }
+  );
+
+  const geminiResult = await geminiResponse.json().catch(() => ({}));
+  if (!geminiResponse.ok) {
+    const message = cleanText(geminiResult?.error?.message, 300) || 'Gemini could not reply right now.';
+    return json({ error: message }, geminiResponse.status === 429 ? 429 : 502, origin);
+  }
+
+  const reply = cleanText(extractGeminiText(geminiResult), 1200);
+  if (!reply) return json({ error: 'Gemini returned an empty reply.' }, 502, origin);
+  return json({ reply, model: MODEL }, 200, origin);
 }
 
 function validateAnswers(input) {
@@ -187,7 +251,7 @@ export default {
     const origin = request.headers.get('Origin') || '';
 
     if (request.method === 'OPTIONS') {
-      if (!ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 });
+      if (!isAllowedOrigin(origin)) return new Response(null, { status: 403 });
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
@@ -196,8 +260,13 @@ export default {
     }
 
     if (url.pathname === '/speaking/analyze' && request.method === 'POST') {
-      if (!ALLOWED_ORIGINS.has(origin)) return json({ error: 'Origin not allowed.' }, 403, origin);
+      if (!isAllowedOrigin(origin)) return json({ error: 'Origin not allowed.' }, 403, origin);
       return assess(request, env, origin);
+    }
+
+    if (url.pathname === '/speaking/chat' && request.method === 'POST') {
+      if (!isAllowedOrigin(origin)) return json({ error: 'Origin not allowed.' }, 403, origin);
+      return chat(request, env, origin);
     }
 
     return json({ error: 'Not found.' }, 404, origin);
