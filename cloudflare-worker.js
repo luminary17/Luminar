@@ -4,7 +4,8 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:8012'
 ]);
 
-const MODEL = 'gemini-3.7-flash';
+const CHAT_MODEL = 'gemini-3.5-flash-lite';
+const ASSESSMENT_MODEL = 'gemini-3.7-flash';
 const MAX_ANSWERS = 12;
 const MAX_BASE64_CHARS = 18_000_000;
 const MAX_CHAT_MESSAGES = 12;
@@ -84,7 +85,7 @@ async function chat(request, env, origin) {
   let geminiResponse;
   try {
     geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${CHAT_MODEL}:generateContent`,
       {
         method: 'POST',
         headers: {
@@ -99,7 +100,7 @@ async function chat(request, env, origin) {
           contents,
           generationConfig: {
             maxOutputTokens: 140,
-            thinkingConfig: { thinkingLevel: 'low' }
+            thinkingConfig: { thinkingLevel: 'minimal' }
           }
         })
       }
@@ -119,7 +120,7 @@ async function chat(request, env, origin) {
 
   const reply = cleanText(extractGeminiText(geminiResult), 1200);
   if (!reply) return json({ error: 'Gemini returned an empty reply.' }, 502, origin);
-  return json({ reply, model: MODEL }, 200, origin);
+  return json({ reply, model: CHAT_MODEL }, 200, origin);
 }
 
 function validateAnswers(input) {
@@ -201,7 +202,7 @@ async function assess(request, env, origin) {
   });
 
   const geminiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${ASSESSMENT_MODEL}:generateContent`,
     {
       method: 'POST',
       headers: {
@@ -251,7 +252,7 @@ async function assess(request, env, origin) {
       strengths: Array.isArray(raw.strengths) ? raw.strengths.slice(0, 2).map((item) => cleanText(item, 180)).filter(Boolean) : [],
       priorities: Array.isArray(raw.priorities) ? raw.priorities.slice(0, 3).map((item) => cleanText(item, 180)).filter(Boolean) : [],
       scope: 'IELTS Speaking Part 1 practice estimate',
-      model: MODEL
+      model: ASSESSMENT_MODEL
     }
   }, 200, origin);
 }
