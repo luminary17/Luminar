@@ -46,7 +46,7 @@ function cleanText(value, maximum) {
   return String(value || '').trim().slice(0, maximum);
 }
 
-function extractGeminiText(result) {
+function extractAssistantText(result) {
   return result?.candidates?.[0]?.content?.parts
     ?.map((part) => part.text || '')
     .join('')
@@ -82,9 +82,9 @@ async function chat(request, env, origin) {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55_000);
-  let geminiResponse;
+  let aiResponse;
   try {
-    geminiResponse = await fetch(
+    aiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${CHAT_MODEL}:generateContent`,
       {
         method: 'POST',
@@ -95,7 +95,7 @@ async function chat(request, env, origin) {
         signal: controller.signal,
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: 'You are Luminary Voice Practice, a friendly English conversation partner for students. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
+            parts: [{ text: 'You are Luminary, a friendly English conversation partner for students. Your name is Luminary. Never mention the underlying provider, model, or technical implementation. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
           },
           contents,
           generationConfig: {
@@ -106,21 +106,21 @@ async function chat(request, env, origin) {
       }
     );
   } catch (error) {
-    if (error?.name === 'AbortError') return json({ error: 'Gemini took too long to reply. Please try again.' }, 504, origin);
-    return json({ error: 'The Worker could not reach Gemini.' }, 502, origin);
+    if (error?.name === 'AbortError') return json({ error: 'Luminary took too long to reply. Please try again.' }, 504, origin);
+    return json({ error: 'Luminary could not connect right now.' }, 502, origin);
   } finally {
     clearTimeout(timeout);
   }
 
-  const geminiResult = await geminiResponse.json().catch(() => ({}));
-  if (!geminiResponse.ok) {
-    const message = cleanText(geminiResult?.error?.message, 300) || 'Gemini could not reply right now.';
-    return json({ error: message }, geminiResponse.status === 429 ? 429 : 502, origin);
+  const aiResult = await aiResponse.json().catch(() => ({}));
+  if (!aiResponse.ok) {
+    const message = aiResponse.status === 429 ? 'Luminary is busy right now. Please try again shortly.' : 'Luminary could not reply right now.';
+    return json({ error: message }, aiResponse.status === 429 ? 429 : 502, origin);
   }
 
-  const reply = cleanText(extractGeminiText(geminiResult), 1200);
-  if (!reply) return json({ error: 'Gemini returned an empty reply.' }, 502, origin);
-  return json({ reply, model: CHAT_MODEL }, 200, origin);
+  const reply = cleanText(extractAssistantText(aiResult), 1200).replace(/\bGemini\b/gi, 'Luminary');
+  if (!reply) return json({ error: 'Luminary returned an empty reply.' }, 502, origin);
+  return json({ reply }, 200, origin);
 }
 
 function validateAnswers(input) {
@@ -201,7 +201,7 @@ async function assess(request, env, origin) {
     parts.push({ inlineData: { mimeType: answer.mimeType, data: answer.audioBase64 } });
   });
 
-  const geminiResponse = await fetch(
+  const aiResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${ASSESSMENT_MODEL}:generateContent`,
     {
       method: 'POST',
@@ -219,15 +219,15 @@ async function assess(request, env, origin) {
     }
   );
 
-  const geminiResult = await geminiResponse.json().catch(() => ({}));
-  if (!geminiResponse.ok) {
-    const message = cleanText(geminiResult?.error?.message, 300) || 'Gemini could not assess this session.';
-    return json({ error: message }, geminiResponse.status === 429 ? 429 : 502, origin);
+  const aiResult = await aiResponse.json().catch(() => ({}));
+  if (!aiResponse.ok) {
+    const message = aiResponse.status === 429 ? 'Luminary is busy right now. Please try again shortly.' : 'Luminary could not assess this session.';
+    return json({ error: message }, aiResponse.status === 429 ? 429 : 502, origin);
   }
 
   let raw;
   try {
-    raw = JSON.parse(extractGeminiText(geminiResult));
+    raw = JSON.parse(extractAssistantText(aiResult));
   } catch {
     return json({ error: 'The assessment response was invalid. Please try again.' }, 502, origin);
   }
@@ -251,8 +251,7 @@ async function assess(request, env, origin) {
       summary: cleanText(raw.summary, 300),
       strengths: Array.isArray(raw.strengths) ? raw.strengths.slice(0, 2).map((item) => cleanText(item, 180)).filter(Boolean) : [],
       priorities: Array.isArray(raw.priorities) ? raw.priorities.slice(0, 3).map((item) => cleanText(item, 180)).filter(Boolean) : [],
-      scope: 'IELTS Speaking Part 1 practice estimate',
-      model: ASSESSMENT_MODEL
+      scope: 'IELTS Speaking Part 1 practice estimate'
     }
   }, 200, origin);
 }

@@ -143,7 +143,19 @@ const vocabularyStores = {
 };
 let vocabularyContext = { exam: 'sat', folder: '', query: '', page: 0 };
 let vocabularyReview = { words: [], index: 0, known: 0, revealed: false };
-let voiceLab = { recognition: null, listening: false, pending: false, finalText: '', interimText: '', messages: [] };
+let voiceLab = {
+  recognition: null,
+  listening: false,
+  pending: false,
+  speaking: false,
+  active: false,
+  finalText: '',
+  interimText: '',
+  messages: [],
+  requestController: null,
+  restartTimer: null,
+  utterance: null
+};
 
 const $ = (id) => document.getElementById(id);
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -1640,6 +1652,7 @@ function jumpToQuestion(index) {
 }
 
 function openPage(page) {
+  if (page !== 'speaking-ai') endVoiceSession();
   currentPage = page;
   document.body.classList.toggle('is-voice-lab-open', page === 'speaking-ai');
   document.querySelectorAll('.page').forEach((section) => section.classList.toggle('is-active', section.id === `${page}-page`));
@@ -1647,36 +1660,83 @@ function openPage(page) {
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
   if (page === 'plan') renderStudyPlan();
-  if (page !== 'speaking-ai' && voiceLab.listening) stopVoiceLab();
+  if (page === 'speaking-ai') {
+    renderVoiceTranscript();
+    renderVoiceState();
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function renderVoiceTranscript() {
   const draft = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
-  const turns = voiceLab.messages.map((message) => `<article class="voice-turn voice-turn-${message.role}"><span>${message.role === 'user' ? 'You' : message.role === 'model' ? 'Gemini' : 'Connection'}</span><p>${escapeHtml(message.text)}</p></article>`);
+  const turns = voiceLab.messages.map((message) => `<article class="voice-turn voice-turn-${message.role}"><span>${message.role === 'user' ? 'You' : message.role === 'model' ? 'Luminary' : 'Connection'}</span><p>${escapeHtml(message.text)}</p></article>`);
   if (draft) turns.push(`<article class="voice-turn voice-turn-user is-draft"><span>You · listening</span><p>${escapeHtml(draft)}</p></article>`);
-  if (voiceLab.pending) turns.push('<article class="voice-turn voice-turn-model is-thinking"><span>Gemini</span><p><i></i><i></i><i></i></p></article>');
-  $('voice-transcript').innerHTML = turns.length ? turns.join('') : '<p class="voice-empty">Start talking when you are ready.</p>';
+  if (voiceLab.pending) turns.push('<article class="voice-turn voice-turn-model is-thinking"><span>Luminary</span><p><i></i><i></i><i></i></p></article>');
+  $('voice-transcript').innerHTML = turns.length ? turns.join('') : '<article class="voice-turn voice-turn-model"><span>Luminary</span><p>Hi, I’m Luminary. Start the conversation and speak naturally—I’ll answer when you pause.</p></article>';
   $('voice-word-count').textContent = `${voiceLab.messages.length} message${voiceLab.messages.length === 1 ? '' : 's'}`;
   requestAnimationFrame(() => { $('voice-transcript').scrollTop = $('voice-transcript').scrollHeight; });
 }
 
+function renderVoiceState() {
+  $('speaking-ai-page').classList.toggle('is-listening', voiceLab.listening);
+  if (!voiceLab.recognition) {
+    $('voice-toggle').textContent = 'Voice unavailable';
+    $('voice-toggle').disabled = true;
+    $('voice-toggle').setAttribute('aria-pressed', 'false');
+    $('voice-status').textContent = 'Use Chrome or Edge';
+    $('voice-hint').textContent = 'Live speech recognition is not available in this browser.';
+    return;
+  }
+  $('voice-toggle').textContent = voiceLab.active ? 'End conversation' : 'Start conversation';
+  $('voice-toggle').disabled = false;
+  $('voice-toggle').setAttribute('aria-pressed', String(voiceLab.active));
+  $('voice-status').textContent = voiceLab.listening
+    ? 'Listening…'
+    : voiceLab.speaking
+      ? 'Luminary is speaking…'
+      : voiceLab.pending
+        ? 'Luminary is thinking…'
+        : voiceLab.active
+          ? 'Getting ready…'
+          : 'Ready';
+  $('voice-hint').textContent = voiceLab.listening
+    ? 'Speak naturally. Luminary responds automatically when you pause.'
+    : voiceLab.speaking
+      ? 'Listening resumes automatically when Luminary finishes.'
+      : voiceLab.pending
+        ? 'Your reply will appear here in a moment.'
+        : voiceLab.active
+          ? 'The microphone will reopen automatically.'
+          : 'Tap once to begin. Luminary listens again after every reply.';
+}
+
 function setVoiceListening(listening) {
   voiceLab.listening = listening;
-  $('speaking-ai-page').classList.toggle('is-listening', listening);
-  $('voice-toggle').textContent = listening ? 'Send to Gemini' : 'Start talking';
-  $('voice-toggle').disabled = voiceLab.pending;
-  $('voice-status').textContent = listening ? 'Listening…' : voiceLab.pending ? 'Gemini is thinking…' : 'Ready';
-  $('voice-hint').textContent = listening ? 'Speak naturally, then tap Send to Gemini.' : voiceLab.pending ? 'Your reply will appear here in a moment.' : 'Tap below, speak, then send your words to Gemini.';
+  renderVoiceState();
 }
 
 function speakVoiceReply(text) {
-  if (!('speechSynthesis' in window) || !text) return;
+  if (!('speechSynthesis' in window) || !text) return Promise.resolve();
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.96;
-  window.speechSynthesis.speak(utterance);
+  return new Promise((resolve) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    voiceLab.utterance = utterance;
+    voiceLab.speaking = true;
+    renderVoiceState();
+    utterance.lang = 'en-US';
+    utterance.rate = 0.96;
+    const finish = () => {
+      if (voiceLab.utterance === utterance) {
+        voiceLab.utterance = null;
+        voiceLab.speaking = false;
+        renderVoiceState();
+      }
+      resolve();
+    };
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 async function sendVoiceTurn(text) {
@@ -1687,22 +1747,34 @@ async function sendVoiceTurn(text) {
   setVoiceListening(false);
   renderVoiceTranscript();
 
+  const controller = new AbortController();
+  voiceLab.requestController = controller;
   try {
     const response = await fetch(`${SPEAKING_AI_SERVICE_URL}/speaking/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({ messages: voiceLab.messages.filter((item) => item.role !== 'error').slice(-12) })
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.reply) throw new Error(data.error || 'Gemini could not reply.');
+    if (!response.ok || !data.reply) throw new Error(data.error || 'Luminary could not reply.');
+    if (!voiceLab.active || currentPage !== 'speaking-ai' || controller.signal.aborted) return;
     voiceLab.messages.push({ role: 'model', text: String(data.reply).trim() });
-    if (currentPage === 'speaking-ai') speakVoiceReply(data.reply);
-  } catch (error) {
-    voiceLab.messages.push({ role: 'error', text: error.message || 'Gemini could not reply. Please try again.' });
-  } finally {
     voiceLab.pending = false;
-    setVoiceListening(false);
     renderVoiceTranscript();
+    await speakVoiceReply(data.reply);
+  } catch (error) {
+    if (error.name !== 'AbortError') voiceLab.messages.push({ role: 'error', text: error.message || 'Luminary could not reply. Please try again.' });
+  } finally {
+    if (voiceLab.requestController === controller) {
+      voiceLab.requestController = null;
+      voiceLab.pending = false;
+      setVoiceListening(false);
+      renderVoiceTranscript();
+      if (voiceLab.active && currentPage === 'speaking-ai') {
+        voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
+      }
+    }
   }
 }
 
@@ -1715,7 +1787,7 @@ function initVoiceLab() {
     return;
   }
   voiceLab.recognition = new Recognition();
-  voiceLab.recognition.continuous = true;
+  voiceLab.recognition.continuous = false;
   voiceLab.recognition.interimResults = true;
   voiceLab.recognition.lang = 'en-US';
   voiceLab.recognition.onresult = (event) => {
@@ -1730,42 +1802,72 @@ function initVoiceLab() {
     renderVoiceTranscript();
   };
   voiceLab.recognition.onerror = (event) => {
-    setVoiceListening(false);
-    if (event.error === 'not-allowed') showToast('Allow microphone access to test voice recognition.');
-    else if (event.error !== 'no-speech') showToast('Voice recognition stopped. Please try again.');
+    if (event.error === 'no-speech' || event.error === 'aborted') return;
+    if (event.error === 'not-allowed') showToast('Allow microphone access to talk with Luminary.');
+    else showToast('Voice recognition stopped. Please try again.');
+    endVoiceSession();
   };
   voiceLab.recognition.onend = () => {
     if (!voiceLab.listening) return;
-    try { voiceLab.recognition.start(); } catch { setVoiceListening(false); }
+    const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
+    voiceLab.finalText = '';
+    voiceLab.interimText = '';
+    setVoiceListening(false);
+    renderVoiceTranscript();
+    if (!voiceLab.active || currentPage !== 'speaking-ai') return;
+    if (message) sendVoiceTurn(message);
+    else voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
   };
+  renderVoiceState();
 }
 
 function startVoiceLab() {
-  if (!voiceLab.recognition || voiceLab.listening || voiceLab.pending) return;
+  if (!voiceLab.recognition || !voiceLab.active || voiceLab.listening || voiceLab.pending || voiceLab.speaking || currentPage !== 'speaking-ai') return;
+  clearTimeout(voiceLab.restartTimer);
+  voiceLab.restartTimer = null;
   voiceLab.finalText = '';
   voiceLab.interimText = '';
   try {
     voiceLab.recognition.start();
     setVoiceListening(true);
-  } catch { showToast('The microphone could not start.'); }
+  } catch {
+    voiceLab.active = false;
+    renderVoiceState();
+    showToast('The microphone could not start.');
+  }
 }
 
-function stopVoiceLab(sendToGemini = false) {
-  if (!voiceLab.recognition || !voiceLab.listening) return;
-  const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
-  setVoiceListening(false);
+function startVoiceSession() {
+  if (!voiceLab.recognition || voiceLab.active) return;
+  voiceLab.active = true;
+  renderVoiceState();
+  startVoiceLab();
+}
+
+function endVoiceSession() {
+  clearTimeout(voiceLab.restartTimer);
+  voiceLab.restartTimer = null;
+  voiceLab.active = false;
   voiceLab.finalText = '';
   voiceLab.interimText = '';
-  voiceLab.recognition.stop();
+  if (voiceLab.listening && voiceLab.recognition) {
+    voiceLab.listening = false;
+    try { voiceLab.recognition.abort(); } catch {}
+  }
+  if (voiceLab.requestController) {
+    voiceLab.requestController.abort();
+    voiceLab.requestController = null;
+  }
+  voiceLab.pending = false;
+  voiceLab.speaking = false;
+  voiceLab.utterance = null;
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  renderVoiceState();
   renderVoiceTranscript();
-  if (sendToGemini) sendVoiceTurn(message);
 }
 
 function clearVoiceLab() {
-  if (voiceLab.pending) { showToast('Wait for Gemini to finish replying.'); return; }
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  voiceLab.finalText = '';
-  voiceLab.interimText = '';
+  endVoiceSession();
   voiceLab.messages = [];
   renderVoiceTranscript();
 }
@@ -1999,7 +2101,7 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
-  $('voice-toggle').addEventListener('click', () => voiceLab.listening ? stopVoiceLab(true) : startVoiceLab());
+  $('voice-toggle').addEventListener('click', () => voiceLab.active ? endVoiceSession() : startVoiceSession());
   $('voice-clear').addEventListener('click', clearVoiceLab);
   $('voice-lab-back').addEventListener('click', () => openPage('home'));
   $('voice-lab-exit').addEventListener('click', () => openPage('home'));
@@ -2009,7 +2111,9 @@ function bindEvents() {
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') saveActivePractice();
+    if (document.visibilityState === 'hidden' && currentPage === 'speaking-ai') endVoiceSession();
   });
+  window.addEventListener('pagehide', endVoiceSession);
 }
 
 async function init() {
