@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="main.css?v=32">
+  <link rel="stylesheet" href="main.css?v=33">
 </head>
 <body>
   <div class="app-shell">
@@ -21,11 +21,9 @@
       <nav class="nav-list">
         <button class="nav-link is-active" data-page="home" type="button">Home</button>
         <div class="nav-section sat-only"><span>Learn</span><button class="nav-link" data-page="learn" type="button">Rules</button><button class="nav-link" data-page="vocab" type="button">Vocabulary</button><button class="nav-link" data-page="problems" type="button">Problems &amp; Solutions</button></div>
-        <div class="nav-section ielts-only"><span>Learn</span><button class="nav-link" data-page="learn" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="learn" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="learn" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="learn" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section ielts-only"><span>Vocab</span><button class="nav-link" data-page="vocab" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="vocab" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="vocab" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="vocab" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section"><span>Practice</span><button class="nav-link sat-only" data-page="plan" type="button">Study plan</button><button class="nav-link ielts-only" data-page="speaking-ai" type="button">Speaking AI</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
+        <div class="nav-section ielts-only"><button class="nav-link" data-page="ielts-skill" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="ielts-skill" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="ielts-skill" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="ielts-skill" data-skill="Speaking" type="button">Speaking</button></div>
+        <div class="nav-section sat-only"><span>Practice</span><button class="nav-link" data-page="plan" type="button">Study plan</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
         <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
-        <div class="nav-section ielts-only"><span>Mocks</span><button class="nav-link" data-page="mocks" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="mocks" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="mocks" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="mocks" data-skill="Speaking" type="button">Speaking</button></div>
       </nav>
       <button class="account-line" id="account-menu-button" type="button" aria-expanded="false" aria-controls="account-menu"><span class="avatar" id="account-initial">L</span><span><b id="sidebar-name">Learner</b><small id="account-status">Progress saved on this device</small></span><i aria-hidden="true">•••</i></button>
       <div class="guest-auth-actions" id="guest-auth-actions"><button id="login-button" data-open-auth="login" type="button">Log in</button><span>|</span><button id="signup-button" data-open-auth="register" type="button">Sign up</button></div>
@@ -49,8 +47,20 @@
         <div class="section-heading"><h2>Today</h2><span></span></div>
         <article class="daily-card"><div><p class="kicker">Daily question</p><h2 id="daily-title">Daily question</h2><p id="daily-copy">A separate daily task will appear here when its own material is connected.</p></div><button class="button button-primary" id="daily-action" type="button" disabled>Not available yet</button></article>
         <article class="daily-card" id="home-plan-card" hidden><div><p class="kicker">Study plan</p><h2>Today’s focused work</h2><p id="home-plan-copy"></p></div><button class="button button-primary" id="home-plan-action" type="button">Open study plan</button></article>
+        <article class="home-speaking-card ielts-only" id="home-speaking-card"><div class="home-speaking-orb" aria-hidden="true"><i></i></div><div><p class="kicker">Speaking with AI</p><h2>Practise a full IELTS interview.</h2><p>Luminary asks the questions, listens to every answer and keeps the session moving naturally.</p></div><button class="button button-primary" id="home-speaking-action" type="button">Start speaking</button></article>
         <div class="section-heading"><h2>Progress</h2><span></span></div>
         <section class="stats"><article><strong id="stat-focus">SAT</strong><span>Current focus</span></article><article><strong id="stat-sessions">0</strong><span>Sessions completed</span></article><article><strong id="stat-streak">0</strong><span>Day streak</span></article></section>
+      </section>
+
+      <section class="page" id="ielts-skill-page">
+        <div class="page-intro"><p class="kicker" id="ielts-skill-kicker">IELTS skill</p><h1 id="ielts-skill-title">Listening</h1><p id="ielts-skill-copy">Choose how you want to practise.</p></div>
+        <div class="ielts-path-grid" id="ielts-path-grid"></div>
+      </section>
+
+      <section class="page" id="podcasts-page">
+        <button class="back-button" id="back-to-ielts-skill" type="button">Back</button>
+        <div class="page-intro"><p class="kicker" id="podcasts-kicker">IELTS Listening</p><h1 id="podcasts-title">Podcasts</h1><p id="podcasts-copy">Focused audio practice for this skill.</p></div>
+        <div class="podcast-grid" id="podcast-grid"></div>
       </section>
 
       <section class="page" id="learn-page"><div class="page-intro"><p class="kicker" id="learn-kicker">SAT learn</p><h1 id="learn-title">Rules</h1><p id="learn-copy">Clear notes, examples, and short practice sets.</p></div><div class="resource-grid" id="learn-grid"></div></section>
@@ -84,23 +94,36 @@
       <section class="page" id="speaking-ai-page" aria-labelledby="voice-page-title">
         <header class="voice-page-topbar">
           <button class="voice-page-brand" id="voice-lab-back" type="button" aria-label="Return to the Luminary workspace"><span>L</span><strong>Luminary</strong></button>
-          <div class="voice-page-mode"><i aria-hidden="true"></i>Live conversation</div>
+          <div class="voice-page-mode"><i aria-hidden="true"></i><span id="voice-part-label">IELTS Speaking</span><strong id="voice-session-time">11–14 min</strong></div>
           <button class="voice-page-exit" id="voice-lab-exit" type="button">Return to workspace</button>
         </header>
         <main class="voice-page-main">
-          <header class="voice-page-intro"><p class="kicker">Luminary voice test</p><h1 id="voice-page-title">Talk naturally.</h1><p>Start once, then speak normally. Luminary answers automatically when you pause.</p></header>
-          <section class="voice-live-card">
-            <div class="voice-live-glow" aria-hidden="true"><i></i><i></i><i></i></div>
-            <div class="voice-conversation" id="voice-transcript" role="log" aria-live="polite"><p class="voice-empty">Start talking when you are ready.</p></div>
-            <footer class="voice-live-controls">
-              <div><span class="voice-status-label">Microphone</span><h2 id="voice-status">Ready</h2><p id="voice-hint">Tap once to begin. Luminary listens again after every reply.</p></div>
-              <button class="voice-mic-button" id="voice-toggle" type="button">Start conversation</button>
-              <button class="voice-clear-button" id="voice-clear" type="button">Clear conversation</button>
-              <strong class="voice-message-count" id="voice-word-count">0 messages</strong>
-            </footer>
+          <section class="voice-briefing" id="voice-briefing">
+            <header><p class="kicker">IELTS Speaking mock</p><h1 id="voice-page-title">Know the route before you begin.</h1><p>Three parts, one continuous interview. Luminary handles the questions and moves forward when you finish each answer.</p></header>
+            <div class="voice-part-grid">
+              <article><span>Part 1 · 4–5 min</span><strong>Introduction &amp; interview</strong><p>Short questions about you, your studies, home and everyday life.</p></article>
+              <article><span>Part 2 · 3–4 min</span><strong>Long turn</strong><p>One topic card, one minute to prepare and up to two minutes to speak.</p></article>
+              <article><span>Part 3 · 4–5 min</span><strong>Discussion</strong><p>Deeper questions connected to the Part 2 topic.</p></article>
+            </div>
+            <div class="voice-briefing-footer"><div><strong>11–14 minutes</strong><span>10 original practice questions</span></div><button class="button button-primary" id="voice-begin" type="button">Begin speaking mock</button></div>
+          </section>
+
+          <section class="voice-live-view" id="voice-live-view" hidden>
+            <div class="voice-live-meta"><span id="voice-question-progress">Question 1 of 10</span><span id="voice-status">Luminary is speaking…</span></div>
+            <div class="voice-dome-stage">
+              <div class="voice-dome" id="voice-dome" aria-hidden="true"><i></i></div>
+              <div class="voice-subtitles" role="log" aria-live="polite"><span id="voice-caption-speaker">Luminary · Part 1</span><p id="voice-caption">Let’s begin.</p></div>
+              <p class="voice-user-caption" id="voice-user-caption" hidden></p>
+            </div>
+            <footer class="voice-live-controls"><p id="voice-hint">Listen to the question. Your microphone starts automatically.</p><button class="voice-prep-skip" id="voice-prep-skip" type="button" hidden>Start speaking now</button><button class="voice-end-session" id="voice-toggle" type="button">End practice</button></footer>
+          </section>
+
+          <section class="voice-complete" id="voice-complete" hidden>
+            <div class="voice-complete-mark">✓</div><p class="kicker">Session complete</p><h2>Speaking mock finished.</h2><p id="voice-complete-copy">You completed all three parts.</p><div><button class="button button-primary" id="voice-again" type="button">Practise again</button><button class="button button-quiet" id="voice-finish" type="button">Back to Speaking</button></div>
           </section>
           <p class="voice-privacy">Your transcript is used only to create Luminary’s reply and is not saved.</p>
         </main>
+        <section class="voice-exit-dialog" id="voice-exit-dialog" role="dialog" aria-modal="true" aria-labelledby="voice-exit-title" hidden><div><p class="kicker">Leave speaking mock?</p><h2 id="voice-exit-title">Your current session will end.</h2><p>The answers from this unfinished mock will not be kept.</p><footer><button class="button button-quiet" id="voice-exit-cancel" type="button">Continue speaking</button><button class="button voice-exit-confirm" id="voice-exit-confirm" type="button">Leave session</button></footer></div></section>
       </section>
 
       <section class="page" id="plan-page">
@@ -165,7 +188,7 @@
     <div class="auth-panel"><button class="auth-skip" id="auth-close" data-close-auth type="button">Skip for now</button><div class="auth-form-wrap"><p class="kicker">Your workspace</p><h1 id="auth-title">Welcome back</h1><p id="auth-copy">Continue where you left off.</p><div class="auth-palette"><div><span>Color palette</span><strong id="auth-current-theme-name">Dark Blue</strong></div><div class="mini-theme-grid" id="auth-theme-grid"></div></div><form id="account-auth-form"><label>Email address<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required></label><button class="button button-primary auth-primary" id="account-auth-submit" type="submit">Log in</button></form><div class="auth-divider"><span>or continue with</span></div><button class="google-auth-button" id="google-auth-button" type="button"><svg aria-hidden="true" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.258h2.909c1.703-1.568 2.684-3.878 2.684-6.614Z"/><path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.909-2.258c-.806.54-1.835.859-3.047.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A8.998 8.998 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.963 10.706A5.41 5.41 0 0 1 3.682 9c0-.592.102-1.168.281-1.706V4.962H.956A8.996 8.996 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A8.998 8.998 0 0 0 .956 4.962l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"/></svg>Continue with Google</button><button class="auth-test-button" id="auth-test-button" type="button">Open temporary test workspace</button><p class="auth-switch"><span id="auth-switch-copy">New to Luminary?</span><button id="auth-switch" type="button">Register</button></p><p class="auth-status" id="auth-status" aria-live="polite"></p></div></div>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=45"></script>
+  <script src="app.js?v=46"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=11"></script>

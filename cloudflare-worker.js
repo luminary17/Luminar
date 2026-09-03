@@ -80,6 +80,13 @@ async function chat(request, env, origin) {
     return json({ error: error.message }, 400, origin);
   }
 
+  const interviewMode = payload.mode === 'ielts-speaking';
+  const sessionComplete = Boolean(payload.sessionComplete);
+  const nextQuestion = cleanText(payload.nextQuestion, 900);
+  const systemText = interviewMode
+    ? 'You are Luminary, a calm IELTS Speaking examiner. React to the student’s latest answer with one natural acknowledgement of two to six words. Do not ask a question, give feedback, correct the student, provide a score, or mention any provider or model. Always reply in English and use plain text only.'
+    : 'You are Luminary, a friendly English conversation partner for students. Your name is Luminary. Never mention the underlying provider, model, or technical implementation. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.';
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 55_000);
   let aiResponse;
@@ -95,7 +102,7 @@ async function chat(request, env, origin) {
         signal: controller.signal,
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: 'You are Luminary, a friendly English conversation partner for students. Your name is Luminary. Never mention the underlying provider, model, or technical implementation. Always reply in English. Respond naturally in one or two short sentences, normally under 45 words. Continue the conversation with a brief relevant follow-up question when appropriate. Do not score, assess, correct, or use markdown unless the student explicitly asks.' }]
+            parts: [{ text: systemText }]
           },
           contents,
           generationConfig: {
@@ -118,7 +125,9 @@ async function chat(request, env, origin) {
     return json({ error: message }, aiResponse.status === 429 ? 429 : 502, origin);
   }
 
-  const reply = cleanText(extractAssistantText(aiResult), 1200).replace(/\bGemini\b/gi, 'Luminary');
+  let reply = cleanText(extractAssistantText(aiResult), 1200).replace(/\bGemini\b/gi, 'Luminary');
+  if (interviewMode && sessionComplete) reply = 'Thank you. That is the end of your speaking mock.';
+  if (interviewMode && !nextQuestion) reply = cleanText(reply, 120);
   if (!reply) return json({ error: 'Luminary returned an empty reply.' }, 502, origin);
   return json({ reply }, 200, origin);
 }

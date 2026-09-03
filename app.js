@@ -90,6 +90,46 @@ const DAILY_QUOTES = [
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
 const SPEAKING_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
+const IELTS_SKILL_DETAILS = {
+  Listening: 'Train comprehension, vocabulary and attention to spoken detail.',
+  Reading: 'Build speed, accuracy and control across IELTS text types.',
+  Writing: 'Practise task response, structure, vocabulary and clear argument.',
+  Speaking: 'Develop fluent, confident answers in a realistic interview flow.'
+};
+const IELTS_SPEAKING_QUESTIONS = [
+  { part: 1, text: 'Good morning. My name is Luminary. What is your full name?' },
+  { part: 1, text: 'Do you work, or are you a student?' },
+  { part: 1, text: 'What do you enjoy most about your work or studies?' },
+  { part: 1, text: 'Let’s talk about your hometown. What kind of place is it?' },
+  { part: 1, text: 'What do you usually enjoy doing in your free time?' },
+  { part: 2, preparationSeconds: 60, text: 'Now I’d like you to describe a skill you would like to learn. You should say what the skill is, why you want to learn it, how you could learn it, and explain how it would be useful to you. You have one minute to prepare.' },
+  { part: 3, text: 'Why do people continue learning new skills as adults?' },
+  { part: 3, text: 'How has technology changed the way people learn practical skills?' },
+  { part: 3, text: 'Should schools spend more time teaching practical skills? Why or why not?' },
+  { part: 3, text: 'Do you think some skills are becoming less important today?' }
+];
+const IELTS_PODCASTS = {
+  Listening: [
+    ['Everyday detail', 'Short conversations with changing speakers and practical information.'],
+    ['Following a lecture', 'Longer academic speech with signposting and note-taking focus.'],
+    ['Names, numbers & places', 'Precision practice for details that are easy to miss.']
+  ],
+  Reading: [
+    ['Ideas in context', 'Audio discussions that build background knowledge for common IELTS themes.'],
+    ['Author’s purpose', 'Hear how tone, position and evidence shape a message.'],
+    ['Academic vocabulary', 'Meet useful words naturally before seeing them in a passage.']
+  ],
+  Writing: [
+    ['Ideas for Task 2', 'Balanced discussions of education, technology and society.'],
+    ['Describe the trend', 'Language for change, comparison and important features.'],
+    ['Clear arguments', 'How strong speakers organise claims, reasons and examples.']
+  ],
+  Speaking: [
+    ['Natural fluency', 'Notice how speakers extend answers without sounding memorised.'],
+    ['Topic vocabulary', 'Useful language for familiar Part 1 and Part 2 themes.'],
+    ['Deeper discussion', 'Follow opinions, comparisons and abstract ideas for Part 3.']
+  ]
+};
 const HACK_SECTIONS = [
   { id: 'geo-problems', title: 'SAT Must-Solve Geometry Problems', set: 'math' },
   { id: 'desmos-solutions', title: 'Desmos Solutions for Hardest Questions', set: 'math' },
@@ -149,11 +189,20 @@ let voiceLab = {
   pending: false,
   speaking: false,
   active: false,
+  preparing: false,
+  stage: 'briefing',
+  questionIndex: 0,
+  answers: [],
+  startedAt: 0,
   finalText: '',
   interimText: '',
   messages: [],
   requestController: null,
   restartTimer: null,
+  silenceTimer: null,
+  preparationTimer: null,
+  preparationTicker: null,
+  elapsedTimer: null,
   utterance: null
 };
 
@@ -274,6 +323,8 @@ function setExam(exam, returnHome = true) {
   renderVocab();
   renderProblems();
   renderMocks();
+  renderIeltsSkillHub();
+  renderPodcasts();
   renderStudyPlan();
   if (returnHome) openPage('home');
 }
@@ -983,6 +1034,51 @@ function resourceCards(items, target, category, emptyCopy = 'Loading your Lumina
   $(target).innerHTML = items.length ? items.map((item) => `<button class="resource-card" type="button" data-open-material="${escapeHtml(category)}" data-material-id="${escapeHtml(item.id)}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.copy)}</small></button>`).join('') : `<p class="empty-state">${escapeHtml(emptyCopy)}</p>`;
 }
 
+function renderIeltsSkillHub() {
+  const skill = currentSkill || 'Listening';
+  $('ielts-skill-kicker').textContent = 'IELTS';
+  $('ielts-skill-title').textContent = skill;
+  $('ielts-skill-copy').textContent = IELTS_SKILL_DETAILS[skill] || 'Choose how you want to practise.';
+  const mockCopy = skill === 'Speaking'
+    ? 'A complete three-part interview with Luminary AI.'
+    : `Timed ${skill.toLowerCase()} practice in the IELTS format.`;
+  $('ielts-path-grid').innerHTML = [
+    { id: 'mocks', label: skill === 'Speaking' ? 'With Luminary AI' : 'Exam practice', title: 'Mocks', copy: mockCopy },
+    { id: 'vocab', label: 'Word power', title: 'Vocabulary', copy: `Review vocabulary selected for IELTS ${skill.toLowerCase()}.` },
+    { id: 'podcasts', label: 'Listen & learn', title: 'Podcasts', copy: `Audio episodes chosen to support IELTS ${skill.toLowerCase()}.` }
+  ].map((item) => `<button class="ielts-path-card" type="button" data-ielts-path="${item.id}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.copy)}</p><b>Open →</b></button>`).join('');
+}
+
+function openIeltsPath(path) {
+  if (path === 'mocks' && currentSkill === 'Speaking') {
+    resetSpeakingMock();
+    openPage('speaking-ai');
+    return;
+  }
+  if (path === 'mocks') {
+    openPage('mocks');
+    renderMocks();
+    return;
+  }
+  if (path === 'vocab') {
+    openPage('vocab');
+    renderVocab();
+    return;
+  }
+  if (path === 'podcasts') {
+    openPage('podcasts');
+    renderPodcasts();
+  }
+}
+
+function renderPodcasts() {
+  const skill = currentSkill || 'Listening';
+  $('podcasts-kicker').textContent = `IELTS ${skill}`;
+  $('podcasts-title').textContent = 'Podcasts';
+  $('podcasts-copy').textContent = `Focused listening that supports your ${skill.toLowerCase()} practice.`;
+  $('podcast-grid').innerHTML = (IELTS_PODCASTS[skill] || []).map(([title, copy], index) => `<article class="podcast-card"><span>Episode ${String(index + 1).padStart(2, '0')}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(copy)}</p></article>`).join('');
+}
+
 function renderLearn() {
   const isIelts = state.profile.exam === 'ielts';
   const skill = currentSkill || 'Listening';
@@ -1656,58 +1752,93 @@ function openPage(page) {
   currentPage = page;
   document.body.classList.toggle('is-voice-lab-open', page === 'speaking-ai');
   document.querySelectorAll('.page').forEach((section) => section.classList.toggle('is-active', section.id === `${page}-page`));
-  document.querySelectorAll('.nav-link').forEach((link) => link.classList.toggle('is-active', link.dataset.page === page && (!link.dataset.skill || link.dataset.skill === currentSkill)));
+  const isIeltsSkillChild = state.profile.exam === 'ielts' && ['ielts-skill', 'mocks', 'vocab', 'vocab-study', 'vocab-review', 'podcasts', 'speaking-ai'].includes(page);
+  document.querySelectorAll('.nav-link').forEach((link) => {
+    const directMatch = link.dataset.page === page && (!link.dataset.skill || link.dataset.skill === currentSkill);
+    const skillMatch = isIeltsSkillChild && link.dataset.page === 'ielts-skill' && link.dataset.skill === currentSkill;
+    link.classList.toggle('is-active', directMatch || skillMatch);
+  });
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
   if (page === 'plan') renderStudyPlan();
+  if (page === 'ielts-skill') renderIeltsSkillHub();
+  if (page === 'podcasts') renderPodcasts();
   if (page === 'speaking-ai') {
+    renderVoiceStage();
     renderVoiceTranscript();
     renderVoiceState();
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function formatVoiceTime(totalSeconds) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds || 0));
+  return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+}
+
+function updateVoiceTimer() {
+  if (voiceLab.stage !== 'live' || !voiceLab.startedAt) return;
+  $('voice-session-time').textContent = formatVoiceTime((Date.now() - voiceLab.startedAt) / 1000);
+}
+
+function renderVoiceStage() {
+  $('voice-briefing').hidden = voiceLab.stage !== 'briefing';
+  $('voice-live-view').hidden = voiceLab.stage !== 'live';
+  $('voice-complete').hidden = voiceLab.stage !== 'complete';
+  const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex] || IELTS_SPEAKING_QUESTIONS[0];
+  $('voice-part-label').textContent = voiceLab.stage === 'live' ? `Part ${question.part}` : voiceLab.stage === 'complete' ? 'Complete' : 'IELTS Speaking';
+  if (voiceLab.stage === 'briefing') $('voice-session-time').textContent = '11–14 min';
+  if (voiceLab.stage === 'live') {
+    $('voice-question-progress').textContent = `Question ${voiceLab.questionIndex + 1} of ${IELTS_SPEAKING_QUESTIONS.length}`;
+    updateVoiceTimer();
+  }
+  if ($('voice-begin')) {
+    $('voice-begin').disabled = !voiceLab.recognition;
+    $('voice-begin').textContent = voiceLab.recognition ? 'Begin speaking mock' : 'Use Chrome or Edge';
+  }
+}
+
 function renderVoiceTranscript() {
   const draft = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
-  const turns = voiceLab.messages.map((message) => `<article class="voice-turn voice-turn-${message.role}"><span>${message.role === 'user' ? 'You' : message.role === 'model' ? 'Luminary' : 'Connection'}</span><p>${escapeHtml(message.text)}</p></article>`);
-  if (draft) turns.push(`<article class="voice-turn voice-turn-user is-draft"><span>You · listening</span><p>${escapeHtml(draft)}</p></article>`);
-  if (voiceLab.pending) turns.push('<article class="voice-turn voice-turn-model is-thinking"><span>Luminary</span><p><i></i><i></i><i></i></p></article>');
-  $('voice-transcript').innerHTML = turns.length ? turns.join('') : '<article class="voice-turn voice-turn-model"><span>Luminary</span><p>Hi, I’m Luminary. Start the conversation and speak naturally—I’ll answer when you pause.</p></article>';
-  $('voice-word-count').textContent = `${voiceLab.messages.length} message${voiceLab.messages.length === 1 ? '' : 's'}`;
-  requestAnimationFrame(() => { $('voice-transcript').scrollTop = $('voice-transcript').scrollHeight; });
+  const latestModel = [...voiceLab.messages].reverse().find((message) => message.role === 'model');
+  const latestUser = [...voiceLab.messages].reverse().find((message) => message.role === 'user');
+  const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex] || IELTS_SPEAKING_QUESTIONS[0];
+  $('voice-caption-speaker').textContent = `Luminary · Part ${question.part}`;
+  $('voice-caption').textContent = latestModel?.text || question.text;
+  const studentText = draft || (voiceLab.pending ? latestUser?.text : '');
+  $('voice-user-caption').hidden = !studentText;
+  $('voice-user-caption').textContent = studentText ? `You: ${studentText}` : '';
 }
 
 function renderVoiceState() {
   $('speaking-ai-page').classList.toggle('is-listening', voiceLab.listening);
+  $('speaking-ai-page').classList.toggle('is-speaking', voiceLab.speaking);
   if (!voiceLab.recognition) {
-    $('voice-toggle').textContent = 'Voice unavailable';
-    $('voice-toggle').disabled = true;
-    $('voice-toggle').setAttribute('aria-pressed', 'false');
     $('voice-status').textContent = 'Use Chrome or Edge';
     $('voice-hint').textContent = 'Live speech recognition is not available in this browser.';
+    renderVoiceStage();
     return;
   }
-  $('voice-toggle').textContent = voiceLab.active ? 'End conversation' : 'Start conversation';
-  $('voice-toggle').disabled = false;
-  $('voice-toggle').setAttribute('aria-pressed', String(voiceLab.active));
-  $('voice-status').textContent = voiceLab.listening
+  $('voice-status').textContent = voiceLab.preparing
+    ? `Preparation · ${voiceLab.preparationRemaining}s`
+    : voiceLab.listening
     ? 'Listening…'
     : voiceLab.speaking
       ? 'Luminary is speaking…'
       : voiceLab.pending
         ? 'Luminary is thinking…'
-        : voiceLab.active
-          ? 'Getting ready…'
-          : 'Ready';
-  $('voice-hint').textContent = voiceLab.listening
-    ? 'Speak naturally. Luminary responds automatically when you pause.'
+        : 'Getting ready…';
+  $('voice-hint').textContent = voiceLab.preparing
+    ? 'Use this minute to plan your Part 2 answer.'
+    : voiceLab.listening
+    ? 'Speak naturally. Your answer is sent automatically when you pause.'
     : voiceLab.speaking
-      ? 'Listening resumes automatically when Luminary finishes.'
+      ? 'Listen to the question. Your microphone starts automatically.'
       : voiceLab.pending
-        ? 'Your reply will appear here in a moment.'
-        : voiceLab.active
-          ? 'The microphone will reopen automatically.'
-          : 'Tap once to begin. Luminary listens again after every reply.';
+        ? 'Luminary is preparing the next question.'
+        : 'The microphone will reopen automatically.';
+  $('voice-prep-skip').hidden = !voiceLab.preparing;
+  renderVoiceStage();
 }
 
 function setVoiceListening(listening) {
@@ -1739,55 +1870,123 @@ function speakVoiceReply(text) {
   });
 }
 
+function examinerTransition(value) {
+  const source = String(value || '').replace(/\s+/g, ' ').trim();
+  const firstSentence = source.match(/^.{1,72}?[.!](?=\s|$)/)?.[0] || '';
+  if (!firstSentence || /\b(what|why|how|when|where|who|which|do|does|did|is|are|can|could|would|should)\b/i.test(firstSentence)) return 'Thank you.';
+  return firstSentence;
+}
+
 async function sendVoiceTurn(text) {
   const message = String(text || '').replace(/\s+/g, ' ').trim();
   if (!message) { showToast('I did not hear any words. Please try again.'); return; }
+  const answeredQuestion = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
+  voiceLab.answers.push({ part: answeredQuestion.part, question: answeredQuestion.text, transcript: message });
   voiceLab.messages.push({ role: 'user', text: message });
   voiceLab.pending = true;
   setVoiceListening(false);
   renderVoiceTranscript();
 
+  const nextIndex = voiceLab.questionIndex + 1;
+  const nextQuestion = IELTS_SPEAKING_QUESTIONS[nextIndex];
+  const sessionComplete = !nextQuestion;
   const controller = new AbortController();
   voiceLab.requestController = controller;
+  let resumeListening = false;
   try {
-    const response = await fetch(`${SPEAKING_AI_SERVICE_URL}/speaking/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({ messages: voiceLab.messages.filter((item) => item.role !== 'error').slice(-12) })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.reply) throw new Error(data.error || 'Luminary could not reply.');
+    let reply = sessionComplete
+      ? 'Thank you. That is the end of your speaking mock.'
+      : `Thank you. ${nextQuestion.text}`;
+    try {
+      const response = await fetch(`${SPEAKING_AI_SERVICE_URL}/speaking/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          mode: 'ielts-speaking',
+          messages: [{ role: 'user', text: message }],
+          nextQuestion: nextQuestion?.text || '',
+          nextPart: nextQuestion?.part || 3,
+          sessionComplete
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.reply) throw new Error(data.error || 'Luminary could not reply.');
+      reply = sessionComplete
+        ? 'Thank you. That is the end of your speaking mock.'
+        : `${examinerTransition(data.reply)} ${nextQuestion.text}`;
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+    }
     if (!voiceLab.active || currentPage !== 'speaking-ai' || controller.signal.aborted) return;
-    voiceLab.messages.push({ role: 'model', text: String(data.reply).trim() });
+    if (nextQuestion) voiceLab.questionIndex = nextIndex;
+    voiceLab.messages.push({ role: 'model', text: reply });
     voiceLab.pending = false;
     renderVoiceTranscript();
-    await speakVoiceReply(data.reply);
-  } catch (error) {
-    if (error.name !== 'AbortError') voiceLab.messages.push({ role: 'error', text: error.message || 'Luminary could not reply. Please try again.' });
+    await speakVoiceReply(reply);
+    if (!voiceLab.active || currentPage !== 'speaking-ai') return;
+    if (sessionComplete) {
+      finishSpeakingMock();
+      return;
+    }
+    if (nextQuestion.preparationSeconds) {
+      startSpeakingPreparation(nextQuestion.preparationSeconds);
+      return;
+    }
+    resumeListening = true;
   } finally {
     if (voiceLab.requestController === controller) {
       voiceLab.requestController = null;
       voiceLab.pending = false;
       setVoiceListening(false);
       renderVoiceTranscript();
-      if (voiceLab.active && currentPage === 'speaking-ai') {
+      if (resumeListening && voiceLab.active && currentPage === 'speaking-ai') {
         voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
       }
     }
   }
 }
 
+async function askFirstSpeakingQuestion() {
+  const question = IELTS_SPEAKING_QUESTIONS[0];
+  voiceLab.messages.push({ role: 'model', text: question.text });
+  renderVoiceTranscript();
+  await speakVoiceReply(question.text);
+  if (voiceLab.active && currentPage === 'speaking-ai') voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
+}
+
+function finishSpeakingPreparation() {
+  if (!voiceLab.preparing) return;
+  clearTimeout(voiceLab.preparationTimer);
+  clearInterval(voiceLab.preparationTicker);
+  voiceLab.preparationTimer = null;
+  voiceLab.preparationTicker = null;
+  voiceLab.preparing = false;
+  renderVoiceState();
+  if (voiceLab.active && currentPage === 'speaking-ai') startVoiceLab();
+}
+
+function startSpeakingPreparation(seconds) {
+  voiceLab.preparing = true;
+  voiceLab.preparationRemaining = seconds;
+  const preparationEndsAt = Date.now() + seconds * 1000;
+  const update = () => {
+    voiceLab.preparationRemaining = Math.max(0, Math.ceil((preparationEndsAt - Date.now()) / 1000));
+    renderVoiceState();
+  };
+  update();
+  voiceLab.preparationTicker = setInterval(update, 250);
+  voiceLab.preparationTimer = setTimeout(finishSpeakingPreparation, seconds * 1000);
+}
+
 function initVoiceLab() {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) {
-    $('voice-toggle').disabled = true;
-    $('voice-status').textContent = 'Use Chrome or Edge';
-    $('voice-hint').textContent = 'Live speech recognition is not available in this browser.';
+    renderVoiceState();
     return;
   }
   voiceLab.recognition = new Recognition();
-  voiceLab.recognition.continuous = false;
+  voiceLab.recognition.continuous = true;
   voiceLab.recognition.interimResults = true;
   voiceLab.recognition.lang = 'en-US';
   voiceLab.recognition.onresult = (event) => {
@@ -1800,6 +1999,13 @@ function initVoiceLab() {
     }
     voiceLab.interimText = interim;
     renderVoiceTranscript();
+    clearTimeout(voiceLab.silenceTimer);
+    const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
+    voiceLab.silenceTimer = setTimeout(() => {
+      if (voiceLab.listening) {
+        try { voiceLab.recognition.stop(); } catch {}
+      }
+    }, question?.part === 2 ? 2600 : 1800);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
@@ -1808,6 +2014,8 @@ function initVoiceLab() {
     endVoiceSession();
   };
   voiceLab.recognition.onend = () => {
+    clearTimeout(voiceLab.silenceTimer);
+    voiceLab.silenceTimer = null;
     if (!voiceLab.listening) return;
     const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
     voiceLab.finalText = '';
@@ -1822,7 +2030,7 @@ function initVoiceLab() {
 }
 
 function startVoiceLab() {
-  if (!voiceLab.recognition || !voiceLab.active || voiceLab.listening || voiceLab.pending || voiceLab.speaking || currentPage !== 'speaking-ai') return;
+  if (!voiceLab.recognition || !voiceLab.active || voiceLab.preparing || voiceLab.listening || voiceLab.pending || voiceLab.speaking || currentPage !== 'speaking-ai') return;
   clearTimeout(voiceLab.restartTimer);
   voiceLab.restartTimer = null;
   voiceLab.finalText = '';
@@ -1837,17 +2045,77 @@ function startVoiceLab() {
   }
 }
 
-function startVoiceSession() {
-  if (!voiceLab.recognition || voiceLab.active) return;
+function beginSpeakingMock() {
+  if (!voiceLab.recognition) {
+    showToast('Use Chrome or Edge to start a speaking mock.');
+    return;
+  }
+  endVoiceSession();
+  voiceLab.stage = 'live';
   voiceLab.active = true;
+  voiceLab.questionIndex = 0;
+  voiceLab.answers = [];
+  voiceLab.messages = [];
+  voiceLab.startedAt = Date.now();
+  voiceLab.elapsedTimer = setInterval(updateVoiceTimer, 1000);
+  renderVoiceStage();
   renderVoiceState();
-  startVoiceLab();
+  askFirstSpeakingQuestion();
+}
+
+function finishSpeakingMock() {
+  const elapsed = voiceLab.startedAt ? (Date.now() - voiceLab.startedAt) / 1000 : 0;
+  const answerCount = voiceLab.answers.length;
+  endVoiceSession();
+  voiceLab.stage = 'complete';
+  $('voice-session-time').textContent = formatVoiceTime(elapsed);
+  $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts in ${formatVoiceTime(elapsed)}.`;
+  renderVoiceStage();
+}
+
+function resetSpeakingMock() {
+  endVoiceSession();
+  voiceLab.stage = 'briefing';
+  voiceLab.questionIndex = 0;
+  voiceLab.answers = [];
+  voiceLab.messages = [];
+  voiceLab.startedAt = 0;
+  $('voice-exit-dialog').hidden = true;
+  renderVoiceStage();
+  renderVoiceTranscript();
+  renderVoiceState();
+}
+
+function requestVoiceExit() {
+  if (voiceLab.stage === 'live' && (voiceLab.active || voiceLab.pending || voiceLab.speaking || voiceLab.listening || voiceLab.preparing)) {
+    $('voice-exit-dialog').hidden = false;
+    return;
+  }
+  leaveSpeakingExperience();
+}
+
+function leaveSpeakingExperience() {
+  $('voice-exit-dialog').hidden = true;
+  endVoiceSession();
+  voiceLab.stage = 'briefing';
+  currentSkill = 'Speaking';
+  openPage('ielts-skill');
+  renderIeltsSkillHub();
 }
 
 function endVoiceSession() {
   clearTimeout(voiceLab.restartTimer);
+  clearTimeout(voiceLab.silenceTimer);
+  clearTimeout(voiceLab.preparationTimer);
+  clearInterval(voiceLab.preparationTicker);
+  clearInterval(voiceLab.elapsedTimer);
   voiceLab.restartTimer = null;
+  voiceLab.silenceTimer = null;
+  voiceLab.preparationTimer = null;
+  voiceLab.preparationTicker = null;
+  voiceLab.elapsedTimer = null;
   voiceLab.active = false;
+  voiceLab.preparing = false;
   voiceLab.finalText = '';
   voiceLab.interimText = '';
   if (voiceLab.listening && voiceLab.recognition) {
@@ -1863,12 +2131,6 @@ function endVoiceSession() {
   voiceLab.utterance = null;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   renderVoiceState();
-  renderVoiceTranscript();
-}
-
-function clearVoiceLab() {
-  endVoiceSession();
-  voiceLab.messages = [];
   renderVoiceTranscript();
 }
 
@@ -1956,6 +2218,8 @@ function bindEvents() {
     }
     const exam = event.target.closest('[data-exam]');
     if (exam) { setExam(exam.dataset.exam); setMobileDrawer(false); persist(); return; }
+    const ieltsPath = event.target.closest('[data-ielts-path]');
+    if (ieltsPath) { openIeltsPath(ieltsPath.dataset.ieltsPath); return; }
     const page = event.target.closest('[data-page]');
     if (page) { currentSkill = page.dataset.skill || ''; openPage(page.dataset.page); setMobileDrawer(false); renderLearn(); renderVocab(); renderProblems(); renderMocks(); return; }
     const theme = event.target.closest('[data-theme]');
@@ -2051,6 +2315,11 @@ function bindEvents() {
     if (taskId) startPlanTask(taskId);
     else openPage('plan');
   });
+  $('home-speaking-action').addEventListener('click', () => {
+    currentSkill = 'Speaking';
+    resetSpeakingMock();
+    openPage('speaking-ai');
+  });
   $('create-study-plan').addEventListener('click', () => {
     const setup = planSetupFromForm();
     if (!setup.currentTotal || !setup.currentRw || !setup.currentMath || !setup.target || !setup.targetRw || !setup.targetMath || !setup.date) { showToast('Complete your current scores, target scores, and SAT date.'); return; }
@@ -2087,6 +2356,7 @@ function bindEvents() {
   $('back-to-materials').addEventListener('click', backToMaterials);
   $('back-to-vocab').addEventListener('click', () => openPage('vocab'));
   $('back-to-vocab-study').addEventListener('click', () => openPage('vocab-study'));
+  $('back-to-ielts-skill').addEventListener('click', () => openPage('ielts-skill'));
   $('start-vocab-review').addEventListener('click', openVocabularyReview);
   $('vocab-search').addEventListener('input', (event) => {
     vocabularyContext.query = event.target.value;
@@ -2101,10 +2371,15 @@ function bindEvents() {
     vocabularyContext.page += 1;
     renderVocabularyStudy();
   });
-  $('voice-toggle').addEventListener('click', () => voiceLab.active ? endVoiceSession() : startVoiceSession());
-  $('voice-clear').addEventListener('click', clearVoiceLab);
-  $('voice-lab-back').addEventListener('click', () => openPage('home'));
-  $('voice-lab-exit').addEventListener('click', () => openPage('home'));
+  $('voice-begin').addEventListener('click', beginSpeakingMock);
+  $('voice-toggle').addEventListener('click', requestVoiceExit);
+  $('voice-prep-skip').addEventListener('click', finishSpeakingPreparation);
+  $('voice-again').addEventListener('click', resetSpeakingMock);
+  $('voice-finish').addEventListener('click', leaveSpeakingExperience);
+  $('voice-lab-back').addEventListener('click', requestVoiceExit);
+  $('voice-lab-exit').addEventListener('click', requestVoiceExit);
+  $('voice-exit-cancel').addEventListener('click', () => { $('voice-exit-dialog').hidden = true; });
+  $('voice-exit-confirm').addEventListener('click', leaveSpeakingExperience);
   ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
     $(id).addEventListener('change', saveGoalChoice);
     $(id).addEventListener('input', saveGoalChoice);
