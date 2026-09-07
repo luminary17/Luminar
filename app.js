@@ -34,7 +34,7 @@ const SAT_TOPIC_GROUPS = {
   ]
 };
 const SAT_CATEGORIES = Object.fromEntries(Object.entries(SAT_TOPIC_GROUPS).map(([set, groups]) => [set, groups.map((group) => group.title)]));
-const DAILY_QUOTES = [
+const LUMINARY_QUOTES = [
   'Make today small enough to start and meaningful enough to finish.',
   'Your score changes when your habits become more precise.',
   'One honest correction is worth more than ten rushed answers.',
@@ -85,6 +85,64 @@ const DAILY_QUOTES = [
   'Your plan should follow your errors, not your mood.',
   'A clear reason for studying makes starting easier.',
   'Keep the session focused enough to learn from it.'
+];
+
+const STATHAM_QUOTES = [
+  'One mistake, and the answer is wrong.',
+  'If the question looks difficult, look at it until it becomes easier.',
+  'A wrong answer is only dangerous when you learn nothing from it.',
+  'The clock does not rush you. You rush yourself.',
+  'Read twice. Answer once.',
+  'If you guessed correctly, you still guessed.',
+  'A strong student does not fear mistakes. A strong student reviews them.',
+  'When the timer starts, excuses stop.',
+  'A hard question is an easy question you have not understood yet.',
+  'Vocabulary is like muscle: use it or lose it.',
+  'Do not chase the score. Chase the reason.',
+  'Your pen knows nothing until your mind decides.',
+  'If you skip the passage, the passage skips your points.',
+  'The answer is often simple. The distraction is complicated.',
+  'Speak clearly. Silence has no band score.',
+  'Grammar respects the student who checks it.',
+  'Confidence without practice is just loud guessing.',
+  'A minute of focus defeats an hour of panic.',
+  'If you know why, you will remember what.',
+  'Every wrong option has one job: to test your attention.',
+  'The best shortcut is knowing the method.',
+  'You cannot lose points you refuse to give away.',
+  'Train calmly so pressure feels familiar.',
+  'The question changes. The discipline stays.',
+  'A blank page fears the first sentence.',
+  'Start with one sentence. Finish with an argument.',
+  'The word you learn today may save you tomorrow.',
+  'If the evidence is weak, the answer is weaker.',
+  'Do not argue with the text. Read what it says.',
+  'A careless comma can fight harder than a difficult word.',
+  'Fluency begins when fear stops editing every sentence.',
+  'Listen for meaning, not only words.',
+  'If you missed the detail, return with attention.',
+  'The examiner hears preparation before confidence.',
+  'Strong answers do not need unnecessary words.',
+  'Before choosing quickly, eliminate slowly.',
+  'Improvement starts where excuses end.',
+  'A difficult module is a gym for the mind.',
+  'Review the mistake before it becomes a habit.',
+  'The right answer survives every check.',
+  'Your target score does not care about your mood.',
+  'Do the practice. Motivation can arrive later.',
+  'The test has four choices. Your focus has one job.',
+  'When in doubt, find the evidence.',
+  'A prepared mind makes the timer nervous.',
+  'You do not need luck when your process is strong.',
+  'Finish the session you promised yourself.',
+  'Progress is quiet until the score announces it.',
+  'Study like the result already has your name on it.',
+  'Remember: the question is not your enemy. Inattention is.'
+];
+
+const DAILY_QUOTES = [
+  ...LUMINARY_QUOTES.map((text) => ({ text, credit: 'Luminary' })),
+  ...STATHAM_QUOTES.map((text) => ({ text, credit: 'Jason Statham · internet wisdom' }))
 ];
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
@@ -140,6 +198,7 @@ const HACK_SECTIONS = [
 
 let state = structuredClone(DEFAULT_STATE);
 let currentPage = 'home';
+let activeHomeQuoteIndex = -1;
 let currentSkill = '';
 let currentSet = 'math';
 let currentQuestion = 0;
@@ -331,12 +390,15 @@ function setExam(exam, returnHome = true) {
   if (returnHome) openPage('home');
 }
 
-function dailyQuote() {
-  const now = new Date();
-  const day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
-  const identity = `${activeAccountId}:${state.profile.name}`;
-  const identitySeed = [...identity].reduce((sum, character) => sum + character.charCodeAt(0), 0);
-  return DAILY_QUOTES[(day + identitySeed) % DAILY_QUOTES.length];
+function renderHomeQuote(chooseNew = false) {
+  if (chooseNew || activeHomeQuoteIndex < 0) {
+    let nextIndex = Math.floor(Math.random() * DAILY_QUOTES.length);
+    if (DAILY_QUOTES.length > 1 && nextIndex === activeHomeQuoteIndex) nextIndex = (nextIndex + 1) % DAILY_QUOTES.length;
+    activeHomeQuoteIndex = nextIndex;
+  }
+  const quote = DAILY_QUOTES[activeHomeQuoteIndex];
+  $('daily-quote').textContent = quote.text;
+  $('daily-quote-day').textContent = quote.credit;
 }
 
 function personalRecommendations() {
@@ -433,8 +495,7 @@ function renderHome() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   $('home-greeting').textContent = `${greeting}${state.profile.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}.`;
-  $('daily-quote').textContent = dailyQuote();
-  $('daily-quote-day').textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
+  renderHomeQuote();
   $('home-kicker').textContent = isIelts ? 'IELTS plan' : 'SAT plan';
   $('home-copy').textContent = isIelts ? 'Your next useful IELTS session is ready.' : 'Your next useful SAT session is ready.';
   $('goal-score').textContent = target || '--';
@@ -1894,6 +1955,7 @@ function jumpToQuestion(index) {
 
 function openPage(page) {
   if (page !== 'speaking-ai') endVoiceSession();
+  if (page === 'home') renderHomeQuote(true);
   currentPage = page;
   document.body.classList.toggle('is-voice-lab-open', page === 'speaking-ai');
   document.querySelectorAll('.page').forEach((section) => section.classList.toggle('is-active', section.id === `${page}-page`));

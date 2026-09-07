@@ -92,7 +92,7 @@ h1 { margin-bottom: 8px; font-size: clamp(34px, 4vw, 52px); letter-spacing: 0; l
 .home-hero h1 { max-width: 620px; margin-bottom: 10px; }
 .home-hero #home-copy { max-width: 560px; margin: 0; color: var(--text-soft); font-size: 16px; }
 .home-hero blockquote { display: flex; flex-direction: column; justify-content: space-between; background: var(--sidebar); color: var(--side-text); }
-.home-hero blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(22px, 2.5vw, 32px); line-height: 1.25; }
+.home-hero blockquote p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(18px, 1.85vw, 25px); line-height: 1.35; }
 .home-hero blockquote footer { margin-top: 24px; color: var(--side-muted); font-size: 11px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .goal-strip, .stats { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow); }
 .goal-strip article, .stats article { min-height: 120px; padding: 23px; }
@@ -598,7 +598,7 @@ body.is-auth-open { overflow: hidden; }
   .goal-strip article + article, .stats article + article { border-top: 1px solid var(--line); border-left: 0; }
   .goal-strip article, .stats article { min-height: auto; padding: 18px; }
   .home-hero > div, .home-hero blockquote { min-height: 160px; padding: 22px; }
-  .home-hero blockquote p { font-size: 22px; }
+  .home-hero blockquote p { font-size: 18px; }
   .recommendation-grid, .recommendation-grid.is-four-column { grid-template-columns: 1fr; }
   .goal-edit { min-height: 38px; margin-top: 8px; padding: 7px 0; font-size: 13px; }
   .home-settings { padding: 16px; }
