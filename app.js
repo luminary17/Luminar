@@ -89,7 +89,7 @@ const DAILY_QUOTES = [
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
-const SPEAKING_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
+const LUMINARY_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
 const IELTS_SKILL_DETAILS = {
   Listening: 'Train comprehension, vocabulary and attention to spoken detail.',
   Reading: 'Build speed, accuracy and control across IELTS text types.',
@@ -159,6 +159,8 @@ let practiceMode = 'bank';
 let activePlanTaskId = '';
 let questionOpenedAt = 0;
 let explanationOpen = false;
+const mistakeAnalysisCache = new Map();
+const mistakeAnalysisRequests = new Map();
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
 const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
@@ -356,15 +358,24 @@ function personalRecommendations() {
     .filter((item) => item.errors > 0)
     .map((item) => ({ ...item, accuracy: Math.round(((item.attempts - item.errors) / item.attempts) * 100), priority: item.errors * 2 + item.recentErrors * 3 + Math.max(0, 5 - item.attempts) }))
     .sort((left, right) => right.priority - left.priority)
-    .slice(0, 3);
-  if (ranked.length) return ranked;
-  return exam === 'sat'
-    ? [
+    .slice(0, exam === 'ielts' ? 4 : 3);
+  if (exam === 'sat') {
+    if (ranked.length) return ranked;
+    return [
       { topic: 'Standard English Conventions', set: 'rw', attempts: 0, errors: 0 },
       { topic: 'Algebra', set: 'math', attempts: 0, errors: 0 },
       { topic: 'Information and Ideas', set: 'rw', attempts: 0, errors: 0 }
-    ]
-    : ['Listening', 'Reading', 'Writing'].map((topic) => ({ topic, set: topic.toLowerCase(), attempts: 0, errors: 0 }));
+    ];
+  }
+
+  const isSpeaking = (item) => `${item.topic} ${item.set}`.toLowerCase().includes('speaking');
+  const speakingFocus = ranked.find(isSpeaking) || { topic: 'Speaking', set: 'speaking', attempts: 0, errors: 0 };
+  const recommendations = ranked.filter((item) => !isSpeaking(item)).slice(0, 3);
+  ['Listening', 'Reading', 'Writing'].forEach((topic) => {
+    const alreadyIncluded = recommendations.some((item) => `${item.topic} ${item.set}`.toLowerCase().includes(topic.toLowerCase()));
+    if (recommendations.length < 3 && !alreadyIncluded) recommendations.push({ topic, set: topic.toLowerCase(), attempts: 0, errors: 0 });
+  });
+  return [...recommendations.slice(0, 3), speakingFocus];
 }
 
 function renderRecommendations() {
@@ -373,13 +384,21 @@ function renderRecommendations() {
   $('recommendation-copy').textContent = hasEvidence
     ? 'Built from your recent wrong answers. Completing a set updates the order automatically.'
     : 'Complete a few questions and Luminary will replace these starters with your personal weak areas.';
-  $('recommendation-grid').innerHTML = recommendations.map((item, index) => {
+  const recommendationGrid = $('recommendation-grid');
+  recommendationGrid.classList.toggle('is-four-column', state.profile.exam === 'ielts');
+  recommendationGrid.innerHTML = recommendations.map((item, index) => {
     const evidence = item.attempts ? `${item.accuracy}% accuracy · ${item.errors} ${item.errors === 1 ? 'error' : 'errors'}` : 'Starter diagnostic';
     return `<article class="recommendation-card"><span>${index === 0 && hasEvidence ? 'Highest priority' : `Focus ${index + 1}`}</span><strong>${escapeHtml(item.topic)}</strong><p>${escapeHtml(evidence)}</p><div class="recommendation-actions"><button class="button button-primary" data-train-topic="${escapeHtml(item.topic)}" data-train-set="${escapeHtml(item.set)}" type="button">Train now</button>${state.profile.exam === 'sat' ? `<button class="recommendation-link" data-review-topic="${escapeHtml(item.topic)}" type="button">Review</button>` : ''}</div></article>`;
   }).join('');
 }
 
 async function startRecommendedTraining(topic, set) {
+  if (state.profile.exam === 'ielts' && (String(topic).toLowerCase() === 'speaking' || String(set).toLowerCase() === 'speaking')) {
+    currentSkill = 'Speaking';
+    resetSpeakingMock();
+    openPage('speaking-ai');
+    return;
+  }
   showToast(`Building a focused ${topic} set...`);
   let questions = await loadQuestionTopics(state.profile.exam, [topic]);
   if (!questions.length) {
@@ -1517,9 +1536,21 @@ function renderQuestionBank() {
   const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
   if (questionBankView === 'sections') {
-    $('question-bank-copy').textContent = exam==='sat'?'Choose Reading & Writing or Math.':'Choose an IELTS section.';
+    $('question-bank-copy').textContent = exam==='sat'?'Choose a section. If you miss a question, Luminary will explain the reasoning immediately.':'Choose an IELTS section and turn every mistake into a clear next step.';
+    const sectionDetails = {
+      rw: ['R&W', 'Reading & Writing', 'Evidence, structure, expression and English conventions.'],
+      math: ['∑', 'Math', 'Algebra, advanced math, data analysis and geometry.'],
+      listening: ['L', 'Listening', 'Comprehension, detail and academic listening.'],
+      reading: ['R', 'Reading', 'Accuracy, speed and evidence across text types.'],
+      writing: ['W', 'Writing', 'Task response, structure and language control.'],
+      speaking: ['S', 'Speaking', 'Fluency, vocabulary, grammar and pronunciation.']
+    };
     library.innerHTML = sections.map((set) => {
-      return `<button class="library-card qbank-section qbank-section-${set}" data-select-set="${set}" type="button"><strong>${questionSetName(set)}</strong></button>`;
+      const [mark, title, copy] = sectionDetails[set] || [questionSetName(set).slice(0, 1), questionSetName(set), 'Focused exam practice.'];
+      const count = questionsForSet(set).length;
+      const unavailable = store.status === 'ready' && count === 0;
+      const availability = store.status === 'ready' ? (count ? `${count.toLocaleString('en-US')} question${count === 1 ? '' : 's'}` : 'Coming soon') : 'Loading questions';
+      return `<button class="library-card qbank-section qbank-section-${set}" data-select-set="${set}" type="button" ${unavailable ? 'disabled' : ''}><span class="qbank-section-mark" aria-hidden="true">${escapeHtml(mark)}</span><span class="qbank-section-copy"><small>${escapeHtml(availability)}</small><strong>${escapeHtml(title)}</strong><p>${escapeHtml(copy)}</p></span><b>${unavailable ? 'Questions are being prepared' : 'Choose topics'} <i aria-hidden="true">${unavailable ? '' : '→'}</i></b></button>`;
     }).join('');
     return;
   }
@@ -1567,6 +1598,114 @@ async function startSelectedTopics() {
   }
 }
 
+function mistakeAnalysisKey(question, choice) {
+  return `${question.id}:${choice}`;
+}
+
+function conciseAnalysisText(value, fallback) {
+  const text = compactDisplayText(value);
+  return (text || fallback).slice(0, 520);
+}
+
+function fallbackMistakeAnalysis(question, choice) {
+  const selectedLetter = 'ABCD'[choice];
+  const correctLetter = 'ABCD'[question.correct];
+  const selectedText = question.answers[choice];
+  const correctText = question.answers[question.correct];
+  const mathQuestion = (question.set || currentSet) === 'math';
+  const selectedSnippet = compactDisplayText(selectedText).replace(/[.!?]+$/, '').slice(0, 230);
+  return {
+    title: 'Let’s repair the reasoning.',
+    whyWrong: `Choice ${selectedLetter} does not satisfy the exact task. It leads you toward “${selectedSnippet},” but that conclusion is not fully supported by the information given.`,
+    whyCorrect: conciseAnalysisText(question.explanation, `Choice ${correctLetter} — “${correctText}” — best matches the evidence and the wording of the question.`),
+    takeaway: mathQuestion
+      ? 'Translate the question into one clear mathematical condition, then test each choice against that condition.'
+      : 'Return to the exact claim being tested and require every part of your choice to be supported by the text.'
+  };
+}
+
+function normalizeMistakeAnalysis(raw, fallback) {
+  return {
+    title: conciseAnalysisText(raw?.title, fallback.title),
+    whyWrong: conciseAnalysisText(raw?.whyWrong, fallback.whyWrong),
+    whyCorrect: conciseAnalysisText(raw?.whyCorrect, fallback.whyCorrect),
+    takeaway: conciseAnalysisText(raw?.takeaway, fallback.takeaway)
+  };
+}
+
+function renderMistakeAnalysis(question, answer, isMock) {
+  const panel = $('mistake-analysis');
+  const wrongAnswer = !isMock && answer !== undefined && answer !== question.correct;
+  panel.classList.toggle('is-hidden', !wrongAnswer);
+  if (!wrongAnswer) return;
+
+  const entry = mistakeAnalysisCache.get(mistakeAnalysisKey(question, answer));
+  const ready = entry?.status === 'ready';
+  $('mistake-analysis-loading').hidden = ready;
+  $('mistake-analysis-content').hidden = !ready;
+  $('mistake-analysis-state').textContent = ready ? 'Ready' : 'Analysing';
+  panel.classList.toggle('is-loading', !ready);
+  if (!ready) return;
+
+  $('mistake-analysis-title').textContent = entry.analysis.title;
+  $('mistake-analysis-why').textContent = entry.analysis.whyWrong;
+  $('mistake-analysis-correct').textContent = entry.analysis.whyCorrect;
+  $('mistake-analysis-takeaway').textContent = entry.analysis.takeaway;
+}
+
+function revealMistakeAnalysis() {
+  const panel = $('mistake-analysis');
+  const column = panel.closest('.answer-column');
+  if (!column || panel.classList.contains('is-hidden')) return;
+  column.scrollTo({ top: Math.max(0, panel.offsetTop - 18), behavior: 'smooth' });
+}
+
+async function requestMistakeAnalysis(question, choice) {
+  const key = mistakeAnalysisKey(question, choice);
+  if (mistakeAnalysisCache.get(key)?.status === 'ready' || mistakeAnalysisRequests.has(key)) return;
+  const fallback = fallbackMistakeAnalysis(question, choice);
+  mistakeAnalysisCache.set(key, { status: 'loading' });
+
+  const request = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 28_000);
+    try {
+      const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/questions/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          exam: state.profile.exam,
+          set: question.set || currentSet,
+          domain: question.domain || '',
+          skill: question.skill || '',
+          prompt: question.prompt,
+          passage: question.passage || '',
+          answers: question.answers,
+          selectedIndex: choice,
+          correctIndex: question.correct,
+          referenceExplanation: question.explanation || ''
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.analysis) throw new Error(data.error || 'Analysis unavailable.');
+      mistakeAnalysisCache.set(key, { status: 'ready', analysis: normalizeMistakeAnalysis(data.analysis, fallback) });
+    } catch {
+      // Until the reviewed Worker is published, the local preview uses the question bank's own explanation.
+      mistakeAnalysisCache.set(key, { status: 'ready', analysis: fallback });
+    } finally {
+      clearTimeout(timeout);
+      mistakeAnalysisRequests.delete(key);
+      const current = practiceQuestions[currentQuestion];
+      if (current?.id === question.id) {
+        renderMistakeAnalysis(current, checkedAnswers[current.id], practiceMode === 'mock');
+        requestAnimationFrame(revealMistakeAnalysis);
+      }
+    }
+  })();
+  mistakeAnalysisRequests.set(key, request);
+}
+
 function renderQuestion() {
   const question = practiceQuestions[currentQuestion];
   const isMock = practiceMode === 'mock';
@@ -1602,7 +1741,10 @@ function renderQuestion() {
   }).join('');
   $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : '';
   $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : ''}`;
-  const hasExplanation = Boolean(!isMock && isChecked && question.explanation);
+  const wrongAnswer = isChecked && answer !== question.correct;
+  if (wrongAnswer) requestMistakeAnalysis(question, answer);
+  renderMistakeAnalysis(question, answer, isMock);
+  const hasExplanation = Boolean(!isMock && isChecked && !wrongAnswer && question.explanation);
   $('explanation-toggle').classList.toggle('is-hidden', !hasExplanation);
   $('explanation-toggle').textContent = explanationOpen ? 'Hide explanation' : 'View explanation';
   $('explanation-panel').classList.toggle('is-hidden', !hasExplanation || !explanationOpen);
@@ -1674,6 +1816,9 @@ function checkAnswer() {
   if (history.length > 600) history.splice(0, history.length - 600);
   delete draftAnswers[question.id];
   renderQuestion();
+  if (choice !== question.correct) {
+    requestAnimationFrame(revealMistakeAnalysis);
+  }
   renderHome();
   persist();
   saveActivePractice();
@@ -1898,7 +2043,7 @@ async function sendVoiceTurn(text) {
       ? 'Thank you. That is the end of your speaking mock.'
       : `Thank you. ${nextQuestion.text}`;
     try {
-      const response = await fetch(`${SPEAKING_AI_SERVICE_URL}/speaking/chat`, {
+      const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
