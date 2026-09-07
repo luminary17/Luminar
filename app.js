@@ -141,8 +141,8 @@ const STATHAM_QUOTES = [
 ];
 
 const DAILY_QUOTES = [
-  ...LUMINARY_QUOTES.map((text) => ({ text, credit: 'Luminary' })),
-  ...STATHAM_QUOTES.map((text) => ({ text, credit: 'Jason Statham · internet wisdom' }))
+  ...LUMINARY_QUOTES,
+  ...STATHAM_QUOTES
 ];
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
@@ -396,9 +396,7 @@ function renderHomeQuote(chooseNew = false) {
     if (DAILY_QUOTES.length > 1 && nextIndex === activeHomeQuoteIndex) nextIndex = (nextIndex + 1) % DAILY_QUOTES.length;
     activeHomeQuoteIndex = nextIndex;
   }
-  const quote = DAILY_QUOTES[activeHomeQuoteIndex];
-  $('daily-quote').textContent = quote.text;
-  $('daily-quote-day').textContent = quote.credit;
+  $('daily-quote').textContent = DAILY_QUOTES[activeHomeQuoteIndex];
 }
 
 function personalRecommendations() {
