@@ -584,12 +584,8 @@ function analyzeMockResult(resultId) {
 function renderHome() {
   const isIelts = state.profile.exam === 'ielts';
   const { target, date } = activeGoal();
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  $('home-greeting').textContent = `${greeting}${state.profile.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}.`;
   renderHomeQuote();
-  $('home-kicker').textContent = isIelts ? 'IELTS plan' : 'SAT plan';
-  $('home-copy').textContent = isIelts ? 'Your next useful IELTS session is ready.' : 'Your next useful SAT session is ready.';
+  $('home-kicker').textContent = isIelts ? 'IELTS thought of the day' : 'SAT thought of the day';
   $('goal-score').textContent = target || '--';
   $('goal-date').textContent = date ? dateText(date) : 'Not selected';
   if (date) {
