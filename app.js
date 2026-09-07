@@ -397,6 +397,7 @@ function renderHomeQuote(chooseNew = false) {
     activeHomeQuoteIndex = nextIndex;
   }
   $('daily-quote').textContent = DAILY_QUOTES[activeHomeQuoteIndex];
+  $('daily-quote-day').textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
 }
 
 function personalRecommendations() {
