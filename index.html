@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="main.css?v=38">
+  <link rel="stylesheet" href="main.css?v=39">
 </head>
 <body>
   <div class="app-shell">
@@ -24,6 +24,7 @@
         <div class="nav-section ielts-only"><button class="nav-link" data-page="ielts-skill" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="ielts-skill" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="ielts-skill" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="ielts-skill" data-skill="Speaking" type="button">Speaking</button></div>
         <div class="nav-section sat-only"><span>Practice</span><button class="nav-link" data-page="plan" type="button">Study plan</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
         <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
+        <div class="nav-section"><span>Workspace</span><button class="nav-link" data-page="settings" type="button">Settings</button></div>
       </nav>
       <button class="account-line" id="account-menu-button" type="button" aria-expanded="false" aria-controls="account-menu"><span class="avatar" id="account-initial">L</span><span><b id="sidebar-name">Learner</b><small id="account-status">Progress saved on this device</small></span><i aria-hidden="true">•••</i></button>
       <div class="guest-auth-actions" id="guest-auth-actions"><button id="login-button" data-open-auth="login" type="button">Log in</button><span>|</span><button id="signup-button" data-open-auth="register" type="button">Sign up</button></div>
@@ -39,8 +40,8 @@
           <div><p class="kicker" id="home-kicker">SAT plan</p><h1 id="home-greeting">Good to see you.</h1><p id="home-copy">Your next best move is ready.</p></div>
           <blockquote><p id="daily-quote">Small, focused work compounds.</p><footer id="daily-quote-day">Today’s date</footer></blockquote>
         </section>
-        <section class="goal-strip" aria-label="Exam goal"><article><span>My goal</span><strong id="goal-score">--</strong><button class="goal-edit" data-edit-goal="score" type="button">Change goal</button></article><article><span>Exam date</span><strong id="goal-date">Not selected</strong><button class="goal-edit" data-edit-goal="date" type="button">Choose date</button></article><article><span>Time left</span><strong id="goal-countdown">Set your date</strong></article></section>
-        <section class="home-settings" id="home-settings"><div class="home-settings-heading"><div><p class="kicker">Quick edit</p><h2>Goal &amp; exam date</h2></div><p>Changes save automatically.</p></div><div class="home-settings-fields"><label>Target score<select id="home-score"></select><small id="score-help"></small></label><label>Exam date<select id="home-sat-date"></select><input id="home-date" type="date" min="2026-08-31" max="2028-12-31" hidden><small id="date-help"></small></label></div></section>
+        <section class="goal-strip" aria-label="Exam goal"><article><span>My goal</span><strong id="goal-score">--</strong></article><article><span>Exam date</span><strong id="goal-date">Not selected</strong></article><article><span>Time left</span><strong id="goal-countdown">Set your date</strong></article></section>
+        <section class="home-guidance" id="home-guidance" aria-live="polite"><div class="home-guidance-copy"><p class="kicker" id="home-guidance-kicker">Recommended next</p><h2 id="home-guidance-title">Your next useful step is ready.</h2><p id="home-guidance-description"></p></div><div class="home-guidance-metrics" id="home-guidance-metrics"></div><div class="home-guidance-actions" id="home-guidance-actions"></div></section>
         <div class="section-heading"><div><p class="kicker">Adaptive focus</p><h2>Your next wins</h2></div><span></span></div>
         <p class="section-copy" id="recommendation-copy">We will adapt this area as you answer questions.</p>
         <section class="recommendation-grid" id="recommendation-grid"></section>
@@ -50,6 +51,18 @@
         <article class="home-speaking-card ielts-only" id="home-speaking-card"><div class="home-speaking-orb" aria-hidden="true"><i></i></div><div><p class="kicker">Speaking with AI</p><h2>Practise a full IELTS interview.</h2><p>Luminary asks the questions, listens to every answer and keeps the session moving naturally.</p></div><button class="button button-primary" id="home-speaking-action" type="button">Start speaking</button></article>
         <div class="section-heading"><h2>Progress</h2><span></span></div>
         <section class="stats"><article><strong id="stat-focus">SAT</strong><span>Current focus</span></article><article><strong id="stat-sessions">0</strong><span>Sessions completed</span></article><article><strong id="stat-streak">0</strong><span>Day streak</span></article></section>
+      </section>
+
+      <section class="page" id="settings-page">
+        <div class="page-intro"><p class="kicker">Workspace settings</p><h1>Make Luminary yours.</h1><p>Manage every detail that changes your plan and recommendations.</p></div>
+        <form class="settings-panel" id="settings-form">
+          <section class="settings-section"><div><p class="kicker">Profile</p><h2>Student &amp; exam</h2><p>These details shape the whole workspace.</p></div><div class="settings-fields"><label>Your name<input id="settings-name" type="text" maxlength="36" autocomplete="name" placeholder="Your name"></label><label>Exam<select id="settings-exam"><option value="sat">SAT</option><option value="ielts">IELTS</option></select></label></div></section>
+          <section class="settings-section"><div><p class="kicker">Score plan</p><h2>Current level &amp; goal</h2><p>Set where you are now and where you want to go.</p></div><div class="settings-fields settings-fields-three"><label>Current score<select id="settings-current-score"></select></label><label>Target score<select id="home-score"></select><small id="score-help"></small></label><label>Exam date<select id="home-sat-date"></select><input id="home-date" type="date" min="2026-08-31" max="2028-12-31" hidden><small id="date-help"></small></label></div></section>
+          <section class="settings-section settings-section-wide"><div><p class="kicker">Focus</p><h2>Topics that feel difficult</h2><p>Choose domains or individual skills. Luminary will use these before it has mock evidence.</p></div><div class="settings-weaknesses" id="settings-weaknesses"></div></section>
+          <section class="settings-section"><div><p class="kicker">Routine</p><h2>Daily study time</h2><p>Choose a realistic pace for your study plan.</p></div><div class="settings-fields"><label>Minutes per day<select id="settings-minutes"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option><option value="120">120 minutes</option></select></label></div></section>
+          <section class="settings-section"><div><p class="kicker">Appearance</p><h2>Color palette</h2><p>Your choice stays on this device.</p></div><div class="settings-theme"><strong id="settings-theme-name">Dark Blue</strong><div class="mini-theme-grid" id="settings-theme-grid"></div></div></section>
+          <footer class="settings-footer"><p id="settings-status" aria-live="polite">Changes are saved when you press the button.</p><button class="button button-primary" id="settings-save" type="submit">Save changes</button></footer>
+        </form>
       </section>
 
       <section class="page" id="ielts-skill-page">
@@ -188,7 +201,7 @@
     <div class="auth-panel"><button class="auth-skip" id="auth-close" data-close-auth type="button">Skip for now</button><div class="auth-form-wrap"><p class="kicker">Your workspace</p><h1 id="auth-title">Welcome back</h1><p id="auth-copy">Continue where you left off.</p><div class="auth-palette"><div><span>Color palette</span><strong id="auth-current-theme-name">Dark Blue</strong></div><div class="mini-theme-grid" id="auth-theme-grid"></div></div><form id="account-auth-form"><label>Email address<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required></label><button class="button button-primary auth-primary" id="account-auth-submit" type="submit">Log in</button></form><div class="auth-divider"><span>or continue with</span></div><button class="google-auth-button" id="google-auth-button" type="button"><svg aria-hidden="true" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.258h2.909c1.703-1.568 2.684-3.878 2.684-6.614Z"/><path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.909-2.258c-.806.54-1.835.859-3.047.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A8.998 8.998 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.963 10.706A5.41 5.41 0 0 1 3.682 9c0-.592.102-1.168.281-1.706V4.962H.956A8.996 8.996 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A8.998 8.998 0 0 0 .956 4.962l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"/></svg>Continue with Google</button><button class="auth-test-button" id="auth-test-button" type="button">Open temporary test workspace</button><p class="auth-switch"><span id="auth-switch-copy">New to Luminary?</span><button id="auth-switch" type="button">Register</button></p><p class="auth-status" id="auth-status" aria-live="polite"></p></div></div>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=51"></script>
+  <script src="app.js?v=52"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
   <script src="firebase-auth.js?v=11"></script>

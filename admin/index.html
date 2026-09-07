@@ -82,6 +82,16 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .mock-tab{padding:6px 13px;border-radius:8px;border:1.5px solid rgba(0,0,0,.1);background:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;color:#555;}
 .mock-tab.active{background:var(--acc);color:#fff;border-color:var(--acc);}
 .mock-tab:hover:not(.active){background:#f0f0f0;}
+.mock-builder{margin-top:16px;border-top:1px solid var(--border);padding-top:16px;}
+.mock-builder h4{margin:0 0 12px;font-size:14px;}
+.mock-builder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.mock-builder-grid .form-group{margin-bottom:0;}
+.mock-builder-wide{grid-column:1/-1;}
+.mock-draft-list{display:grid;gap:7px;margin:12px 0;}
+.mock-draft-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff;}
+.mock-draft-item strong,.mock-draft-item small{display:block;}
+.mock-draft-item strong{font-size:12px;}
+.mock-draft-item small{margin-top:3px;color:var(--muted);font-size:10px;}
 
 /* UNDO TOAST */
 .undo-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:11px 18px;border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
@@ -154,6 +164,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
 @media(max-width:480px){
   .match-grid{gap:5px;}
+  .mock-builder-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -187,10 +198,27 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
       <!-- Add form -->
       <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
         <div class="form-group"><label>Title</label><input id="mock-title" placeholder="e.g. SAT Reading Test 1"></div>
-        <div class="form-group"><label>URL</label><input id="mock-url" placeholder="https://..."></div>
+        <div class="form-group"><label>External URL <span style="font-weight:400;color:#bbb;">(optional when questions are added below)</span></label><input id="mock-url" placeholder="https://..."></div>
         <div class="form-group"><label>Description <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="mock-desc" placeholder="e.g. 52 questions, 65 min"></div>
         <div class="form-group"><label>Picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'mock')"><img id="mock-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
-        <button class="btn-primary" onclick="addMockTest()">➕ Add Test</button>
+        <div class="mock-builder">
+          <h4>Add questions to this mock</h4>
+          <div class="mock-builder-grid">
+            <div class="form-group"><label>Domain</label><select id="mock-domain" onchange="updateMockQuestionTaxonomy()"></select></div>
+            <div class="form-group"><label>Skill / topic</label><select id="mock-skill"></select></div>
+            <div class="form-group mock-builder-wide" id="mock-subject-wrap"><label>Passage subject</label><select id="mock-subject"><option>Literature</option><option>History</option><option>Social Studies</option><option>Humanities</option><option>Science</option></select></div>
+            <div class="form-group mock-builder-wide"><label>Passage or reference <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="mock-passage" placeholder="Text, table description, or reference shown with the question"></textarea></div>
+            <div class="form-group mock-builder-wide"><label>Question</label><textarea id="mock-question" placeholder="Write the question"></textarea></div>
+            <div class="form-group"><label>Option A</label><input id="mock-a"></div><div class="form-group"><label>Option B</label><input id="mock-b"></div>
+            <div class="form-group"><label>Option C</label><input id="mock-c"></div><div class="form-group"><label>Option D</label><input id="mock-d"></div>
+            <div class="form-group"><label>Correct answer</label><select id="mock-correct"><option value="">Select...</option><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+            <div class="form-group"><label>Difficulty</label><select id="mock-difficulty"><option value="">Not set</option><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+            <div class="form-group mock-builder-wide"><label>Explanation <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="mock-explain" placeholder="Why the correct answer works"></textarea></div>
+          </div>
+          <button class="btn-cancel" type="button" onclick="addMockDraftQuestion()">Add question to mock</button>
+          <div class="mock-draft-list" id="mock-draft-list"></div>
+        </div>
+        <button class="btn-primary" onclick="addMockTest()">Save Mock</button>
       </div>
       <!-- List -->
       <div id="mock-json-import"></div>
@@ -205,6 +233,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
     <div class="admin-sec-body">
       <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
+        <div class="form-group"><label>Passage or reference <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="qb-passage" placeholder="Text or reference shown before the question"></textarea></div>
         <div class="form-group"><label>Question</label><textarea id="qb-q" placeholder="e.g. Which of the following best describes..." style="min-height:72px;"></textarea></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="form-group"><label>Option A</label><input id="qb-a" placeholder="Answer A"></div>
@@ -220,8 +249,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="form-group"><label>Section</label><select id="qb-section" onchange="updateQBankCategories()"></select></div>
-          <div class="form-group" id="qb-sat-theme-wrap"><label>Theme</label><select id="qb-tag"></select></div>
+          <div class="form-group" id="qb-sat-theme-wrap"><label>Domain</label><select id="qb-tag" onchange="updateQBankCategories()"></select></div>
           <div class="form-group" id="qb-ielts-theme-wrap" style="display:none"><label>Theme</label><input id="qb-ielts-theme" placeholder="e.g. Education, Environment, Maps"></div>
+        </div>
+        <div id="qb-sat-details" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label>Skill / topic</label><select id="qb-skill"></select></div>
+          <div class="form-group" id="qb-subject-wrap"><label>Passage subject</label><select id="qb-subject"><option>Literature</option><option>History / Social Studies</option><option>Humanities</option><option>Science</option></select></div>
         </div>
         <div class="form-group"><label>Explanation <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="qb-explain" placeholder="Why this answer is correct..."></textarea></div>
         <div class="form-group"><label>Question picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'qbank')"><img id="qbank-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
@@ -631,19 +664,34 @@ function renderJsonImporter(containerId,kind,title,example){
 }
 const materialJsonCache={};
 const recordImages={mock:'',qbank:'',daily:''};
-const SAT_QBANK_CATEGORIES={
-  rw:['Information and Ideas','Craft and Structure','Expression of Ideas','Standard English Conventions'],
-  math:['Algebra','Advanced Math','Problem-Solving and Data Analysis','Geometry and Trigonometry']
+const SAT_DOMAIN_TOPICS={
+  rw:{
+    'Information and Ideas':['Central Ideas and Details','Inferences','Command of Evidence'],
+    'Craft and Structure':['Words in Context','Text Structure and Purpose','Cross-Text Connections'],
+    'Expression of Ideas':['Rhetorical Synthesis','Transitions'],
+    'Standard English Conventions':['Boundaries','Form, Structure, and Sense']
+  },
+  math:{
+    'Algebra':['Linear equations in one variable','Linear functions','Linear equations in two variables','Systems of two linear equations in two variables','Linear inequalities in one or two variables'],
+    'Advanced Math':['Nonlinear functions','Nonlinear equations in one variable','Systems of equations in two variables','Equivalent expressions'],
+    'Problem-Solving and Data Analysis':['Ratios, rates, proportional relationships, and units','Percentages','One-variable data','Two-variable data','Probability and conditional probability','Inference from sample statistics and margin of error','Evaluating statistical claims'],
+    'Geometry and Trigonometry':['Area and volume','Lines, angles, and triangles','Right triangles and trigonometry','Circles']
+  }
 };
+const SAT_QBANK_CATEGORIES={rw:Object.keys(SAT_DOMAIN_TOPICS.rw),math:Object.keys(SAT_DOMAIN_TOPICS.math)};
 function updateQBankCategories(){
-  const exam=document.getElementById('qb-exam')?.value||'sat',sectionSelect=document.getElementById('qb-section'),themeSelect=document.getElementById('qb-tag');if(!sectionSelect||!themeSelect)return;
+  const exam=document.getElementById('qb-exam')?.value||'sat',sectionSelect=document.getElementById('qb-section'),themeSelect=document.getElementById('qb-tag'),skillSelect=document.getElementById('qb-skill');if(!sectionSelect||!themeSelect)return;
   const previousSection=sectionSelect.value;
   const sections=exam==='sat'?[['rw','Reading & Writing'],['math','Math']]:[['listening','Listening'],['reading','Reading'],['writing','Writing'],['speaking','Speaking']];
   sectionSelect.innerHTML=sections.map(([value,label])=>`<option value="${value}">${label}</option>`).join('');
   if(sections.some(([value])=>value===previousSection))sectionSelect.value=previousSection;
   const section=sectionSelect.value,previousTheme=themeSelect.value;
-  if(exam==='sat'){themeSelect.innerHTML=SAT_QBANK_CATEGORIES[section].map(theme=>`<option value="${theme}">${theme}</option>`).join('');if(SAT_QBANK_CATEGORIES[section].includes(previousTheme))themeSelect.value=previousTheme;}
+  if(exam==='sat'){
+    themeSelect.innerHTML=SAT_QBANK_CATEGORIES[section].map(theme=>`<option value="${theme}">${theme}</option>`).join('');if(SAT_QBANK_CATEGORIES[section].includes(previousTheme))themeSelect.value=previousTheme;
+    const skills=SAT_DOMAIN_TOPICS[section][themeSelect.value]||[],previousSkill=skillSelect?.value||'';if(skillSelect){skillSelect.innerHTML=skills.map(skill=>`<option value="${skill}">${skill}</option>`).join('');if(skills.includes(previousSkill))skillSelect.value=previousSkill;}
+  }
   document.getElementById('qb-sat-theme-wrap').style.display=exam==='sat'?'':'none';document.getElementById('qb-ielts-theme-wrap').style.display=exam==='ielts'?'':'none';
+  document.getElementById('qb-sat-details').style.display=exam==='sat'?'grid':'none';document.getElementById('qb-subject-wrap').style.display=exam==='sat'&&section==='rw'?'':'none';
 }
 function loadRecordImage(input,kind){
   const file=input.files&&input.files[0];if(!file)return;
@@ -675,7 +723,11 @@ function normalizeMaterialRecord(kind,item,index){
     if(!title||(!url&&!Array.isArray(item.questions)))throw new Error(`Item ${index+1}: title and either url or questions are required`);
     const record={title,...(url?{url}:{}),...((item.desc||item.description)?{desc:String(item.desc||item.description)}:{})};
     if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);
-    if(item.questions){if(!Array.isArray(item.questions))throw new Error(`Item ${index+1}: questions must be an array`);record.questions=item.questions.map((q,i)=>normalizeMaterialRecord('qbank',q,i));}
+    if(item.questions){
+      if(!Array.isArray(item.questions))throw new Error(`Item ${index+1}: questions must be an array`);
+      const path=document.getElementById('mock-current-path')?.value||'sat/reading',section=mockSectionForPath(path),domain=path.startsWith('sat/')?SAT_QBANK_CATEGORIES[section][0]:section.charAt(0).toUpperCase()+section.slice(1),skill=path.startsWith('sat/')?SAT_DOMAIN_TOPICS[section][domain][0]:'General practice';
+      record.questions=item.questions.map((q,i)=>normalizeMaterialRecord('qbank',{set:section,tag:domain,skill,...q},i));
+    }
     return record;
   }
   if(kind==='qbank'){
@@ -685,10 +737,12 @@ function normalizeMaterialRecord(kind,item,index){
     const correct=typeof rawCorrect==='number'?'ABCD'[rawCorrect]:String(rawCorrect||'').toUpperCase();
     if(!q||!options||!['A','B','C','D'].every(k=>String(options[k]===undefined?'':options[k]).trim())||!['A','B','C','D'].includes(correct))throw new Error(`Item ${index+1}: question, four answers, and correct answer are required`);
     const record={q,options:{A:String(options.A),B:String(options.B),C:String(options.C),D:String(options.D)},correct};
-    const tag=item.theme||item.category||item.tag||item.domain||item.topic,explain=item.explain||item.explanation;
+    const tag=item.theme||item.category||item.tag||item.domain||item.topic,skill=item.skill||item.subtopic,subject=item.subject||item.passageSubject,explain=item.explain||item.explanation;
     const section=item.set||item.section;if(!tag||!section)throw new Error(`Item ${index+1}: section and theme are required`);
-    record.tag=String(tag);record.set=String(section).toLowerCase();if(explain)record.explain=String(explain);
+    record.tag=String(tag);record.set=String(section).toLowerCase();if(skill)record.skill=String(skill);if(subject)record.subject=String(subject);if(explain)record.explain=String(explain);
     if(item.exam){record.exam=String(item.exam).toLowerCase();if(!['sat','ielts'].includes(record.exam))throw new Error(`Item ${index+1}: exam must be sat or ielts`);}
+    if(item.passage||item.reference||item.text)record.passage=String(item.passage||item.reference||item.text);
+    if(item.difficulty||item.level)record.difficulty=String(item.difficulty||item.level);
     if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);return record;
   }
   const title=String(item.title||item.name||'').trim(),body=String(item.body||item.content||item.text||'').trim();
@@ -1773,7 +1827,7 @@ async function loadQBankAdmin(){
     <div class="item-row" style="flex-direction:column;align-items:stretch;gap:6px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
         <div style="flex:1;">
-          <span style="font-size:10px;font-weight:800;background:#e8f0fe;color:#1d4ed8;padding:2px 8px;border-radius:10px;text-transform:uppercase;">${q.exam} · ${q.set||'general'}${q.tag?` · ${q.tag}`:''}</span>
+          <span style="font-size:10px;font-weight:800;background:#e8f0fe;color:#1d4ed8;padding:2px 8px;border-radius:10px;text-transform:uppercase;">${q.exam} · ${q.set||'general'}${q.tag?` · ${q.tag}`:''}${q.skill?` · ${q.skill}`:''}</span>
           <div class="item-row-title" style="margin-top:4px;">${q.q}</div>
           <div class="item-row-sub">✓ ${q.correct} · ${q.options?.[q.correct]||''}</div>
         </div>
@@ -1782,6 +1836,7 @@ async function loadQBankAdmin(){
     </div>`).join('');
 }
 async function addQBankQuestion(){
+  const passage=document.getElementById('qb-passage').value.trim();
   const q=document.getElementById('qb-q').value.trim();
   const a=document.getElementById('qb-a').value.trim();
   const b=document.getElementById('qb-b').value.trim();
@@ -1791,15 +1846,20 @@ async function addQBankQuestion(){
   const exam=document.getElementById('qb-exam').value;
   const section=document.getElementById('qb-section').value;
   const tag=(exam==='sat'?document.getElementById('qb-tag').value:document.getElementById('qb-ielts-theme').value).trim();
+  const skill=exam==='sat'?document.getElementById('qb-skill').value.trim():'';
+  const subject=exam==='sat'&&section==='rw'?document.getElementById('qb-subject').value.trim():'';
   const explain=document.getElementById('qb-explain').value.trim();
   if(!q||!a||!b||!c||!d||!correct||!tag){alert('Fill question, section, theme, all options and correct answer');return;}
   const{db,ref,push,set}=window.fb2;
   const payload={q,options:{A:a,B:b,C:c,D:d},correct,set:section};
   if(tag)payload.tag=tag;
+  if(skill)payload.skill=skill;
+  if(subject)payload.subject=subject;
+  if(passage)payload.passage=passage;
   if(explain)payload.explain=explain;
   if(recordImages.qbank)payload.image=recordImages.qbank;
   await set(push(ref(db,`question-bank/${exam}`)),payload);
-  ['qb-q','qb-a','qb-b','qb-c','qb-d','qb-explain','qb-ielts-theme'].forEach(id=>document.getElementById(id).value='');
+  ['qb-passage','qb-q','qb-a','qb-b','qb-c','qb-d','qb-explain','qb-ielts-theme'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('qb-correct').value='';
   clearRecordImage('qbank');
   showSuccess('Question added! ✅');
@@ -1856,10 +1916,39 @@ async function clearDailyQuestion(){
 // =============================================
 //  MOCK TESTS
 // =============================================
+const mockDrafts={};
+function safeAdminText(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+function currentMockDraft(){const path=document.getElementById('mock-current-path').value;return mockDrafts[path]||(mockDrafts[path]=[]);}
+function mockSectionForPath(path){if(path==='sat/reading')return'rw';if(path==='sat/math')return'math';return path.split('/')[1]||'general';}
+function updateMockQuestionTaxonomy(){
+  const path=document.getElementById('mock-current-path').value,domainSelect=document.getElementById('mock-domain'),skillSelect=document.getElementById('mock-skill');if(!domainSelect||!skillSelect)return;
+  const section=mockSectionForPath(path),previousDomain=domainSelect.value,previousSkill=skillSelect.value;
+  if(path.startsWith('sat/')){
+    const domains=SAT_QBANK_CATEGORIES[section];domainSelect.innerHTML=domains.map(domain=>`<option value="${domain}">${domain}</option>`).join('');if(domains.includes(previousDomain))domainSelect.value=previousDomain;
+    const skills=SAT_DOMAIN_TOPICS[section][domainSelect.value]||[];skillSelect.innerHTML=skills.map(skill=>`<option value="${skill}">${skill}</option>`).join('');if(skills.includes(previousSkill))skillSelect.value=previousSkill;
+  }else{
+    const label=section.charAt(0).toUpperCase()+section.slice(1);domainSelect.innerHTML=`<option value="${label}">${label}</option>`;skillSelect.innerHTML='<option value="General practice">General practice</option>';
+  }
+  document.getElementById('mock-subject-wrap').style.display=path==='sat/reading'?'':'none';
+}
+function renderMockDraftQuestions(){
+  const list=document.getElementById('mock-draft-list');if(!list)return;const questions=currentMockDraft();
+  list.innerHTML=questions.length?questions.map((question,index)=>`<div class="mock-draft-item"><div><strong>${index+1}. ${safeAdminText(question.q)}</strong><small>${safeAdminText(question.tag)} · ${safeAdminText(question.skill)} · answer ${question.correct}</small></div><button class="btn-del" type="button" onclick="removeMockDraftQuestion(${index})">🗑️</button></div>`).join(''):'<div class="mock-draft-empty">No questions added yet. You can save an external-link mock or build it here.</div>';
+}
+function removeMockDraftQuestion(index){currentMockDraft().splice(index,1);renderMockDraftQuestions();}
+function addMockDraftQuestion(){
+  const path=document.getElementById('mock-current-path').value,q=document.getElementById('mock-question').value.trim(),correct=document.getElementById('mock-correct').value;
+  const values=['mock-a','mock-b','mock-c','mock-d'].map(id=>document.getElementById(id).value.trim());if(!q||values.some(value=>!value)||!correct){alert('Fill the question, all four options, and the correct answer.');return;}
+  const question={q,options:{A:values[0],B:values[1],C:values[2],D:values[3]},correct,set:mockSectionForPath(path),tag:document.getElementById('mock-domain').value,skill:document.getElementById('mock-skill').value};
+  const passage=document.getElementById('mock-passage').value.trim(),explain=document.getElementById('mock-explain').value.trim(),difficulty=document.getElementById('mock-difficulty').value;
+  if(passage)question.passage=passage;if(explain)question.explain=explain;if(difficulty)question.difficulty=difficulty;if(path==='sat/reading')question.subject=document.getElementById('mock-subject').value;
+  currentMockDraft().push(question);['mock-passage','mock-question','mock-a','mock-b','mock-c','mock-d','mock-explain'].forEach(id=>document.getElementById(id).value='');document.getElementById('mock-correct').value='';document.getElementById('mock-difficulty').value='';renderMockDraftQuestions();
+}
 function switchMockTab(path, btn){
   document.getElementById('mock-current-path').value = path;
   document.querySelectorAll('.mock-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  updateMockQuestionTaxonomy();renderMockDraftQuestions();
   loadMockTests();
 }
 async function loadMockTests(){
@@ -1872,8 +1961,8 @@ async function loadMockTests(){
   el.innerHTML = items.map(t=>`
     <div class="item-row">
       <div class="item-row-info">
-        <div class="item-row-title">${t.title}</div>
-        <div class="item-row-sub">${t.url}${t.desc?` · ${t.desc}`:''}</div>
+        <div class="item-row-title">${safeAdminText(t.title)}</div>
+        <div class="item-row-sub">${t.url?safeAdminText(t.url):`${Array.isArray(t.questions)?t.questions.length:0} questions`}${t.desc?` · ${safeAdminText(t.desc)}`:''}</div>
       </div>
       <button class="btn-del" onclick="deleteMockTest('${path}','${t.id}')">🗑️</button>
     </div>`).join('');
@@ -1883,12 +1972,14 @@ async function addMockTest(){
   const title = document.getElementById('mock-title').value.trim();
   const url   = document.getElementById('mock-url').value.trim();
   const desc  = document.getElementById('mock-desc').value.trim();
-  if(!title||!url){alert('Fill title and URL');return;}
+  const questions=[...currentMockDraft()];
+  if(!title||(!url&&!questions.length)){alert('Add a title and either an external URL or at least one question.');return;}
   const{db,ref,push,set}=window.fb;
-  await set(push(ref(db,`mocks/${path}`)),{title,url,...(desc?{desc}:{}),...(recordImages.mock?{image:recordImages.mock}:{})});
+  await set(push(ref(db,`mocks/${path}`)),{title,...(url?{url}:{}),...(desc?{desc}:{}),...(questions.length?{questions}:{}),...(recordImages.mock?{image:recordImages.mock}:{})});
   document.getElementById('mock-title').value='';
   document.getElementById('mock-url').value='';
   document.getElementById('mock-desc').value='';
+  mockDrafts[path]=[];renderMockDraftQuestions();
   clearRecordImage('mock');
   showSuccess('Test added! ✅');
   loadMockTests();
@@ -1904,12 +1995,13 @@ async function deleteMockTest(path,id){
 // =============================================
 window.addEventListener('fbReady',()=>{
   initMaterialJsonImporters();
+  updateMockQuestionTaxonomy();renderMockDraftQuestions();
   loadAdminAll();
   loadMockTests();
   loadQBankAdmin();
   loadDailyQuestionAdmin();
 });
-if(window.fb){initMaterialJsonImporters();loadAdminAll();loadMockTests();loadQBankAdmin();loadDailyQuestionAdmin();}
+if(window.fb){initMaterialJsonImporters();updateMockQuestionTaxonomy();renderMockDraftQuestions();loadAdminAll();loadMockTests();loadQBankAdmin();loadDailyQuestionAdmin();}
 </script>
 
 <!-- FIREBASE SDK -->

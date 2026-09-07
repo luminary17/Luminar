@@ -14,7 +14,7 @@ const THEMES = {
 
 const DEFAULT_STATE = {
   profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'navy', planPreferences: { currentScore: '', currentRw: '', currentMath: '', minutes: 60, weakTopics: [] } },
-  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [] },
+  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [], mockResults: [] },
   studyPlan: { setup: null, generatedAt: 0, tasks: [] }
 };
 
@@ -216,6 +216,7 @@ let draftAnswers = {};
 let checkedAnswers = {};
 let practiceMode = 'bank';
 let activePlanTaskId = '';
+let activeMockMeta = null;
 let questionOpenedAt = 0;
 let explanationOpen = false;
 const mistakeAnalysisCache = new Map();
@@ -292,7 +293,8 @@ function mergeState(next) {
       answers: { ...DEFAULT_STATE.progress.answers, ...(progress.answers || {}) },
       marked: { ...DEFAULT_STATE.progress.marked, ...(progress.marked || {}) },
       eliminated: { ...DEFAULT_STATE.progress.eliminated, ...(progress.eliminated || {}) },
-      questionHistory: Array.isArray(progress.questionHistory) ? progress.questionHistory.slice(-600) : []
+      questionHistory: Array.isArray(progress.questionHistory) ? progress.questionHistory.slice(-600) : [],
+      mockResults: Array.isArray(progress.mockResults) ? progress.mockResults.slice(-30) : []
     },
     studyPlan: {
       ...DEFAULT_STATE.studyPlan,
@@ -379,6 +381,7 @@ function setExam(exam, returnHome = true) {
   document.querySelectorAll('.ielts-only').forEach((item) => { item.hidden = state.profile.exam !== 'ielts'; });
   renderQuestionBank();
   renderHomeControls();
+  renderSettings();
   renderHome();
   renderLearn();
   renderVocab();
@@ -488,6 +491,96 @@ async function openRecommendedMaterial(topic) {
   else { currentSkill = ''; openPage('learn'); renderLearn(); showToast('Opening the closest available rule library.'); }
 }
 
+function mockScoreLabel(result) {
+  if (result.exam === 'sat') return `${result.estimatedScore}`;
+  return `${result.correct} / ${result.total}`;
+}
+
+function selectedWeakTopics() {
+  const profileTopics = state.profile.planPreferences?.weakTopics || [];
+  const planTopics = state.studyPlan.setup?.weakTopics || [];
+  return [...new Set([...profileTopics, ...planTopics])].filter(Boolean);
+}
+
+function recentMockWeaknesses() {
+  const results = (state.progress.mockResults || []).filter((result) => result.analyzedAt && result.analysis?.weaknesses?.length).slice(-3).reverse();
+  const seen = new Set();
+  return results.flatMap((result) => result.analysis.weaknesses).filter((item) => {
+    const key = `${item.domain}::${item.skill || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 3);
+}
+
+function suggestionTopic(value) {
+  const [domain, skill = ''] = String(value || '').split('::');
+  return { domain, skill, set: SAT_CATEGORIES.rw.includes(domain) ? 'rw' : SAT_CATEGORIES.math.includes(domain) ? 'math' : String(domain || '').toLowerCase() };
+}
+
+function renderHomeGuidance() {
+  const results = state.progress.mockResults || [];
+  const latest = [...results].reverse().find((result) => result.exam === state.profile.exam);
+  const pending = latest && !latest.analyzedAt ? latest : null;
+  const metrics = $('home-guidance-metrics');
+  const actions = $('home-guidance-actions');
+  metrics.innerHTML = '';
+  actions.innerHTML = '';
+
+  if (pending) {
+    $('home-guidance-kicker').textContent = 'Your last score';
+    $('home-guidance-title').textContent = state.profile.exam === 'sat' ? `Estimated ${mockScoreLabel(pending)}` : `${mockScoreLabel(pending)} correct`;
+    $('home-guidance-description').textContent = `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
+    metrics.innerHTML = `<article><strong>${pending.correct}/${pending.total}</strong><span>Correct</span></article><article><strong>${pending.accuracy}%</strong><span>Accuracy</span></article>`;
+    actions.innerHTML = `<button class="button button-primary" data-analyze-mock="${escapeHtml(pending.id)}" type="button">Analyze now</button>`;
+    return;
+  }
+
+  const mockWeaknesses = recentMockWeaknesses();
+  const hasCompletedMock = results.some((result) => result.exam === state.profile.exam);
+  const selected = selectedWeakTopics().map(suggestionTopic).filter((item) => item.domain);
+  const suggestions = mockWeaknesses.length ? mockWeaknesses : (!hasCompletedMock ? selected.slice(0, 3) : []);
+  if (suggestions.length) {
+    const fromMocks = mockWeaknesses.length > 0;
+    $('home-guidance-kicker').textContent = fromMocks ? 'From your recent mocks' : 'Based on your settings';
+    $('home-guidance-title').textContent = fromMocks ? 'Turn recent errors into your next wins.' : 'Start with the topics you find difficult.';
+    $('home-guidance-description').textContent = fromMocks ? 'Luminary found the areas costing you the most points.' : 'These materials match the weak areas you selected.';
+    actions.innerHTML = suggestions.map((item) => `<button class="home-suggestion-button" data-review-topic="${escapeHtml(item.skill || item.domain)}" type="button"><span>${escapeHtml(item.domain)}</span>${item.skill ? `<small>${escapeHtml(item.skill)}</small>` : '<small>Open recommended material</small>'}<b>Review →</b></button>`).join('');
+    return;
+  }
+
+  $('home-guidance-kicker').textContent = hasCompletedMock ? 'Ready for the next step' : 'Build your baseline';
+  $('home-guidance-title').textContent = hasCompletedMock ? 'Take another mock when you are ready.' : 'Start with a mock test.';
+  $('home-guidance-description').textContent = hasCompletedMock ? 'A new result will show whether your recent review worked.' : 'Luminary needs a result or selected weak areas before it can personalise your materials.';
+  actions.innerHTML = '<button class="button button-primary" data-open-mocks type="button">Open mocks</button>';
+}
+
+function analyzeMockResult(resultId) {
+  const result = (state.progress.mockResults || []).find((item) => item.id === resultId);
+  if (!result || result.analyzedAt) return;
+  const groups = new Map();
+  (result.answers || []).forEach((answer) => {
+    const domain = answer.domain || answer.set || 'Practice';
+    const key = `${domain}::${answer.skill || ''}`;
+    const group = groups.get(key) || { domain, skill: answer.skill || '', set: answer.set || '', attempts: 0, errors: 0 };
+    group.attempts += 1;
+    if (!answer.correct) group.errors += 1;
+    groups.set(key, group);
+  });
+  const weaknesses = [...groups.values()].filter((item) => item.errors > 0).sort((a, b) => b.errors - a.errors || a.attempts - b.attempts).slice(0, 4);
+  result.analysis = { weaknesses, correct: result.correct, total: result.total };
+  result.analyzedAt = Date.now();
+  const history = state.progress.questionHistory || (state.progress.questionHistory = []);
+  (result.answers || []).forEach((answer) => {
+    if (history.some((entry) => entry.mockResultId === result.id && entry.id === answer.id)) return;
+    history.push({ id: answer.id, exam: result.exam, set: answer.set || '', domain: answer.domain || '', skill: answer.skill || '', difficulty: answer.difficulty || '', correct: Boolean(answer.correct), responseSeconds: 0, answeredAt: result.completedAt, activePlanTaskId: '', mockResultId: result.id });
+  });
+  if (history.length > 600) history.splice(0, history.length - 600);
+  persist();
+  renderHome();
+  showToast(weaknesses.length ? 'Mock analysed. Your next materials are ready.' : 'Mock analysed. Excellent work.');
+}
+
 function renderHome() {
   const isIelts = state.profile.exam === 'ielts';
   const { target, date } = activeGoal();
@@ -523,6 +616,7 @@ function renderHome() {
   $('stat-sessions').textContent = state.progress.sessions || 0;
   $('stat-streak').textContent = state.progress.streak || 0;
   $('sidebar-name').textContent = state.profile.name || 'Learner';
+  renderHomeGuidance();
   renderRecommendations();
   const plan = state.studyPlan;
   const todayTask = plan.tasks.find((task) => task.date === localDateKey(new Date()) && task.status !== 'completed' && task.status !== 'skipped');
@@ -1390,9 +1484,9 @@ async function loadRemoteMocks(){
   if(currentPage==='mocks')renderMocks();
 }
 
-function startRemoteQuestions(sourceId, questions, set='math'){
+function startRemoteQuestions(sourceId, questions, set='math', mockMeta=null){
   const normalized=(questions||[]).map((item,index)=>remoteQuestion(`${sourceId}-${index}`,item,sourceId)).filter(validRemoteQuestion);
-  if(!normalized.length){showToast('This material has no valid test questions yet.');return;}startPractice(set,0,normalized,sourceId.startsWith('mock-')?'mock':'bank');
+  if(!normalized.length){showToast('This material has no valid test questions yet.');return;}const mode=sourceId.startsWith('mock-')?'mock':'bank';startPractice(set,0,normalized,mode,'',mode==='mock'?{sourceId,...(mockMeta||{})}:null);
 }
 
 function renderMocks() {
@@ -1470,7 +1564,7 @@ function backToMaterials() {
 
 function renderThemes() {
   const swatches = Object.entries(THEMES).map(([id, theme]) => `<button class="mini-theme ${id === state.profile.theme ? 'is-selected' : ''}" type="button" data-theme="${id}" title="${escapeHtml(theme.name)}" aria-label="${escapeHtml(theme.name)}" style="--preview-sidebar:${theme.sidebar};--preview-accent:${theme.accent}"></button>`).join('');
-  ['theme-grid', 'auth-theme-grid'].forEach((id) => { if ($(id)) $(id).innerHTML = swatches; });
+  ['theme-grid', 'auth-theme-grid', 'settings-theme-grid'].forEach((id) => { if ($(id)) $(id).innerHTML = swatches; });
   const current = THEMES[state.profile.theme] || THEMES.navy;
   const icon = $('current-theme-icon');
   if (icon) {
@@ -1479,6 +1573,7 @@ function renderThemes() {
   }
   if ($('current-theme-name')) $('current-theme-name').textContent = current.name;
   if ($('auth-current-theme-name')) $('auth-current-theme-name').textContent = current.name;
+  if ($('settings-theme-name')) $('settings-theme-name').textContent = current.name;
 }
 
 function formatTimer() {
@@ -1518,6 +1613,7 @@ function saveActivePractice() {
       question: currentQuestion,
       mode: practiceMode,
       planTaskId: activePlanTaskId,
+      mockMeta: activeMockMeta,
       draftAnswers,
       checkedAnswers,
       practiceXp,
@@ -1544,6 +1640,7 @@ function restoreActivePractice() {
     currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
     practiceMode = ['mock', 'plan', 'adaptive'].includes(saved.mode) ? saved.mode : 'bank';
     activePlanTaskId = saved.planTaskId || '';
+    activeMockMeta = practiceMode === 'mock' ? (saved.mockMeta || null) : null;
     draftAnswers = saved.draftAnswers || {};
     checkedAnswers = saved.checkedAnswers || {};
     practiceXp = Math.max(0, Number(saved.practiceXp) || 0);
@@ -1815,7 +1912,7 @@ function renderQuestion() {
   renderQuestionNavigator();
 }
 
-function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '') {
+function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '', mockMeta = null) {
   currentSet = set;
   practiceQuestions = questions || [];
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
@@ -1825,6 +1922,7 @@ function startPractice(set = 'math', questionIndex = 0, questions = null, mode =
   practiceStreak = 0;
   practiceMode = mode;
   activePlanTaskId = planTaskId;
+  activeMockMeta = mode === 'mock' ? mockMeta : null;
   questionOpenedAt = Date.now();
   explanationOpen = false;
   openPage('questions');
@@ -1842,6 +1940,7 @@ function leavePractice() {
   stopTimer();
   clearActivePractice();
   activePlanTaskId = '';
+  activeMockMeta = null;
 }
 
 function answerQuestion(index) {
@@ -1902,6 +2001,46 @@ function toggleMark() {
   saveActivePractice();
 }
 
+function completeMockResult() {
+  if (practiceMode !== 'mock' || !practiceQuestions.length) return;
+  const answers = practiceQuestions.map((question) => {
+    const selected = draftAnswers[question.id];
+    return {
+      id: question.id,
+      set: question.set || currentSet,
+      domain: question.domain || '',
+      skill: question.skill || '',
+      difficulty: question.difficulty || '',
+      selected: selected === undefined ? null : selected,
+      correctIndex: question.correct,
+      correct: selected === question.correct
+    };
+  });
+  const correct = answers.filter((answer) => answer.correct).length;
+  const total = answers.length;
+  const accuracy = total ? Math.round(correct / total * 100) : 0;
+  const estimatedScore = state.profile.exam === 'sat' ? Math.max(200, Math.min(800, 200 + Math.round((accuracy / 100) * 60) * 10)) : accuracy;
+  const completedAt = Date.now();
+  const result = {
+    id: `mock-result-${completedAt}`,
+    sourceId: activeMockMeta?.sourceId || '',
+    title: activeMockMeta?.title || 'Practice mock',
+    skill: activeMockMeta?.skill || currentSet,
+    exam: state.profile.exam,
+    correct,
+    total,
+    accuracy,
+    estimatedScore,
+    completedAt,
+    analyzedAt: 0,
+    analysis: null,
+    answers
+  };
+  const results = state.progress.mockResults || (state.progress.mockResults = []);
+  results.push(result);
+  if (results.length > 30) results.splice(0, results.length - 30);
+}
+
 function moveQuestion(delta) {
   const next = currentQuestion + delta;
   if (next >= practiceQuestions.length) {
@@ -1914,6 +2053,7 @@ function moveQuestion(delta) {
     state.progress.streak = state.progress.lastSessionDate === today ? Math.max(1, state.progress.streak) : state.progress.lastSessionDate === yesterday ? state.progress.streak + 1 : 1;
     state.progress.lastSessionDate = today;
     if (practiceMode === 'plan') completePlanTask();
+    if (practiceMode === 'mock') completeMockResult();
     persist();
     renderHome();
     renderStudyPlan();
@@ -1966,6 +2106,7 @@ function openPage(page) {
   });
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
+  if (page === 'settings') renderSettings();
   if (page === 'plan') renderStudyPlan();
   if (page === 'ielts-skill') renderIeltsSkillHub();
   if (page === 'podcasts') renderPodcasts();
@@ -2355,6 +2496,57 @@ function renderHomeControls() {
   $('date-help').textContent = isSat ? 'Official and anticipated SAT dates through June 2028.' : 'Choose any IELTS date through December 2028.';
 }
 
+function renderSettings() {
+  if (!$('settings-form')) return;
+  const isSat = state.profile.exam === 'sat';
+  const preferences = state.profile.planPreferences || DEFAULT_STATE.profile.planPreferences;
+  $('settings-name').value = state.profile.name || '';
+  $('settings-exam').value = state.profile.exam;
+  const currentScores = isSat ? satGoalOptions() : Array.from({ length: 19 }, (_, index) => (index / 2).toFixed(1));
+  $('settings-current-score').innerHTML = onboardingOptionList(currentScores, isSat ? 'Choose current SAT score' : 'Choose current IELTS band');
+  $('settings-current-score').value = currentScores.includes(String(preferences.currentScore || '')) ? String(preferences.currentScore) : '';
+  $('settings-minutes').value = String([30, 45, 60, 90, 120].includes(Number(preferences.minutes)) ? Number(preferences.minutes) : 60);
+  const selected = new Set(preferences.weakTopics || []);
+  if (isSat) {
+    $('settings-weaknesses').classList.remove('is-ielts');
+    $('settings-weaknesses').innerHTML = ['rw', 'math'].map((set) => `<section class="settings-weak-set"><h3>${questionSetName(set)}</h3>${(SAT_TOPIC_GROUPS[set] || []).map((group) => `<div class="settings-weak-group"><label><input type="checkbox" data-settings-weak="${escapeHtml(group.title)}" ${selected.has(group.title) ? 'checked' : ''}><strong>${escapeHtml(group.title)}</strong></label><div>${group.topics.map((topic) => { const value = `${group.title}::${topic}`; return `<label><input type="checkbox" data-settings-weak="${escapeHtml(value)}" ${selected.has(value) ? 'checked' : ''}>${escapeHtml(topic)}</label>`; }).join('')}</div></div>`).join('')}</section>`).join('');
+  } else {
+    $('settings-weaknesses').classList.add('is-ielts');
+    $('settings-weaknesses').innerHTML = ['Listening', 'Reading', 'Writing', 'Speaking'].map((skill) => `<label class="settings-skill-chip"><input type="checkbox" data-settings-weak="${skill}" ${selected.has(skill) ? 'checked' : ''}><span>${skill}</span></label>`).join('');
+  }
+  $('settings-status').textContent = 'Changes are saved when you press the button.';
+  renderThemes();
+}
+
+async function saveSettings() {
+  const currentScore = $('settings-current-score').value;
+  const target = $('home-score').value;
+  if (currentScore && target && Number(target) <= Number(currentScore)) {
+    $('settings-status').textContent = 'Your target score must be higher than your current score.';
+    return;
+  }
+  const date = state.profile.exam === 'sat' ? $('home-sat-date').value : $('home-date').value;
+  const weakTopics = [...document.querySelectorAll('[data-settings-weak]:checked')].map((input) => input.dataset.settingsWeak);
+  const minutes = Number($('settings-minutes').value) || 60;
+  state.profile.name = compactDisplayText($('settings-name').value).slice(0, 36);
+  setActiveGoal(target, date);
+  const currentRw = state.profile.exam === 'sat' && currentScore ? String(balancedSectionScore(currentScore)) : '';
+  const currentMath = currentRw ? String(Number(currentScore) - Number(currentRw)) : '';
+  state.profile.planPreferences = { currentScore, currentRw, currentMath, minutes, weakTopics };
+  if (state.profile.exam === 'sat' && state.studyPlan.setup) {
+    const targetRw = target ? String(balancedSectionScore(target)) : '';
+    const setup = { ...state.studyPlan.setup, currentTotal: currentScore, currentRw, currentMath, target, targetRw, targetMath: targetRw ? String(Number(target) - Number(targetRw)) : '', weakTopics, date, minutes };
+    generateStudyPlan(setup, true);
+  }
+  await persist();
+  renderHomeControls();
+  renderHome();
+  renderStudyPlan();
+  renderSettings();
+  $('settings-status').textContent = 'Saved. Your recommendations have been updated.';
+  showToast('Settings saved.');
+}
+
 function previewGoal() {
   const exam = state.profile.exam;
   setActiveGoal($('home-score').value, exam === 'sat' ? $('home-sat-date').value : $('home-date').value);
@@ -2409,6 +2601,10 @@ function bindEvents() {
       $('onboarding-error').textContent = '';
       return;
     }
+    const analyzeMock = event.target.closest('[data-analyze-mock]');
+    if (analyzeMock) { analyzeMockResult(analyzeMock.dataset.analyzeMock); return; }
+    const openMocks = event.target.closest('[data-open-mocks]');
+    if (openMocks) { if (state.profile.exam === 'ielts' && !currentSkill) currentSkill = 'Listening'; openPage('mocks'); renderMocks(); return; }
     const training = event.target.closest('[data-train-topic]');
     if (training) { startRecommendedTraining(training.dataset.trainTopic, training.dataset.trainSet); return; }
     const reviewTopic = event.target.closest('[data-review-topic]');
@@ -2416,10 +2612,10 @@ function bindEvents() {
     const goalEditor = event.target.closest('[data-edit-goal]');
     if (goalEditor) {
       setMobileDrawer(false);
-      openPage('home');
-      renderHomeControls();
+      openPage('settings');
+      renderSettings();
       const field = $(goalEditor.dataset.editGoal === 'date' ? (state.profile.exam === 'sat' ? 'home-sat-date' : 'home-date') : 'home-score');
-      requestAnimationFrame(() => { $('home-settings').scrollIntoView({ block: 'center', behavior: 'smooth' }); field.focus({ preventScroll: true }); });
+      requestAnimationFrame(() => field.focus({ preventScroll: true }));
       return;
     }
     const exam = event.target.closest('[data-exam]');
@@ -2438,7 +2634,7 @@ function bindEvents() {
       return;
     }
     const mock = event.target.closest('[data-start-mock]');
-    if(mock){const item=remotePractice.mocks[mock.dataset.startMock]?.items.find(entry=>entry.id===mock.dataset.mockId);if(item)startRemoteQuestions(`mock-${item.id}`,item.questions,item.skill==='math'?'math':'rw');return;}
+    if(mock){const item=remotePractice.mocks[mock.dataset.startMock]?.items.find(entry=>entry.id===mock.dataset.mockId);if(item)startRemoteQuestions(`mock-${item.id}`,item.questions,item.skill==='math'?'math':'rw',{title:item.title||'Practice mock',skill:item.skill||''});return;}
     const prep=event.target.closest('[data-open-prep]');
     if(prep){openIeltsPrep(prep.dataset.openPrep,prep.dataset.prepId);return;}
     const material = event.target.closest('[data-open-material]');
@@ -2586,10 +2782,8 @@ function bindEvents() {
   $('voice-lab-exit').addEventListener('click', requestVoiceExit);
   $('voice-exit-cancel').addEventListener('click', () => { $('voice-exit-dialog').hidden = true; });
   $('voice-exit-confirm').addEventListener('click', leaveSpeakingExperience);
-  ['home-score', 'home-sat-date', 'home-date'].forEach((id) => {
-    $(id).addEventListener('change', saveGoalChoice);
-    $(id).addEventListener('input', saveGoalChoice);
-  });
+  $('settings-exam').addEventListener('change', () => { setExam($('settings-exam').value, false); persist(); });
+  $('settings-form').addEventListener('submit', (event) => { event.preventDefault(); saveSettings(); });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') saveActivePractice();
     if (document.visibilityState === 'hidden' && currentPage === 'speaking-ai') endVoiceSession();
