@@ -582,6 +582,31 @@ function renderHomeTodo() {
   }).join('') : '<div class="home-todo-empty"><div><strong>Your list is clear.</strong><span>Luminary will add the next tasks when your plan refreshes.</span></div></div>';
 }
 
+function renderIeltsProgress() {
+  const panel = $('ielts-progress');
+  const chart = $('ielts-progress-chart');
+  const stats = $('ielts-progress-stats');
+  const isIelts = state.profile.exam === 'ielts';
+  panel.hidden = !isIelts;
+  if (!isIelts) return;
+  const results = (state.progress.mockResults || []).filter((result) => result.exam === 'ielts' && result.total > 0).slice(-8);
+  if (!results.length) {
+    stats.innerHTML = '';
+    chart.innerHTML = '<div class="ielts-progress-empty"><strong>Your graph starts after your first IELTS mock.</strong><span>Complete a mock and Luminary will add the result here automatically.</span><button class="button button-primary" data-open-mocks type="button">Start a mock</button></div>';
+    return;
+  }
+  const latest = results[results.length - 1];
+  const best = Math.max(...results.map((result) => result.accuracy));
+  stats.innerHTML = `<article><strong>${latest.accuracy}%</strong><span>Latest</span></article><article><strong>${best}%</strong><span>Best</span></article><article><strong>${results.length}</strong><span>Mocks</span></article>`;
+  const left = 52, right = 772, top = 20, bottom = 184;
+  const xFor = (index) => results.length === 1 ? (left + right) / 2 : left + (right - left) * index / (results.length - 1);
+  const yFor = (accuracy) => bottom - (bottom - top) * Math.max(0, Math.min(100, accuracy)) / 100;
+  const points = results.map((result, index) => `${xFor(index)},${yFor(result.accuracy)}`).join(' ');
+  const grid = [100, 75, 50, 25, 0].map((value) => { const y = yFor(value); return `<g><line x1="${left}" y1="${y}" x2="${right}" y2="${y}"></line><text x="8" y="${y + 4}">${value}%</text></g>`; }).join('');
+  const dots = results.map((result, index) => { const x=xFor(index),y=yFor(result.accuracy),label=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(new Date(result.completedAt));return `<g class="ielts-progress-point"><circle cx="${x}" cy="${y}" r="6"><title>${escapeHtml(result.title || 'IELTS mock')}: ${result.correct}/${result.total} correct (${result.accuracy}%)</title></circle><text x="${x}" y="214" text-anchor="middle">${escapeHtml(label)}</text></g>`; }).join('');
+  chart.innerHTML = `<svg viewBox="0 0 800 226" role="img" aria-label="IELTS mock accuracy over time"><g class="ielts-progress-grid">${grid}</g>${results.length > 1 ? `<polyline class="ielts-progress-line-glow" points="${points}"></polyline><polyline class="ielts-progress-line" points="${points}"></polyline>` : ''}${dots}</svg>`;
+}
+
 function analyzeMockResult(resultId) {
   const result = (state.progress.mockResults || []).find((item) => item.id === resultId);
   if (!result || result.analyzedAt) return;
@@ -641,6 +666,7 @@ function renderHome() {
   $('sidebar-name').textContent = state.profile.name || 'Learner';
   renderHomeGuidance();
   renderHomeTodo();
+  renderIeltsProgress();
   renderRecommendations();
 }
 
