@@ -127,6 +127,33 @@ h1 { margin-bottom: 8px; font-size: clamp(34px, 4vw, 52px); letter-spacing: 0; l
 .home-guidance-metrics span { margin-top: 3px; color: var(--side-muted); font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
 .home-guidance-actions { display: flex; align-items: stretch; justify-content: flex-end; gap: 10px; }
 .home-guidance-actions > .button { min-width: 150px; }
+.home-todo { margin-top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow); }
+.home-todo > header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 24px 17px; border-bottom: 1px solid var(--line); }
+.home-todo > header h2 { margin: 2px 0 0; font-size: 20px; }
+.home-todo > header .kicker { margin: 0; color: var(--accent); }
+.home-todo-head-actions { display: flex; align-items: center; gap: 12px; }
+.home-todo-head-actions > span { color: var(--text-soft); font-size: 10px; font-weight: 800; }
+.home-todo-head-actions .button { min-height: 36px; padding: 8px 14px; }
+.home-todo-list { max-height: 276px; overflow-y: auto; padding: 0 12px 12px; scrollbar-color: var(--accent) transparent; scrollbar-width: thin; }
+.home-todo-list::-webkit-scrollbar { width: 7px; }
+.home-todo-list::-webkit-scrollbar-thumb { border-radius: 10px; background: var(--accent); }
+.home-todo-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; border-bottom: 1px solid var(--line); padding: 10px 8px; }
+.home-todo-item:last-child { border-bottom: 0; }
+.home-todo-check { display: grid; width: 19px; height: 19px; place-items: center; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface-raised); color: var(--on-accent); font-size: 12px; font-weight: 900; }
+.home-todo-item > div { min-width: 0; }
+.home-todo-item strong, .home-todo-item small { display: block; }
+.home-todo-item strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.home-todo-item small { margin-top: 4px; color: var(--text-soft); font-size: 10px; }
+.home-todo-item > button { border: 1px solid var(--line); border-radius: 10px; padding: 7px 13px; background: var(--accent-soft); color: var(--accent-hover); font-size: 10px; font-weight: 850; }
+.home-todo-item > button:hover { border-color: var(--accent); }
+.home-todo-item.is-complete { opacity: .65; }
+.home-todo-item.is-complete .home-todo-check { border-color: var(--accent); background: var(--accent); }
+.home-todo-item.is-complete strong { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.home-todo-done { color: var(--success); font-size: 10px; font-weight: 850; text-transform: uppercase; }
+.home-todo-empty { display: flex; min-height: 116px; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 14px 10px; }
+.home-todo-empty strong, .home-todo-empty span { display: block; }
+.home-todo-empty strong { font-size: 14px; }
+.home-todo-empty span { max-width: 600px; margin-top: 5px; color: var(--text-soft); font-size: 11px; }
 .home-suggestion-button { display: grid; min-width: 176px; max-width: 230px; gap: 3px; border: 1px solid color-mix(in srgb, var(--side-muted) 28%, transparent); border-radius: 17px; padding: 14px 15px; background: color-mix(in srgb, var(--sidebar-surface) 72%, transparent); color: var(--side-text); text-align: left; transition: transform .2s var(--ease), border-color .2s var(--ease); }
 .home-suggestion-button:hover { transform: translateY(-2px); border-color: var(--accent); }
 .home-suggestion-button span { font-size: 12px; font-weight: 850; }
@@ -607,6 +634,7 @@ body.is-auth-open { overflow: hidden; }
   .home-settings { grid-template-columns: 1fr; }
   .home-guidance { grid-template-columns: 1fr; }
   .home-guidance-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .home-todo > header { align-items: flex-start; }
   .settings-section { grid-template-columns: 1fr; gap: 18px; }
   .settings-fields-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .onboarding-view { grid-template-columns: 245px minmax(0, 1fr); }
@@ -661,6 +689,10 @@ body.is-auth-open { overflow: hidden; }
   .home-guidance-metrics { width: 100%; }
   .home-guidance-metrics article { min-width: 0; flex: 1; }
   .home-guidance-actions { display: grid; width: 100%; grid-template-columns: 1fr; }
+  .home-todo > header, .home-todo-empty { align-items: stretch; flex-direction: column; }
+  .home-todo-head-actions { justify-content: space-between; }
+  .home-todo-item { grid-template-columns: 22px minmax(0, 1fr); }
+  .home-todo-item > button, .home-todo-done { grid-column: 2; justify-self: start; }
   .home-suggestion-button { width: 100%; max-width: none; }
   .settings-section { padding: 23px 20px; }
   .settings-fields, .settings-fields-three, .settings-weaknesses, .settings-weaknesses.is-ielts { grid-template-columns: 1fr; }

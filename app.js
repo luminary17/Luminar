@@ -555,6 +555,33 @@ function renderHomeGuidance() {
   actions.innerHTML = '<button class="button button-primary" data-open-mocks type="button">Open mocks</button>';
 }
 
+function renderHomeTodo() {
+  const panel = $('home-todo');
+  const list = $('home-todo-list');
+  const progress = $('home-todo-progress');
+  const isSat = state.profile.exam === 'sat';
+  panel.hidden = !isSat;
+  if (!isSat) return;
+  const plan = state.studyPlan;
+  if (!plan.setup) {
+    progress.textContent = 'Plan not created';
+    list.innerHTML = '<div class="home-todo-empty"><div><strong>Your study plan will become your to-do list.</strong><span>Set your scores, exam date and weak topics once. Luminary will build the tasks.</span></div><button class="button button-primary" data-page="plan" type="button">Create study plan</button></div>';
+    return;
+  }
+  const tasks = plan.tasks.filter((task) => task.status !== 'skipped');
+  const completed = tasks.filter((task) => task.status === 'completed').length;
+  progress.textContent = `${completed} of ${tasks.length} completed`;
+  const active = tasks.filter((task) => task.status !== 'completed').sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(0, 7);
+  const recentlyCompleted = tasks.filter((task) => task.status === 'completed').sort((a, b) => Number(b.completedAt || 0) - Number(a.completedAt || 0)).slice(0, 2);
+  const visible = [...active, ...recentlyCompleted];
+  list.innerHTML = visible.length ? visible.map((task) => {
+    const done = task.status === 'completed';
+    const status = task.status === 'in_progress' ? 'Continue' : 'Start';
+    const performance = done && task.performance?.total ? ` · ${task.performance.correct}/${task.performance.total} correct` : '';
+    return `<article class="home-todo-item ${done ? 'is-complete' : ''}"><span class="home-todo-check" aria-hidden="true">${done ? '✓' : ''}</span><div><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.date === localDateKey(new Date()) ? 'Today' : dateText(task.date))} · ${task.minutes} min${performance}</small></div>${done ? '<span class="home-todo-done">Done</span>' : `<button type="button" data-plan-task="${escapeHtml(task.id)}">${status}</button>`}</article>`;
+  }).join('') : '<div class="home-todo-empty"><div><strong>Your list is clear.</strong><span>Luminary will add the next tasks when your plan refreshes.</span></div></div>';
+}
+
 function analyzeMockResult(resultId) {
   const result = (state.progress.mockResults || []).find((item) => item.id === resultId);
   if (!result || result.analyzedAt) return;
@@ -613,15 +640,8 @@ function renderHome() {
   $('stat-streak').textContent = state.progress.streak || 0;
   $('sidebar-name').textContent = state.profile.name || 'Learner';
   renderHomeGuidance();
+  renderHomeTodo();
   renderRecommendations();
-  const plan = state.studyPlan;
-  const todayTask = plan.tasks.find((task) => task.date === localDateKey(new Date()) && task.status !== 'completed' && task.status !== 'skipped');
-  $('home-plan-card').hidden = isIelts || !plan.setup;
-  if (!isIelts && plan.setup) {
-    $('home-plan-copy').textContent = todayTask ? `${todayTask.title} · about ${todayTask.minutes} min` : 'Today is clear. Review your upcoming plan.';
-    $('home-plan-action').textContent = todayTask ? 'Start today\'s task' : 'Open study plan';
-    $('home-plan-action').dataset.planTask = todayTask?.id || '';
-  }
 }
 
 function localDateKey(date) {
@@ -2707,11 +2727,6 @@ function bindEvents() {
   $('daily-action').addEventListener('click', () => {
     const question = dailyQuestionStore[state.profile.exam].question;
     if (question) startPractice(question.set, 0, [question], 'daily');
-  });
-  $('home-plan-action').addEventListener('click', () => {
-    const taskId = $('home-plan-action').dataset.planTask;
-    if (taskId) startPlanTask(taskId);
-    else openPage('plan');
   });
   $('home-speaking-action').addEventListener('click', () => {
     currentSkill = 'Speaking';
