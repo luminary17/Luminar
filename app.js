@@ -160,11 +160,12 @@ const IELTS_SPEAKING_QUESTIONS = [
   { part: 1, text: 'What do you enjoy most about your work or studies?' },
   { part: 1, text: 'Let’s talk about your hometown. What kind of place is it?' },
   { part: 1, text: 'What do you usually enjoy doing in your free time?' },
-  { part: 2, preparationSeconds: 60, text: 'Now I’d like you to describe a skill you would like to learn. You should say what the skill is, why you want to learn it, how you could learn it, and explain how it would be useful to you. You have one minute to prepare.' },
+  { part: 2, preparationSeconds: 60, text: 'Now I’d like you to describe a skill you would like to learn. You should say what the skill is, why you want to learn it, how you could learn it, and explain how it would be useful to you. You have one minute to prepare.', followUp: 'Can you tell me a little more about how learning this skill could change your daily life?' },
   { part: 3, text: 'Why do people continue learning new skills as adults?' },
   { part: 3, text: 'How has technology changed the way people learn practical skills?' },
   { part: 3, text: 'Should schools spend more time teaching practical skills? Why or why not?' },
-  { part: 3, text: 'Do you think some skills are becoming less important today?' }
+  { part: 3, text: 'Do you think some skills are becoming less important today?' },
+  { part: 3, text: 'What responsibilities do governments and employers have for helping adults learn new skills?' }
 ];
 const IELTS_PODCASTS = {
   Listening: [
@@ -255,16 +256,17 @@ let voiceLab = {
   stage: 'briefing',
   questionIndex: 0,
   answers: [],
-  startedAt: 0,
   finalText: '',
   interimText: '',
   messages: [],
-  requestController: null,
   restartTimer: null,
   silenceTimer: null,
   preparationTimer: null,
   preparationTicker: null,
-  elapsedTimer: null,
+  answerLimitTimer: null,
+  answerStartedAt: 0,
+  answerLimitReached: false,
+  answeringFollowUp: false,
   utterance: null
 };
 
@@ -1817,6 +1819,7 @@ function fallbackMistakeAnalysis(question, choice) {
     title: 'Let’s repair the reasoning.',
     whyWrong: `Choice ${selectedLetter} does not satisfy the exact task. It leads you toward “${selectedSnippet},” but that conclusion is not fully supported by the information given.`,
     whyCorrect: conciseAnalysisText(question.explanation, `Choice ${correctLetter} — “${correctText}” — best matches the evidence and the wording of the question.`),
+    evidence: '',
     takeaway: mathQuestion
       ? 'Translate the question into one clear mathematical condition, then test each choice against that condition.'
       : 'Return to the exact claim being tested and require every part of your choice to be supported by the text.'
@@ -1828,18 +1831,42 @@ function normalizeMistakeAnalysis(raw, fallback) {
     title: conciseAnalysisText(raw?.title, fallback.title),
     whyWrong: conciseAnalysisText(raw?.whyWrong, fallback.whyWrong),
     whyCorrect: conciseAnalysisText(raw?.whyCorrect, fallback.whyCorrect),
+    evidence: conciseAnalysisText(raw?.evidence || raw?.evidenceQuote || raw?.supportingText, fallback.evidence || ''),
     takeaway: conciseAnalysisText(raw?.takeaway, fallback.takeaway)
   };
+}
+
+function mistakeEvidenceSnippet(question, analysis) {
+  const passage = compactDisplayText(question.passage);
+  if (!passage) return '';
+  const supplied = compactDisplayText(analysis?.evidence);
+  if (supplied) {
+    const index = passage.toLowerCase().indexOf(supplied.toLowerCase());
+    if (index >= 0) return passage.slice(index, index + supplied.length);
+  }
+  const keywords = `${question.answers[question.correct] || ''} ${analysis?.whyCorrect || ''}`.toLowerCase().match(/[a-z]{4,}/g) || [];
+  const ignored = new Set(['that','this','with','from','have','because','choice','answer','correct','question','which','their','there','would','could','should']);
+  const useful = new Set(keywords.filter((word) => !ignored.has(word)));
+  const sentences = passage.match(/[^.!?]+[.!?]?/g) || [passage];
+  const ranked = sentences.map((sentence) => ({ sentence: sentence.trim(), score: [...useful].filter((word) => sentence.toLowerCase().includes(word)).length })).sort((a, b) => b.score - a.score);
+  return ranked[0]?.score ? ranked[0].sentence : '';
+}
+
+function passageWithEvidence(text, evidence) {
+  const source = compactDisplayText(text);
+  if (!source || !evidence) return escapeHtml(source);
+  const index = source.toLowerCase().indexOf(evidence.toLowerCase());
+  if (index < 0) return escapeHtml(source);
+  return `${escapeHtml(source.slice(0, index))}<mark class="ai-evidence-highlight">${escapeHtml(source.slice(index, index + evidence.length))}</mark>${escapeHtml(source.slice(index + evidence.length))}`;
 }
 
 function renderMistakeAnalysis(question, answer, isMock) {
   const panel = $('mistake-analysis');
   const wrongAnswer = !isMock && answer !== undefined && answer !== question.correct;
-  panel.classList.toggle('is-hidden', !wrongAnswer);
-  if (!wrongAnswer) return;
-
-  const entry = mistakeAnalysisCache.get(mistakeAnalysisKey(question, answer));
+  const entry = wrongAnswer ? mistakeAnalysisCache.get(mistakeAnalysisKey(question, answer)) : null;
   const ready = entry?.status === 'ready';
+  panel.classList.toggle('is-hidden', !wrongAnswer || ready);
+  if (!wrongAnswer) return;
   $('mistake-analysis-loading').hidden = ready;
   $('mistake-analysis-content').hidden = !ready;
   $('mistake-analysis-state').textContent = ready ? 'Ready' : 'Analysing';
@@ -1855,8 +1882,10 @@ function renderMistakeAnalysis(question, answer, isMock) {
 function revealMistakeAnalysis() {
   const panel = $('mistake-analysis');
   const column = panel.closest('.answer-column');
-  if (!column || panel.classList.contains('is-hidden')) return;
-  column.scrollTo({ top: Math.max(0, panel.offsetTop - 18), behavior: 'smooth' });
+  if (!column) return;
+  const target = column.querySelector('.inline-ai-note') || (!panel.classList.contains('is-hidden') ? panel : null);
+  if (!target) return;
+  column.scrollTo({ top: Math.max(0, target.offsetTop - 18), behavior: 'smooth' });
 }
 
 async function requestMistakeAnalysis(question, choice) {
@@ -1897,7 +1926,7 @@ async function requestMistakeAnalysis(question, choice) {
       mistakeAnalysisRequests.delete(key);
       const current = practiceQuestions[currentQuestion];
       if (current?.id === question.id) {
-        renderMistakeAnalysis(current, checkedAnswers[current.id], practiceMode === 'mock');
+        renderQuestion();
         requestAnimationFrame(revealMistakeAnalysis);
       }
     }
@@ -1911,6 +1940,9 @@ function renderQuestion() {
   const answer = checkedAnswers[question.id];
   const selectedAnswer = answer ?? draftAnswers[question.id];
   const isChecked = !isMock && answer !== undefined;
+  const wrongAnswer = isChecked && answer !== question.correct;
+  const analysisEntry = wrongAnswer ? mistakeAnalysisCache.get(mistakeAnalysisKey(question, answer)) : null;
+  const inlineAnalysis = analysisEntry?.status === 'ready' ? analysisEntry.analysis : null;
   const eliminated = state.progress.eliminated[question.id] || [];
   const marked = Boolean(state.progress.marked[question.id]);
   const section = questionSetName(currentSet);
@@ -1925,7 +1957,8 @@ function renderQuestion() {
   $('question-domain-label').textContent = question.domain;
   $('question-prompt').textContent = compactDisplayText(question.prompt);
   const passage = compactDisplayText(question.passage);
-  $('question-passage').textContent = passage;
+  const evidence = inlineAnalysis ? mistakeEvidenceSnippet(question, inlineAnalysis) : '';
+  $('question-passage').innerHTML = passageWithEvidence(passage, evidence);
   const questionImage=$('question-image'),imageSource=safeImageSource(question.image);
   questionImage.hidden=!imageSource;questionImage.src=imageSource||'';
   const hasContext = Boolean(passage || imageSource);
@@ -1940,11 +1973,11 @@ function renderQuestion() {
   $('answer-list').innerHTML = question.answers.map((text, index) => {
     const resultClass = isChecked && index === question.correct ? 'is-correct' : isChecked && index === answer ? 'is-incorrect' : '';
     const confirm = !isMock && selectedAnswer === index && !isChecked ? '<button class="confirm-answer" data-check-answer type="button">Check answer</button>' : '';
-    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${escapeHtml(text)}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button></div>`;
+    const inlineNote = inlineAnalysis && index === answer ? `<aside class="inline-ai-note is-wrong"><span>Luminary · why this misses</span><p>${escapeHtml(inlineAnalysis.whyWrong)}</p></aside>` : inlineAnalysis && index === question.correct ? `<aside class="inline-ai-note is-correct"><span>Luminary · why this works</span><p>${escapeHtml(inlineAnalysis.whyCorrect)}</p><small>${escapeHtml(inlineAnalysis.takeaway)}</small></aside>` : '';
+    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${escapeHtml(text)}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button>${inlineNote}</div>`;
   }).join('');
   $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : '';
   $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : ''}`;
-  const wrongAnswer = isChecked && answer !== question.correct;
   if (wrongAnswer) requestMistakeAnalysis(question, answer);
   renderMistakeAnalysis(question, answer, isMock);
   const hasExplanation = Boolean(!isMock && isChecked && !wrongAnswer && question.explanation);
@@ -2169,21 +2202,15 @@ function formatVoiceTime(totalSeconds) {
   return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
 }
 
-function updateVoiceTimer() {
-  if (voiceLab.stage !== 'live' || !voiceLab.startedAt) return;
-  $('voice-session-time').textContent = formatVoiceTime((Date.now() - voiceLab.startedAt) / 1000);
-}
-
 function renderVoiceStage() {
   $('voice-briefing').hidden = voiceLab.stage !== 'briefing';
   $('voice-live-view').hidden = voiceLab.stage !== 'live';
   $('voice-complete').hidden = voiceLab.stage !== 'complete';
   const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex] || IELTS_SPEAKING_QUESTIONS[0];
   $('voice-part-label').textContent = voiceLab.stage === 'live' ? `Part ${question.part}` : voiceLab.stage === 'complete' ? 'Complete' : 'IELTS Speaking';
-  if (voiceLab.stage === 'briefing') $('voice-session-time').textContent = '11–14 min';
+  $('voice-session-time').hidden = !(voiceLab.stage === 'live' && voiceLab.preparing);
   if (voiceLab.stage === 'live') {
     $('voice-question-progress').textContent = `Question ${voiceLab.questionIndex + 1} of ${IELTS_SPEAKING_QUESTIONS.length}`;
-    updateVoiceTimer();
   }
   if ($('voice-begin')) {
     $('voice-begin').disabled = !voiceLab.recognition;
@@ -2231,6 +2258,8 @@ function renderVoiceState() {
         ? 'Luminary is preparing the next question.'
         : 'The microphone will reopen automatically.';
   $('voice-prep-skip').hidden = !voiceLab.preparing;
+  $('voice-session-time').hidden = !voiceLab.preparing;
+  if (voiceLab.preparing) $('voice-session-time').textContent = formatVoiceTime(voiceLab.preparationRemaining);
   renderVoiceStage();
 }
 
@@ -2263,56 +2292,41 @@ function speakVoiceReply(text) {
   });
 }
 
-function examinerTransition(value) {
-  const source = String(value || '').replace(/\s+/g, ' ').trim();
-  const firstSentence = source.match(/^.{1,72}?[.!](?=\s|$)/)?.[0] || '';
-  if (!firstSentence || /\b(what|why|how|when|where|who|which|do|does|did|is|are|can|could|would|should)\b/i.test(firstSentence)) return 'Thank you.';
-  return firstSentence;
+function clearVoiceAnswerTiming() {
+  clearTimeout(voiceLab.answerLimitTimer);
+  voiceLab.answerLimitTimer = null;
+  voiceLab.answerStartedAt = 0;
+  voiceLab.answerLimitReached = false;
 }
 
-async function sendVoiceTurn(text) {
+async function sendVoiceTurn(text, allowEmpty = false) {
   const message = String(text || '').replace(/\s+/g, ' ').trim();
-  if (!message) { showToast('I did not hear any words. Please try again.'); return; }
+  if (!message && !allowEmpty) { showToast('I did not hear any words. Please try again.'); return; }
   const answeredQuestion = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
-  voiceLab.answers.push({ part: answeredQuestion.part, question: answeredQuestion.text, transcript: message });
-  voiceLab.messages.push({ role: 'user', text: message });
+  const answerWasFollowUp = voiceLab.answeringFollowUp;
+  const responseSeconds = voiceLab.answerStartedAt ? Math.max(0, (Date.now() - voiceLab.answerStartedAt) / 1000) : 0;
+  const askedText = answerWasFollowUp ? answeredQuestion.followUp : answeredQuestion.text;
+  voiceLab.answers.push({ part: answeredQuestion.part, question: askedText, transcript: message, responseSeconds: Math.round(responseSeconds) });
+  if (message) voiceLab.messages.push({ role: 'user', text: message });
+  clearVoiceAnswerTiming();
   voiceLab.pending = true;
   setVoiceListening(false);
   renderVoiceTranscript();
 
-  const nextIndex = voiceLab.questionIndex + 1;
+  const needsPart2FollowUp = answeredQuestion.part === 2 && !answerWasFollowUp && (!message || responseSeconds < 105) && answeredQuestion.followUp;
+  const nextIndex = needsPart2FollowUp ? voiceLab.questionIndex : voiceLab.questionIndex + 1;
   const nextQuestion = IELTS_SPEAKING_QUESTIONS[nextIndex];
   const sessionComplete = !nextQuestion;
-  const controller = new AbortController();
-  voiceLab.requestController = controller;
   let resumeListening = false;
   try {
-    let reply = sessionComplete
+    const reply = needsPart2FollowUp
+      ? answeredQuestion.followUp
+      : sessionComplete
       ? 'Thank you. That is the end of your speaking mock.'
       : `Thank you. ${nextQuestion.text}`;
-    try {
-      const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          mode: 'ielts-speaking',
-          messages: [{ role: 'user', text: message }],
-          nextQuestion: nextQuestion?.text || '',
-          nextPart: nextQuestion?.part || 3,
-          sessionComplete
-        })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.reply) throw new Error(data.error || 'Luminary could not reply.');
-      reply = sessionComplete
-        ? 'Thank you. That is the end of your speaking mock.'
-        : `${examinerTransition(data.reply)} ${nextQuestion.text}`;
-    } catch (error) {
-      if (error.name === 'AbortError') return;
-    }
-    if (!voiceLab.active || currentPage !== 'speaking-ai' || controller.signal.aborted) return;
-    if (nextQuestion) voiceLab.questionIndex = nextIndex;
+    if (!voiceLab.active || currentPage !== 'speaking-ai') return;
+    voiceLab.answeringFollowUp = Boolean(needsPart2FollowUp);
+    if (nextQuestion && !needsPart2FollowUp) voiceLab.questionIndex = nextIndex;
     voiceLab.messages.push({ role: 'model', text: reply });
     voiceLab.pending = false;
     renderVoiceTranscript();
@@ -2322,20 +2336,17 @@ async function sendVoiceTurn(text) {
       finishSpeakingMock();
       return;
     }
-    if (nextQuestion.preparationSeconds) {
+    if (!needsPart2FollowUp && nextQuestion.preparationSeconds) {
       startSpeakingPreparation(nextQuestion.preparationSeconds);
       return;
     }
     resumeListening = true;
   } finally {
-    if (voiceLab.requestController === controller) {
-      voiceLab.requestController = null;
-      voiceLab.pending = false;
-      setVoiceListening(false);
-      renderVoiceTranscript();
-      if (resumeListening && voiceLab.active && currentPage === 'speaking-ai') {
-        voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
-      }
+    voiceLab.pending = false;
+    setVoiceListening(false);
+    renderVoiceTranscript();
+    if (resumeListening && voiceLab.active && currentPage === 'speaking-ai') {
+      voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
     }
   }
 }
@@ -2398,7 +2409,7 @@ function initVoiceLab() {
       if (voiceLab.listening) {
         try { voiceLab.recognition.stop(); } catch {}
       }
-    }, question?.part === 2 ? 2600 : 1800);
+    }, question?.part === 2 ? 4500 : 1800);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
@@ -2417,6 +2428,7 @@ function initVoiceLab() {
     renderVoiceTranscript();
     if (!voiceLab.active || currentPage !== 'speaking-ai') return;
     if (message) sendVoiceTurn(message);
+    else if (voiceLab.answerLimitReached && IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex]?.part === 2) sendVoiceTurn('', true);
     else voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
   };
   renderVoiceState();
@@ -2431,6 +2443,14 @@ function startVoiceLab() {
   try {
     voiceLab.recognition.start();
     setVoiceListening(true);
+    if (!voiceLab.answerStartedAt) voiceLab.answerStartedAt = Date.now();
+    const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
+    if (question?.part === 2 && !voiceLab.answeringFollowUp && !voiceLab.answerLimitTimer) {
+      voiceLab.answerLimitTimer = setTimeout(() => {
+        voiceLab.answerLimitReached = true;
+        if (voiceLab.listening) { try { voiceLab.recognition.stop(); } catch {} }
+      }, 135000);
+    }
   } catch {
     voiceLab.active = false;
     renderVoiceState();
@@ -2449,20 +2469,18 @@ function beginSpeakingMock() {
   voiceLab.questionIndex = 0;
   voiceLab.answers = [];
   voiceLab.messages = [];
-  voiceLab.startedAt = Date.now();
-  voiceLab.elapsedTimer = setInterval(updateVoiceTimer, 1000);
+  voiceLab.answeringFollowUp = false;
+  clearVoiceAnswerTiming();
   renderVoiceStage();
   renderVoiceState();
   askFirstSpeakingQuestion();
 }
 
 function finishSpeakingMock() {
-  const elapsed = voiceLab.startedAt ? (Date.now() - voiceLab.startedAt) / 1000 : 0;
   const answerCount = voiceLab.answers.length;
   endVoiceSession();
   voiceLab.stage = 'complete';
-  $('voice-session-time').textContent = formatVoiceTime(elapsed);
-  $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts in ${formatVoiceTime(elapsed)}.`;
+  $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts.`;
   renderVoiceStage();
 }
 
@@ -2472,7 +2490,8 @@ function resetSpeakingMock() {
   voiceLab.questionIndex = 0;
   voiceLab.answers = [];
   voiceLab.messages = [];
-  voiceLab.startedAt = 0;
+  voiceLab.answeringFollowUp = false;
+  clearVoiceAnswerTiming();
   $('voice-exit-dialog').hidden = true;
   renderVoiceStage();
   renderVoiceTranscript();
@@ -2501,12 +2520,15 @@ function endVoiceSession() {
   clearTimeout(voiceLab.silenceTimer);
   clearTimeout(voiceLab.preparationTimer);
   clearInterval(voiceLab.preparationTicker);
-  clearInterval(voiceLab.elapsedTimer);
+  clearTimeout(voiceLab.answerLimitTimer);
   voiceLab.restartTimer = null;
   voiceLab.silenceTimer = null;
   voiceLab.preparationTimer = null;
   voiceLab.preparationTicker = null;
-  voiceLab.elapsedTimer = null;
+  voiceLab.answerLimitTimer = null;
+  voiceLab.answerStartedAt = 0;
+  voiceLab.answerLimitReached = false;
+  voiceLab.answeringFollowUp = false;
   voiceLab.active = false;
   voiceLab.preparing = false;
   voiceLab.finalText = '';
@@ -2514,10 +2536,6 @@ function endVoiceSession() {
   if (voiceLab.listening && voiceLab.recognition) {
     voiceLab.listening = false;
     try { voiceLab.recognition.abort(); } catch {}
-  }
-  if (voiceLab.requestController) {
-    voiceLab.requestController.abort();
-    voiceLab.requestController = null;
   }
   voiceLab.pending = false;
   voiceLab.speaking = false;
