@@ -415,6 +415,7 @@ body:has(.test-experience:not(.is-hidden)) .global-theme-control { display: none
 .test-subbar { display: grid; grid-template-columns: minmax(180px, auto) minmax(160px, 1fr) minmax(110px, auto); align-items: center; gap: 18px; min-height: 54px; padding: 9px clamp(20px, 4vw, 56px); border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface-raised) 74%, var(--accent-soft)); }
 .test-context span, .test-context strong { display: block; }
 .test-context span { color: var(--text-muted); font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.mock-question-bar { display: none; }
 .test-context strong { margin-top: 2px; color: var(--text); font-size: 12px; }
 .test-progress-track { height: 8px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--line) 72%, transparent); }
 .test-progress-track span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-hover)); transition: width .35s var(--ease); }
@@ -447,6 +448,31 @@ body:has(.test-experience:not(.is-hidden)) .global-theme-control { display: none
 .confirm-answer { position: absolute; z-index: 1; top: 50%; right: 56px; min-height: 32px; transform: translateY(-50%); border: 1px solid var(--accent); border-radius: 10px; padding: 6px 10px; background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 850; }
 .confirm-answer:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 .eliminate-option { align-self: center; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 14px; line-height: 1; transition: background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease); }
+.test-experience.is-mock-mode .directions-label, .test-experience.is-mock-mode .run-score, .test-experience.is-mock-mode .test-tools .mark-button, .test-experience.is-mock-mode .run-streak { display: none; }
+.test-experience.is-mock-mode .test-subbar { grid-template-columns: minmax(180px, auto) minmax(180px, 1fr); }
+.test-experience.is-mock-mode .test-body { overflow-y: auto; background: var(--surface); }
+.test-experience.is-mock-mode .question-workspace, .test-experience.is-mock-mode .question-workspace.is-with-passage { display: block; width: min(100%, 900px); height: auto; min-height: 100%; padding: 18px 26px 42px; }
+.test-experience.is-mock-mode .mock-question-bar { display: grid; grid-template-columns: 42px auto minmax(90px, 1fr); align-items: center; min-height: 42px; margin-bottom: 15px; border-bottom: 1px solid var(--line); background: var(--surface-raised); }
+.mock-question-number { display: grid; align-self: stretch; place-items: center; background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 900; }
+.mock-mark-button { display: inline-flex; align-items: center; justify-self: start; gap: 7px; border: 0; padding: 9px 12px; background: transparent; color: var(--text-soft); font-size: 12px; font-weight: 750; }
+.mock-mark-button.is-marked { color: var(--accent-hover); }
+.mock-mark-button.is-marked .mark-indicator { animation: mark-pulse .35s var(--ease); }
+.mock-question-rail { align-self: end; height: 2px; margin-right: 8px; background: repeating-linear-gradient(90deg, var(--accent) 0 26px, transparent 26px 31px, var(--success) 31px 57px, transparent 57px 62px, color-mix(in srgb, var(--danger) 78%, var(--accent)) 62px 88px, transparent 88px 93px); opacity: .72; }
+.test-experience.is-mock-mode .passage-copy { overflow: visible; border: 0; padding: 0 0 12px; background: transparent; }
+.test-experience.is-mock-mode .passage-copy p { max-width: none; font-size: 16px; line-height: 1.55; }
+.test-experience.is-mock-mode .question-image { max-height: 300px; margin-bottom: 18px; }
+.test-experience.is-mock-mode .answer-column { overflow: visible; background: transparent; }
+.test-experience.is-mock-mode .question-copy { padding: 0 0 16px; background: transparent; }
+.test-experience.is-mock-mode .question-label { display: none; }
+.test-experience.is-mock-mode .question-workspace h2 { max-width: none; font-size: 16px; line-height: 1.55; }
+.test-experience.is-mock-mode .answer-list { gap: 8px; padding: 0; }
+.test-experience.is-mock-mode .answer-row { grid-template-columns: 1fr; gap: 0; }
+.test-experience.is-mock-mode .answer-option { min-height: 52px; align-items: center; gap: 12px; border: 2px solid var(--text); border-radius: 10px; padding: 10px 12px; font-size: 16px; line-height: 1.35; }
+.test-experience.is-mock-mode .answer-option:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); transform: none; }
+.test-experience.is-mock-mode .answer-option.is-selected { border-color: var(--accent); padding-right: 12px; background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent); }
+.test-experience.is-mock-mode .answer-letter { width: 24px; height: 24px; font-size: 11px; }
+.test-experience.is-mock-mode .eliminate-option { display: none; }
+.test-experience.is-mock-mode .answer-status { margin-right: 0; margin-left: 0; }
 .eliminate-option:hover:not(:disabled), .eliminate-option.is-active { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 13%, var(--surface)); color: var(--danger); }
 .answer-status { min-height: 23px; max-width: 760px; margin: 14px clamp(30px, 4.5vw, 62px) 0; font-size: 14px; font-weight: 800; }
 .answer-status.is-correct, .answer-status.is-incorrect { min-height: 46px; border: 1px solid currentColor; border-radius: 10px; padding: 12px 14px; animation: answer-reveal .34s var(--ease); }
@@ -771,6 +797,10 @@ body.is-auth-open { overflow: hidden; }
   .answer-option.is-selected { padding-right: 84px; }
   .confirm-answer { right: 43px; }
   .answer-status { margin-left: 20px; margin-right: 20px; }
+  .test-experience.is-mock-mode .question-workspace, .test-experience.is-mock-mode .question-workspace.is-with-passage { padding: 12px 14px 28px; }
+  .test-experience.is-mock-mode .mock-question-bar { grid-template-columns: 38px auto 1fr; }
+  .test-experience.is-mock-mode .mock-question-rail { opacity: .5; }
+  .test-experience.is-mock-mode .answer-option, .test-experience.is-mock-mode .answer-option.is-selected { min-height: 50px; padding: 10px; font-size: 15px; }
   .test-actions { padding: 12px 20px; }
   .material-list article { padding: 17px; }
   .speaking-ai-progress { grid-template-columns: 1fr; gap: 10px; }

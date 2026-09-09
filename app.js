@@ -1915,6 +1915,7 @@ function renderQuestion() {
   const marked = Boolean(state.progress.marked[question.id]);
   const section = questionSetName(currentSet);
   $('question-counter').textContent = `Question ${currentQuestion + 1} of ${practiceQuestions.length}`;
+  $('mock-question-number').textContent = String(currentQuestion + 1);
   $('test-module').textContent = `${section} / Module 1`;
   $('test-domain').textContent = question.domain;
   const completed = practiceMode === 'mock' ? Object.keys(draftAnswers).length : Object.keys(checkedAnswers).length;
@@ -1933,10 +1934,13 @@ function renderQuestion() {
   $('mark-question').innerHTML = `<span class="mark-indicator" aria-hidden="true"></span>${marked ? 'Marked for review' : 'Mark for review'}`;
   $('mark-question').classList.toggle('is-marked', marked);
   $('mark-question').setAttribute('aria-pressed', String(marked));
+  $('mock-mark-question').innerHTML = `<span class="mark-indicator" aria-hidden="true"></span>${marked ? 'Marked for Review' : 'Mark for Review'}`;
+  $('mock-mark-question').classList.toggle('is-marked', marked);
+  $('mock-mark-question').setAttribute('aria-pressed', String(marked));
   $('answer-list').innerHTML = question.answers.map((text, index) => {
     const resultClass = isChecked && index === question.correct ? 'is-correct' : isChecked && index === answer ? 'is-incorrect' : '';
     const confirm = !isMock && selectedAnswer === index && !isChecked ? '<button class="confirm-answer" data-check-answer type="button">Check answer</button>' : '';
-    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${text}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button></div>`;
+    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${escapeHtml(text)}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button></div>`;
   }).join('');
   $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : '';
   $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : ''}`;
@@ -2723,6 +2727,7 @@ function bindEvents() {
   $('previous-question').addEventListener('click', () => moveQuestion(-1));
   $('next-question').addEventListener('click', () => moveQuestion(1));
   $('mark-question').addEventListener('click', toggleMark);
+  $('mock-mark-question').addEventListener('click', toggleMark);
   $('question-counter').addEventListener('click', toggleQuestionNavigator);
   $('close-question-navigator').addEventListener('click', () => $('question-navigator').classList.add('is-hidden'));
   $('explanation-toggle').addEventListener('click', () => { explanationOpen = !explanationOpen; renderQuestion(); });
