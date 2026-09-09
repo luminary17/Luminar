@@ -267,6 +267,7 @@ let voiceLab = {
   answerStartedAt: 0,
   answerLimitReached: false,
   answeringFollowUp: false,
+  finalizeAnswer: false,
   utterance: null
 };
 
@@ -2273,11 +2274,24 @@ function speakVoiceReply(text) {
   window.speechSynthesis.cancel();
   return new Promise((resolve) => {
     const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoiceNames = [
+      /Microsoft Aria Online/i,
+      /Microsoft Jenny Online/i,
+      /Google US English/i,
+      /Microsoft Ava/i,
+      /Samantha/i,
+      /Microsoft Zira/i
+    ];
+    utterance.voice = preferredVoiceNames
+      .map((pattern) => voices.find((voice) => pattern.test(voice.name) && /^en[-_]/i.test(voice.lang)))
+      .find(Boolean) || voices.find((voice) => /^en-US/i.test(voice.lang) && !/male|david|mark/i.test(voice.name)) || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
     voiceLab.utterance = utterance;
     voiceLab.speaking = true;
     renderVoiceState();
     utterance.lang = 'en-US';
-    utterance.rate = 0.96;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.02;
     const finish = () => {
       if (voiceLab.utterance === utterance) {
         voiceLab.utterance = null;
@@ -2407,9 +2421,10 @@ function initVoiceLab() {
     const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
     voiceLab.silenceTimer = setTimeout(() => {
       if (voiceLab.listening) {
+        voiceLab.finalizeAnswer = true;
         try { voiceLab.recognition.stop(); } catch {}
       }
-    }, question?.part === 2 ? 4500 : 1800);
+    }, question?.part === 2 ? 8000 : 5500);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
@@ -2422,11 +2437,18 @@ function initVoiceLab() {
     voiceLab.silenceTimer = null;
     if (!voiceLab.listening) return;
     const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
-    voiceLab.finalText = '';
-    voiceLab.interimText = '';
     setVoiceListening(false);
     renderVoiceTranscript();
     if (!voiceLab.active || currentPage !== 'speaking-ai') return;
+    if (!voiceLab.finalizeAnswer && !voiceLab.answerLimitReached) {
+      voiceLab.finalText = message;
+      voiceLab.interimText = '';
+      voiceLab.restartTimer = setTimeout(startVoiceLab, 180);
+      return;
+    }
+    voiceLab.finalizeAnswer = false;
+    voiceLab.finalText = '';
+    voiceLab.interimText = '';
     if (message) sendVoiceTurn(message);
     else if (voiceLab.answerLimitReached && IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex]?.part === 2) sendVoiceTurn('', true);
     else voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
@@ -2438,7 +2460,6 @@ function startVoiceLab() {
   if (!voiceLab.recognition || !voiceLab.active || voiceLab.preparing || voiceLab.listening || voiceLab.pending || voiceLab.speaking || currentPage !== 'speaking-ai') return;
   clearTimeout(voiceLab.restartTimer);
   voiceLab.restartTimer = null;
-  voiceLab.finalText = '';
   voiceLab.interimText = '';
   try {
     voiceLab.recognition.start();
@@ -2448,6 +2469,7 @@ function startVoiceLab() {
     if (question?.part === 2 && !voiceLab.answeringFollowUp && !voiceLab.answerLimitTimer) {
       voiceLab.answerLimitTimer = setTimeout(() => {
         voiceLab.answerLimitReached = true;
+        voiceLab.finalizeAnswer = true;
         if (voiceLab.listening) { try { voiceLab.recognition.stop(); } catch {} }
       }, 135000);
     }
@@ -2470,6 +2492,7 @@ function beginSpeakingMock() {
   voiceLab.answers = [];
   voiceLab.messages = [];
   voiceLab.answeringFollowUp = false;
+  voiceLab.finalizeAnswer = false;
   clearVoiceAnswerTiming();
   renderVoiceStage();
   renderVoiceState();
@@ -2491,6 +2514,7 @@ function resetSpeakingMock() {
   voiceLab.answers = [];
   voiceLab.messages = [];
   voiceLab.answeringFollowUp = false;
+  voiceLab.finalizeAnswer = false;
   clearVoiceAnswerTiming();
   $('voice-exit-dialog').hidden = true;
   renderVoiceStage();
@@ -2529,6 +2553,7 @@ function endVoiceSession() {
   voiceLab.answerStartedAt = 0;
   voiceLab.answerLimitReached = false;
   voiceLab.answeringFollowUp = false;
+  voiceLab.finalizeAnswer = false;
   voiceLab.active = false;
   voiceLab.preparing = false;
   voiceLab.finalText = '';
