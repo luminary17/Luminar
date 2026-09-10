@@ -2270,7 +2270,7 @@ function setVoiceListening(listening) {
   renderVoiceState();
 }
 
-function speakVoiceReply(text) {
+function speakBrowserVoice(text) {
   if (!('speechSynthesis' in window) || !text) return Promise.resolve();
   window.speechSynthesis.cancel();
   return new Promise((resolve) => {
@@ -2305,6 +2305,36 @@ function speakVoiceReply(text) {
     utterance.onerror = finish;
     window.speechSynthesis.speak(utterance);
   });
+}
+
+async function speakVoiceReply(text) {
+  if (!text) return;
+  try {
+    const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!response.ok) throw new Error('ElevenLabs voice is unavailable.');
+    const audioUrl = URL.createObjectURL(await response.blob());
+    const audio = new Audio(audioUrl);
+    voiceLab.utterance = audio;
+    voiceLab.speaking = true;
+    renderVoiceState();
+    await new Promise((resolve, reject) => {
+      audio.onended = resolve;
+      audio.onerror = reject;
+      audio.play().catch(reject);
+    });
+    URL.revokeObjectURL(audioUrl);
+    if (voiceLab.utterance === audio) {
+      voiceLab.utterance = null;
+      voiceLab.speaking = false;
+      renderVoiceState();
+    }
+  } catch {
+    await speakBrowserVoice(text);
+  }
 }
 
 function clearVoiceAnswerTiming() {
@@ -2428,7 +2458,7 @@ function initVoiceLab() {
         voiceLab.finalizeAnswer = true;
         try { voiceLab.recognition.stop(); } catch {}
       }
-    }, question?.part === 2 ? 10000 : 7500);
+    }, 2000);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
@@ -2569,6 +2599,10 @@ function endVoiceSession() {
   voiceLab.pending = false;
   voiceLab.speaking = false;
   voiceLab.utterance = null;
+  if (voiceLab.utterance instanceof HTMLAudioElement) {
+    voiceLab.utterance.pause();
+    voiceLab.utterance.src = '';
+  }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   renderVoiceState();
   renderVoiceTranscript();

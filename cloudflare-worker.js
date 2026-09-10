@@ -133,6 +133,42 @@ async function chat(request, env, origin) {
   return json({ reply }, 200, origin);
 }
 
+async function textToSpeech(request, env, origin) {
+  if (!env.ELEVENLABS_API_KEY || !env.ELEVENLABS_VOICE_ID) {
+    return json({ error: 'The ElevenLabs voice is not configured.' }, 503, origin);
+  }
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: 'Send a valid JSON request.' }, 400, origin);
+  }
+  const text = cleanText(payload?.text, 1200);
+  if (!text) return json({ error: 'Speech text is missing.' }, 400, origin);
+  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(env.ELEVENLABS_VOICE_ID)}?output_format=mp3_44100_128`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'xi-api-key': env.ELEVENLABS_API_KEY
+    },
+    body: JSON.stringify({
+      text,
+      model_id: 'eleven_flash_v2_5',
+      voice_settings: { stability: 0.55, similarity_boost: 0.78, style: 0.18, use_speaker_boost: true }
+    })
+  });
+  if (!response.ok) return json({ error: 'The ElevenLabs voice is unavailable.' }, response.status === 429 ? 429 : 502, origin);
+  return new Response(response.body, {
+    status: 200,
+    headers: {
+      ...corsHeaders(origin),
+      'Content-Type': 'audio/mpeg',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff'
+    }
+  });
+}
+
 function validateMistakePayload(payload) {
   const answers = Array.isArray(payload?.answers)
     ? payload.answers.slice(0, 6).map((answer) => cleanText(answer, 900))
@@ -408,6 +444,11 @@ export default {
     if (url.pathname === '/speaking/chat' && request.method === 'POST') {
       if (!isAllowedOrigin(origin)) return json({ error: 'Origin not allowed.' }, 403, origin);
       return chat(request, env, origin);
+    }
+
+    if (url.pathname === '/speaking/tts' && request.method === 'POST') {
+      if (!isAllowedOrigin(origin)) return json({ error: 'Origin not allowed.' }, 403, origin);
+      return textToSpeech(request, env, origin);
     }
 
     if (url.pathname === '/questions/analyze' && request.method === 'POST') {
