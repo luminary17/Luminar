@@ -2227,8 +2227,9 @@ function renderVoiceTranscript() {
   $('voice-caption-speaker').textContent = `Luminary · Part ${question.part}`;
   $('voice-caption').textContent = latestModel?.text || question.text;
   const studentText = draft || (voiceLab.pending ? latestUser?.text : '');
-  $('voice-user-caption').hidden = !studentText;
-  $('voice-user-caption').textContent = studentText ? `You: ${studentText}` : '';
+  $('voice-user-caption').hidden = false;
+  $('voice-user-caption').classList.toggle('is-placeholder', !studentText);
+  $('voice-user-caption').textContent = studentText || (voiceLab.listening ? 'Listening for your answer…' : 'Your words will appear here.');
 }
 
 function renderVoiceState() {
@@ -2406,12 +2407,15 @@ function initVoiceLab() {
   voiceLab.recognition = new Recognition();
   voiceLab.recognition.continuous = true;
   voiceLab.recognition.interimResults = true;
+  voiceLab.recognition.maxAlternatives = 3;
   voiceLab.recognition.lang = 'en-US';
   voiceLab.recognition.onresult = (event) => {
     if (!voiceLab.listening) return;
     let interim = '';
     for (let index = event.resultIndex; index < event.results.length; index += 1) {
-      const text = event.results[index][0].transcript.trim();
+      const alternatives = Array.from(event.results[index]);
+      const bestAlternative = alternatives.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0] || event.results[index][0];
+      const text = bestAlternative.transcript.trim();
       if (event.results[index].isFinal) voiceLab.finalText = `${voiceLab.finalText} ${text}`.trim();
       else interim = `${interim} ${text}`.trim();
     }
@@ -2424,7 +2428,7 @@ function initVoiceLab() {
         voiceLab.finalizeAnswer = true;
         try { voiceLab.recognition.stop(); } catch {}
       }
-    }, question?.part === 2 ? 8000 : 5500);
+    }, question?.part === 2 ? 10000 : 7500);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
