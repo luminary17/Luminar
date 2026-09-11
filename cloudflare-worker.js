@@ -133,10 +133,30 @@ async function chat(request, env, origin) {
   return json({ reply }, 200, origin);
 }
 
+function pcmToWave(pcm, sampleRate = 24000, channels = 1) {
+  const bytesPerSample = 2;
+  const buffer = new ArrayBuffer(44 + pcm.length);
+  const view = new DataView(buffer);
+  const writeAscii = (offset, value) => [...value].forEach((character, index) => view.setUint8(offset + index, character.charCodeAt(0)));
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, 36 + pcm.length, true);
+  writeAscii(8, 'WAVE');
+  writeAscii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * bytesPerSample, true);
+  view.setUint16(32, channels * bytesPerSample, true);
+  view.setUint16(34, bytesPerSample * 8, true);
+  writeAscii(36, 'data');
+  view.setUint32(40, pcm.length, true);
+  new Uint8Array(buffer, 44).set(pcm);
+  return new Uint8Array(buffer);
+}
+
 async function textToSpeech(request, env, origin) {
-  if (!env.ELEVENLABS_API_KEY || !env.ELEVENLABS_VOICE_ID) {
-    return json({ error: 'The ElevenLabs voice is not configured.' }, 503, origin);
-  }
+  if (!env.GEMINI_API_KEY) return json({ error: 'The Luminary voice is not configured.' }, 503, origin);
   let payload;
   try {
     payload = await request.json();
@@ -145,24 +165,47 @@ async function textToSpeech(request, env, origin) {
   }
   const text = cleanText(payload?.text, 1200);
   if (!text) return json({ error: 'Speech text is missing.' }, 400, origin);
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(env.ELEVENLABS_VOICE_ID)}?output_format=mp3_44100_128`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'xi-api-key': env.ELEVENLABS_API_KEY
-    },
-    body: JSON.stringify({
-      text,
-      model_id: 'eleven_flash_v2_5',
-      voice_settings: { stability: 0.55, similarity_boost: 0.78, style: 0.18, use_speaker_boost: true }
-    })
-  });
-  if (!response.ok) return json({ error: 'The ElevenLabs voice is unavailable.' }, response.status === 429 ? 429 : 502, origin);
-  return new Response(response.body, {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  let response;
+  try {
+    response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': env.GEMINI_API_KEY,
+        'Api-Revision': '2026-05-20'
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'gemini-3.1-flash-tts-preview',
+        input: `Audio profile: Luminary is a calm, warm female IELTS examiner in her late twenties. Her voice is soft, reassuring, articulate, and natural. She uses a neutral international English accent, gentle energy, clear consonants, and an unhurried but conversational pace. Never sound theatrical, breathy, robotic, seductive, or overly cheerful. Read only the transcript below, exactly as written.\n\nTranscript:\n${text}`,
+        response_format: { type: 'audio' },
+        generation_config: { speech_config: [{ voice: 'Achernar', language: 'en-US' }] }
+      })
+    });
+  } catch (error) {
+    return json({ error: error?.name === 'AbortError' ? 'Luminary voice generation timed out.' : 'Luminary voice could not connect.' }, error?.name === 'AbortError' ? 504 : 502, origin);
+  } finally {
+    clearTimeout(timeout);
+  }
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error(JSON.stringify({ event: 'gemini_tts_failed', status: response.status, error: result?.error?.message || 'Unknown Gemini TTS error' }));
+    return json({ error: 'The Luminary voice is temporarily unavailable.' }, response.status === 429 ? 429 : 502, origin);
+  }
+  const steps = result?.steps || result?.interaction?.steps || [];
+  const stepAudio = steps.slice().reverse().find((step) => step?.type === 'model_output')?.content?.find((content) => content?.type === 'audio');
+  const audio = result?.output_audio || result?.interaction?.output_audio || stepAudio;
+  if (!audio?.data) return json({ error: 'Luminary returned no voice audio.' }, 502, origin);
+  const rawBytes = Uint8Array.from(atob(audio.data), (character) => character.charCodeAt(0));
+  const rawPcm = !audio.mime_type || audio.mime_type.toLowerCase().startsWith('audio/l16');
+  const bytes = rawPcm ? pcmToWave(rawBytes, Number(audio.sample_rate) || 24000, Number(audio.channels) || 1) : rawBytes;
+  return new Response(bytes, {
     status: 200,
     headers: {
       ...corsHeaders(origin),
-      'Content-Type': 'audio/mpeg',
+      'Content-Type': rawPcm ? 'audio/wav' : audio.mime_type,
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff'
     }

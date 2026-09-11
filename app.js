@@ -2315,7 +2315,7 @@ async function speakVoiceReply(text) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
-    if (!response.ok) throw new Error('ElevenLabs voice is unavailable.');
+    if (!response.ok) throw new Error('Gemini voice is unavailable.');
     const audioUrl = URL.createObjectURL(await response.blob());
     const audio = new Audio(audioUrl);
     voiceLab.utterance = audio;
