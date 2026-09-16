@@ -733,35 +733,39 @@ function updateOnboardingGoalPreview() {
 }
 
 function showOnboardingStep(step) {
-  onboardingStep = Math.max(1, Math.min(6, step));
+  onboardingStep = Math.max(0, Math.min(6, step));
   const content = {
-    1: ['1 of 6', 'Choose your exam.', 'Your workspace will adapt around this choice.', 'Exam'],
-    2: ['2 of 6', 'Set a score to aim for.', 'A clear target helps Luminary measure useful progress.', 'Target'],
-    3: ['3 of 6', 'When will you take it?', 'Choose the date that sets your pace.', 'Date'],
-    4: ['4 of 6', 'Where are you today?', 'A starting point keeps recommendations realistic.', 'Current level'],
-    5: ['5 of 6', 'What needs more attention?', 'Pick any areas you want to strengthen first.', 'Focus'],
-    6: ['6 of 6', 'How much time feels sustainable?', 'Choose a daily rhythm you can actually keep.', 'Time']
+    0: ['1 of 7', 'Hello! What should I call you?', 'I’m your Luminary study companion. Let’s make this workspace yours.', 'Your name'],
+    1: ['2 of 7', 'Which exam are we preparing for?', 'I’ll help you practise, one step at a time.', 'Exam'],
+    2: ['3 of 7', 'Set a score to aim for.', 'A clear target helps Luminary measure useful progress.', 'Target'],
+    3: ['4 of 7', 'When will you take it?', 'Choose the date that sets your pace.', 'Date'],
+    4: ['5 of 7', 'Where are you today?', 'A starting point keeps recommendations realistic.', 'Current level'],
+    5: ['6 of 7', 'What needs more attention?', 'Pick any areas you want to strengthen first.', 'Focus'],
+    6: ['7 of 7', 'How much time feels sustainable?', 'Choose a daily rhythm you can actually keep.', 'Time']
   }[onboardingStep];
   $('onboarding-kicker').textContent = content[0];
   $('onboarding-title').textContent = content[1];
   $('onboarding-copy').textContent = content[2];
+  const guide = document.querySelector('.onboarding-mascot');
+  if (guide) guide.src = `assets/mascot/${onboardingStep === 0 ? 'welcome' : onboardingStep === 4 || onboardingStep === 5 ? 'listening' : 'speaking'}.png`;
   $('onboarding-step-label').textContent = content[3];
   $('onboarding-error').textContent = '';
   document.querySelectorAll('[data-onboarding-step]').forEach((section) => { section.hidden = Number(section.dataset.onboardingStep) !== onboardingStep; });
-  $('onboarding-progress-fill').style.width = `${onboardingStep / 6 * 100}%`;
-  $('onboarding-back').hidden = onboardingStep === 1;
+  $('onboarding-progress-fill').style.width = `${(onboardingStep + 1) / 7 * 100}%`;
+  $('onboarding-back').hidden = onboardingStep === 0;
   $('onboarding-next').textContent = onboardingStep === 6 ? 'Finish setup' : 'Continue';
   $('onboarding-main')?.scrollTo?.({ top: 0, behavior: 'smooth' });
 }
 
 function startOnboarding() {
   if (localStorage.getItem(ONBOARDING_KEY) === '1') return;
-  onboardingStep = 1;
+  onboardingStep = 0;
+  $('onboarding-name').value = state.profile.name || '';
   onboardingExam = '';
   document.querySelectorAll('[data-onboarding-exam]').forEach((button) => button.classList.remove('is-selected'));
   $('onboarding-view').hidden = false;
   document.body.classList.add('is-onboarding-open');
-  showOnboardingStep(1);
+  showOnboardingStep(0);
 }
 
 function skipOnboarding() {
@@ -773,6 +777,7 @@ function skipOnboarding() {
 }
 
 function validateOnboardingStep() {
+  if (onboardingStep === 0 && !$('onboarding-name').value.trim()) return 'Tell me your name to continue.';
   if (onboardingStep === 1 && !onboardingExam) return 'Choose SAT or IELTS to continue.';
   if (onboardingStep === 2 && !$('onboarding-goal').value) return 'Choose your target score.';
   if (onboardingStep === 3 && !(onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value)) return 'Choose your exam date.';
@@ -792,6 +797,7 @@ function validateOnboardingStep() {
 }
 
 async function completeOnboarding() {
+  state.profile.name = $('onboarding-name').value.trim().slice(0, 36);
   const goal = $('onboarding-goal').value;
   const date = onboardingExam === 'sat' ? $('onboarding-sat-date').value : $('onboarding-ielts-date').value;
   const weakRoot = onboardingExam === 'sat' ? $('onboarding-sat-weaknesses') : $('onboarding-ielts-weaknesses');
@@ -2233,6 +2239,8 @@ function renderVoiceTranscript() {
 }
 
 function renderVoiceState() {
+  const mascot = $('voice-mascot');
+  if (mascot) mascot.src = `assets/mascot/${voiceLab.speaking ? 'speaking' : 'listening'}.png`;
   $('speaking-ai-page').classList.toggle('is-listening', voiceLab.listening);
   $('speaking-ai-page').classList.toggle('is-speaking', voiceLab.speaking);
   if (!voiceLab.recognition) {
@@ -2823,6 +2831,10 @@ function bindEvents() {
     $('global-theme-button').setAttribute('aria-expanded', String(open));
   });
   $('onboarding-back').addEventListener('click', () => showOnboardingStep(onboardingStep - 1));
+  $('onboarding-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    $('onboarding-next').click();
+  });
   $('onboarding-skip').addEventListener('click', skipOnboarding);
   $('onboarding-next').addEventListener('click', async () => {
     const error = validateOnboardingStep();
