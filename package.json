@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node tests/full-exam-schema.test.js"
   },
   "dependencies": {
     "firebase": "^12.16.0"

@@ -215,6 +215,8 @@ let toastTimer;
 let goalSaveTimer;
 let draftAnswers = {};
 let checkedAnswers = {};
+let answerAttempts = {};
+let retryWrongAnswers = {};
 let practiceMode = 'bank';
 let activePlanTaskId = '';
 let activeMockMeta = null;
@@ -224,7 +226,7 @@ const mistakeAnalysisCache = new Map();
 const mistakeAnalysisRequests = new Map();
 const remoteMaterials = {};
 const remoteMaterialLoads = {};
-const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, prep: {} };
+const remotePractice = { questions: { sat:{status:'idle',items:[]}, ielts:{status:'idle',items:[]} }, mocks: {}, fullMocks: {}, prep: {} };
 const dailyQuestionStore = { sat: { status: 'idle', question: null }, ielts: { status: 'idle', question: null } };
 const questionTopicCache = { sat: {}, ielts: {} };
 const questionBankLoads = {};
@@ -1468,7 +1470,8 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
   const rawQuestion = item.q || '';
   const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
-  return { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(item.difficulty || item.level || ''), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
+  const difficulty = item.difficulty || item.level || item.difficultyLevel || item.difficulty_level || item.metadata?.difficulty || '';
+  return { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(difficulty), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
 }
 
 function validRemoteQuestion(question) {
@@ -1527,11 +1530,17 @@ function currentMockKey(){return state.profile.exam==='ielts'?`ielts/${(currentS
 async function loadRemoteMocks(){
   const key=currentMockKey();if(remotePractice.mocks[key]?.status==='loading'||remotePractice.mocks[key]?.status==='ready')return;
   remotePractice.mocks[key]={status:'loading',items:[]};renderMocks();
+  const examKey=state.profile.exam==='ielts'?'ielts-academic':'sat';
+  remotePractice.fullMocks[examKey]={status:'loading',items:[]};
   try { let groups;
     if(key==='sat/all')groups=await Promise.all(['reading','math'].map(async skill=>[skill,await fetchMaterialData(`mocks/sat/${skill}`)]));
     else {const skill=key.split('/')[1];groups=[[skill,await fetchMaterialData(`mocks/ielts/${skill}`)]];}
     remotePractice.mocks[key]={status:'ready',items:groups.flatMap(([skill,data])=>Object.entries(data||{}).map(([id,item])=>({id,skill,...item})))};
   } catch {remotePractice.mocks[key]={status:'error',items:[]};}
+  try {
+    const items=await window.FullExamEngine.list(examKey);
+    remotePractice.fullMocks[examKey]={status:'ready',items};
+  } catch {remotePractice.fullMocks[examKey]={status:'error',items:[]};}
   if(currentPage==='mocks')renderMocks();
 }
 
@@ -1546,10 +1555,14 @@ function renderMocks() {
   $('mocks-kicker').textContent = ielts ? 'IELTS practice' : 'SAT practice';
   $('mocks-title').textContent = ielts ? `${skill} Mocks` : 'SAT Mocks';
   const store=remotePractice.mocks[currentMockKey()];
+  const fullStore=remotePractice.fullMocks[ielts?'ielts-academic':'sat'];
   if(!store){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';loadRemoteMocks();return;}
-  if(store.status==='loading'){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';return;}
-  if(!store.items.length){$('mock-list').innerHTML=`<article class="empty-state"><strong>${store.status==='error'?'Mocks could not be loaded.':'No mocks have been added yet.'}</strong></article>`;return;}
-  $('mock-list').innerHTML=store.items.map((mock,index)=>`<article>${safeImageSource(mock.image)?`<img class="mock-cover" src="${escapeHtml(safeImageSource(mock.image))}" alt="">`:''}<div><span>${escapeHtml(mock.skill)} practice</span><strong>${escapeHtml(mock.title||`Mock ${index+1}`)}</strong><small>${escapeHtml(mock.desc||'Timed practice')}</small></div>${Array.isArray(mock.questions)&&mock.questions.length?`<button class="button button-primary" data-start-mock="${escapeHtml(currentMockKey())}" data-mock-id="${escapeHtml(mock.id)}" type="button">Start test</button>`:`<a class="button button-primary" href="${escapeHtml(mock.url||'#')}" target="_blank" rel="noopener">Open</a>`}</article>`).join('');
+  if(store.status==='loading'||fullStore?.status==='loading'){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';return;}
+  const fullItems=fullStore?.items||[];
+  if(!store.items.length&&!fullItems.length){$('mock-list').innerHTML=`<article class="empty-state"><strong>${store.status==='error'&&fullStore?.status==='error'?'Mocks could not be loaded.':'No mocks have been added yet.'}</strong></article>`;return;}
+  const fullCards=fullItems.map((mock,index)=>`<article class="mock-card"><div><span class="full-mock-card-badge">Full ${ielts?'IELTS Academic':'Digital SAT'}</span><strong>${escapeHtml(mock.title||`Full Mock ${index+1}`)}</strong><small>${escapeHtml(mock.description||'Complete timed exam')}</small></div><div class="mock-spec"><b>${mock.sections.length} sections</b><small>Timed · autosaved</small></div><button class="button button-primary" data-start-full-mock="${escapeHtml(mock.id)}" type="button">Start full test</button></article>`).join('');
+  const skillCards=store.items.map((mock,index)=>`<article>${safeImageSource(mock.image)?`<img class="mock-cover" src="${escapeHtml(safeImageSource(mock.image))}" alt="">`:''}<div><span>${escapeHtml(mock.skill)} practice</span><strong>${escapeHtml(mock.title||`Mock ${index+1}`)}</strong><small>${escapeHtml(mock.desc||'Timed practice')}</small></div>${Array.isArray(mock.questions)&&mock.questions.length?`<button class="button button-primary" data-start-mock="${escapeHtml(currentMockKey())}" data-mock-id="${escapeHtml(mock.id)}" type="button">Start test</button>`:`<a class="button button-primary" href="${escapeHtml(mock.url||'#')}" target="_blank" rel="noopener">Open</a>`}</article>`).join('');
+  $('mock-list').innerHTML=fullCards+skillCards;
 }
 
 async function loadIeltsPrep(skill){
@@ -1667,6 +1680,8 @@ function saveActivePractice() {
       mockMeta: activeMockMeta,
       draftAnswers,
       checkedAnswers,
+      answerAttempts,
+      retryWrongAnswers,
       practiceXp,
       practiceStreak,
       timerSeconds,
@@ -1694,6 +1709,8 @@ function restoreActivePractice() {
     activeMockMeta = practiceMode === 'mock' ? (saved.mockMeta || null) : null;
     draftAnswers = saved.draftAnswers || {};
     checkedAnswers = saved.checkedAnswers || {};
+    answerAttempts = saved.answerAttempts || {};
+    retryWrongAnswers = saved.retryWrongAnswers || {};
     practiceXp = Math.max(0, Number(saved.practiceXp) || 0);
     practiceStreak = Math.max(0, Number(saved.practiceStreak) || 0);
     timerSeconds = Math.max(0, Number(saved.timerSeconds) || 0);
@@ -1948,6 +1965,8 @@ function renderQuestion() {
   const selectedAnswer = answer ?? draftAnswers[question.id];
   const isChecked = !isMock && answer !== undefined;
   const wrongAnswer = isChecked && answer !== question.correct;
+  const retryWrongAnswer = retryWrongAnswers[question.id];
+  const isRetry = !isChecked && retryWrongAnswer !== undefined;
   const analysisEntry = wrongAnswer ? mistakeAnalysisCache.get(mistakeAnalysisKey(question, answer)) : null;
   const inlineAnalysis = analysisEntry?.status === 'ready' ? analysisEntry.analysis : null;
   const eliminated = state.progress.eliminated[question.id] || [];
@@ -1977,14 +1996,16 @@ function renderQuestion() {
   $('mock-mark-question').innerHTML = `<span class="mark-indicator" aria-hidden="true"></span>${marked ? 'Marked for Review' : 'Mark for Review'}`;
   $('mock-mark-question').classList.toggle('is-marked', marked);
   $('mock-mark-question').setAttribute('aria-pressed', String(marked));
-  $('answer-list').innerHTML = question.answers.map((text, index) => {
-    const resultClass = isChecked && index === question.correct ? 'is-correct' : isChecked && index === answer ? 'is-incorrect' : '';
-    const confirm = !isMock && selectedAnswer === index && !isChecked ? '<button class="confirm-answer" data-check-answer type="button">Check answer</button>' : '';
+  const answerOptions = question.answers.map((text, index) => {
+    const isWrongChoice = index === retryWrongAnswer || (wrongAnswer && index === answer);
+    const resultClass = isChecked && index === question.correct ? 'is-correct' : (isRetry || isChecked) && isWrongChoice ? 'is-incorrect' : '';
     const inlineNote = inlineAnalysis && index === answer ? `<aside class="inline-ai-note is-wrong"><span>Luminary · why this misses</span><p>${escapeHtml(inlineAnalysis.whyWrong)}</p></aside>` : inlineAnalysis && index === question.correct ? `<aside class="inline-ai-note is-correct"><span>Luminary · why this works</span><p>${escapeHtml(inlineAnalysis.whyCorrect)}</p><small>${escapeHtml(inlineAnalysis.takeaway)}</small></aside>` : '';
-    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${escapeHtml(text)}</span></button>${confirm}<button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button>${inlineNote}</div>`;
+    return `<div class="answer-row ${eliminated.includes(index) ? 'is-eliminated' : ''}"><button class="answer-option ${selectedAnswer === index ? 'is-selected' : ''} ${resultClass}" data-answer="${index}" type="button" ${isChecked ? 'disabled' : ''}><span class="answer-letter">${'ABCD'[index]}</span><span>${escapeHtml(text)}</span></button><button class="eliminate-option ${eliminated.includes(index) ? 'is-active' : ''}" data-eliminate="${index}" type="button" title="Eliminate answer ${'ABCD'[index]}" aria-label="Eliminate answer ${'ABCD'[index]}" ${isChecked ? 'disabled' : ''}>x</button>${inlineNote}</div>`;
   }).join('');
-  $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : '';
-  $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : ''}`;
+  const confirmAnswer = !isMock && selectedAnswer !== undefined && !isChecked ? '<div class="answer-confirm-row"><button class="confirm-answer" data-check-answer type="button">Check answer</button></div>' : '';
+  $('answer-list').innerHTML = answerOptions + confirmAnswer;
+  $('answer-status').textContent = isChecked ? (answer === question.correct ? 'Correct.' : `Incorrect. The correct answer is ${'ABCD'[question.correct]}.`) : isRetry ? 'Incorrect. Try one more time.' : '';
+  $('answer-status').className = `answer-status ${isChecked ? (answer === question.correct ? 'is-correct' : 'is-incorrect') : isRetry ? 'is-incorrect is-retry' : ''}`;
   if (wrongAnswer) requestMistakeAnalysis(question, answer);
   renderMistakeAnalysis(question, answer, isMock);
   const hasExplanation = Boolean(!isMock && isChecked && !wrongAnswer && question.explanation);
@@ -2004,6 +2025,8 @@ function startPractice(set = 'math', questionIndex = 0, questions = null, mode =
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
   checkedAnswers = {};
+  answerAttempts = {};
+  retryWrongAnswers = {};
   practiceXp = 0;
   practiceStreak = 0;
   practiceMode = mode;
@@ -2045,6 +2068,18 @@ function checkAnswer() {
   const question = practiceQuestions[currentQuestion];
   const choice = draftAnswers[question.id];
   if (practiceMode === 'mock' || choice === undefined || checkedAnswers[question.id] !== undefined) return;
+  const attempts = Number(answerAttempts[question.id]) || 0;
+  if (choice !== question.correct && attempts === 0) {
+    answerAttempts[question.id] = 1;
+    retryWrongAnswers[question.id] = choice;
+    delete draftAnswers[question.id];
+    practiceStreak = 0;
+    renderQuestion();
+    persist();
+    saveActivePractice();
+    return;
+  }
+  answerAttempts[question.id] = attempts + 1;
   checkedAnswers[question.id] = choice;
   if (choice === question.correct) {
     practiceStreak += 1;
@@ -2156,11 +2191,23 @@ function moveQuestion(delta) {
 }
 
 function renderQuestionNavigator() {
+  const navigator = $('question-navigator');
+  let legend = navigator.querySelector('.navigator-legend');
+  if (!legend) {
+    legend = document.createElement('div');
+    legend.className = 'navigator-legend';
+    legend.setAttribute('aria-label', 'Difficulty colors');
+    navigator.querySelector('.navigator-card header')?.insertAdjacentElement('afterend', legend);
+  }
+  legend.innerHTML = '<span class="difficulty-hard">Hard</span><span class="difficulty-medium">Medium</span><span class="difficulty-easy">Easy</span>';
   $('navigator-grid').innerHTML = practiceQuestions.map((question, index) => {
     const answered = practiceMode === 'mock' ? draftAnswers[question.id] !== undefined : checkedAnswers[question.id] !== undefined;
     const marked = Boolean(state.progress.marked[question.id]);
-    const classes = [index === currentQuestion ? 'is-current' : '', answered ? 'is-answered' : '', marked ? 'is-marked' : ''].filter(Boolean).join(' ');
-    return `<button class="navigator-question ${classes}" type="button" data-jump-question="${index}" aria-label="Question ${index + 1}${marked ? ', marked for review' : ''}">${index + 1}</button>`;
+    const difficulty = String(question.difficulty || '').trim().toLowerCase();
+    const difficultyClass = ['easy', 'medium', 'hard'].includes(difficulty) ? `difficulty-${difficulty}` : '';
+    const classes = [difficultyClass, index === currentQuestion ? 'is-current' : '', answered ? 'is-answered' : '', marked ? 'is-marked' : ''].filter(Boolean).join(' ');
+    const difficultyLabel = difficulty ? `, ${difficulty} difficulty` : '';
+    return `<button class="navigator-question ${classes}" type="button" data-jump-question="${index}" aria-label="Question ${index + 1}${difficultyLabel}${marked ? ', marked for review' : ''}"><strong>${index + 1}</strong>${difficultyClass ? `<small>${escapeHtml(difficulty)}</small>` : ''}</button>`;
   }).join('');
 }
 
@@ -2721,6 +2768,17 @@ function applyAuthenticatedUser(user) {
 }
 
 function bindEvents() {
+  document.addEventListener('luminaryFullExamComplete',(event)=>{
+    const result=event.detail;if(!result||!Array.isArray(result.sections))return;
+    const correct=result.sections.reduce((sum,section)=>sum+(Number(section.correct)||0),0);
+    const total=result.sections.reduce((sum,section)=>sum+(Number(section.total)||0),0);
+    const completedAt=Number(result.completedAt)||Date.now();
+    const record={id:`full-mock-result-${completedAt}`,sourceId:String(result.mockId||''),title:String(result.title||'Full mock'),skill:'Full exam',exam:result.exam==='ielts-academic'?'ielts':'sat',correct,total,accuracy:total?Math.round(correct/total*100):0,estimatedScore:0,completedAt,analyzedAt:0,analysis:null,answers:result.sections.map(section=>({id:section.id,set:section.id,correct:section.correct,total:section.total,band:section.band}))};
+    const results=state.progress.mockResults||(state.progress.mockResults=[]);results.push(record);if(results.length>30)results.splice(0,results.length-30);
+    const now=new Date(),yesterdayDate=new Date(now);yesterdayDate.setDate(now.getDate()-1);const today=localDateKey(now),yesterday=localDateKey(yesterdayDate);
+    state.progress.sessions+=1;state.progress.streak=state.progress.lastSessionDate===today?Math.max(1,state.progress.streak):state.progress.lastSessionDate===yesterday?state.progress.streak+1:1;state.progress.lastSessionDate=today;
+    persist();renderHome();
+  });
   window.addEventListener('luminary:auth-state', (event) => applyAuthenticatedUser(event.detail));
   window.addEventListener('luminary:auth-error', (event) => showToast(event.detail));
   document.addEventListener('click', (event) => {
@@ -2766,6 +2824,13 @@ function bindEvents() {
       $('global-theme-button').setAttribute('aria-expanded', 'false');
       persist();
       showToast(`${THEMES[theme.dataset.theme].name} palette selected.`);
+      return;
+    }
+    const fullMock = event.target.closest('[data-start-full-mock]');
+    if(fullMock){
+      const store=remotePractice.fullMocks[state.profile.exam==='ielts'?'ielts-academic':'sat'];
+      const item=store?.items.find(entry=>entry.id===fullMock.dataset.startFullMock);
+      if(item){try{window.FullExamEngine.start(item);}catch(error){showToast(error.message||'This full mock is invalid.');}}
       return;
     }
     const mock = event.target.closest('[data-start-mock]');
@@ -2942,6 +3007,7 @@ async function init() {
   } else restoreActivePractice();
   applyAuthenticatedUser(window.luminaryAuthUser);
   startOnboarding();
+  window.FullExamEngine?.restore();
 }
 
 init();

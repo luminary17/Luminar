@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Full Exam Harness</title>
+  <link rel="stylesheet" href="../main.css">
+  <link rel="stylesheet" href="../full-exam-engine.css">
+</head>
+<body style="padding:40px">
+  <h1>Full Exam Harness</h1>
+  <button class="button button-primary" id="sat">Start SAT fixture</button>
+  <button class="button button-primary" id="ielts">Start IELTS fixture</button>
+  <script src="../full-exam-schema.js"></script>
+  <script src="../full-exam-engine.js"></script>
+  <script>
+    const choice=(id,prompt='Choose the correct answer.')=>({id,type:'single_choice',prompt,options:['First','Second','Third','Fourth'],correct:1});
+    const satModule=(id,stage,set)=>({id,stage,title:stage==='routing'?'Module 1':'Module 2',durationMinutes:32,questions:[set==='math'?{id:`${id}-q1`,type:'numeric',prompt:'What is 2 + 2?',acceptedAnswers:['4']}:choice(`${id}-q1`)]});
+    const sat={schemaVersion:1,id:'sat-harness',exam:'sat',title:'SAT Engine Fixture',sections:[
+      {id:'rw',title:'Reading and Writing',route:{threshold:.6,lowerModuleId:'rw-low',higherModuleId:'rw-high'},modules:[satModule('rw-route','routing','rw'),satModule('rw-low','lower','rw'),satModule('rw-high','higher','rw')]},
+      {id:'math',title:'Math',route:{threshold:.6,lowerModuleId:'math-low',higherModuleId:'math-high'},modules:[satModule('math-route','routing','math'),satModule('math-low','lower','math'),satModule('math-high','higher','math')]}
+    ]};
+    const ielts={schemaVersion:1,id:'ielts-harness',exam:'ielts-academic',title:'IELTS Engine Fixture',sections:[
+      {id:'listening',title:'Listening',modules:[{id:'listen',title:'Listening',durationMinutes:30,parts:[{id:'listen-p1',title:'Part 1',audioUrl:'https://example.com/audio.mp3',questions:[{id:'lq1',type:'text',prompt:'Type the name.',acceptedAnswers:['Ada']}]}]}]},
+      {id:'reading',title:'Academic Reading',modules:[{id:'read',title:'Reading',durationMinutes:60,parts:[{id:'read-p1',passage:'A short original passage for layout verification.',questions:[{id:'rq1',type:'matching',prompt:'Match the item.',prompts:[{id:'A',text:'Paragraph A'}],options:['Heading i','Heading ii'],matches:{A:'Heading i'}}]}]}]},
+      {id:'writing',title:'Academic Writing',modules:[{id:'write',title:'Writing',durationMinutes:60,questions:[{id:'w1',type:'writing',prompt:'Summarise the information.',minWords:150},{id:'w2',type:'writing',prompt:'Discuss both views and give your opinion.',minWords:250}]}]}
+    ]};
+    document.getElementById('sat').onclick=()=>FullExamEngine.start(sat);
+    document.getElementById('ielts').onclick=()=>FullExamEngine.start(ielts);
+  </script>
+</body>
+</html>
