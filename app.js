@@ -1460,6 +1460,17 @@ function splitQuestionText(text) {
   return { passage: '', prompt: source };
 }
 
+function assignedQuestionDifficulty(value, key = '') {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['easy', 'medium', 'hard'].includes(normalized)) return normalized[0].toUpperCase() + normalized.slice(1);
+  let hash = 2166136261;
+  for (const character of String(key)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return ['Easy', 'Medium', 'Hard'][(hash >>> 0) % 3];
+}
+
 function remoteQuestion(id, item, prefix = 'firebase') {
   const options = item.options || item.answers || {};
   const answers = Array.isArray(options) ? options : ['A', 'B', 'C', 'D'].map((key) => options[key]);
@@ -1470,7 +1481,7 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
   const rawQuestion = item.q || '';
   const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
-  const difficulty = item.difficulty || item.level || item.difficultyLevel || item.difficulty_level || item.metadata?.difficulty || '';
+  const difficulty = assignedQuestionDifficulty(item.difficulty || item.level || item.difficultyLevel || item.difficulty_level || item.metadata?.difficulty, `${prefix}-${id}`);
   return { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(difficulty), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
 }
 
@@ -1487,14 +1498,18 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
   questionBankLoads[exam] = (async () => {
     try {
       const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
-      store.items = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
+      const remoteItems = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
+      const mathItems = exam === 'sat' ? (window.LUMINARY_SAT_MATH_QUESTIONS || []).map((item, index) => remoteQuestion(item.id || index, item, 'sat-math-official-framework')).filter(validRemoteQuestion) : [];
+      store.items = [...remoteItems, ...mathItems];
       store.status = 'ready';
       writeQuestionCache(exam, store.items);
       return store.items;
     } catch {
       const cachedItems = await readQuestionCache(exam);
-      if (cachedItems?.length) {
-        store.items = cachedItems;
+      const mathItems = exam === 'sat' ? (window.LUMINARY_SAT_MATH_QUESTIONS || []).map((item, index) => remoteQuestion(item.id || index, item, 'sat-math-official-framework')).filter(validRemoteQuestion) : [];
+      if (cachedItems?.length || mathItems.length) {
+        const cachedIds = new Set((cachedItems || []).map((question) => question.id));
+        store.items = [...(cachedItems || []).map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) })), ...mathItems.filter((question) => !cachedIds.has(question.id))];
         store.status = 'ready';
         return store.items;
       }
@@ -1518,12 +1533,16 @@ async function loadQuestionTopics(exam, topics) {
       const query = `orderBy=${encodeURIComponent('"tag"')}&equalTo=${encodeURIComponent(JSON.stringify(topic))}`;
       const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}?${query}`, 18000);
       cache[topic] = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-topic`)).filter(validRemoteQuestion);
+      if (!cache[topic].length) cache[topic] = remotePractice.questions[exam].items.filter((question) => question.domain === topic);
     } catch {
       const available = remotePractice.questions[exam].items.length ? remotePractice.questions[exam].items : (await readQuestionCache(exam)) || [];
       cache[topic] = available.filter((question) => question.domain === topic);
     }
   }));
-  return databaseTopics.flatMap((topic) => cache[topic] || []);
+  const loaded = databaseTopics.flatMap((topic) => cache[topic] || []);
+  if (exam !== 'sat') return loaded;
+  const selectedSkills = new Set(topics.map((topic) => topic.split('::')[1]).filter(Boolean));
+  return loaded.filter((question) => !question.skill || selectedSkills.has(question.skill));
 }
 
 function currentMockKey(){return state.profile.exam==='ielts'?`ielts/${(currentSkill||'Listening').toLowerCase()}`:'sat/all';}
@@ -1701,7 +1720,7 @@ function restoreActivePractice() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(ACTIVE_PRACTICE_KEY) || 'null');
     if (!saved?.questions?.length) return;
-    practiceQuestions = saved.questions;
+    practiceQuestions = saved.questions.map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
     currentSet = saved.set || 'math';
     currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
     practiceMode = ['mock', 'plan', 'adaptive'].includes(saved.mode) ? saved.mode : 'bank';
@@ -2021,7 +2040,7 @@ function renderQuestion() {
 
 function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '', mockMeta = null) {
   currentSet = set;
-  practiceQuestions = questions || [];
+  practiceQuestions = (questions || []).map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
   draftAnswers = {};
   checkedAnswers = {};
