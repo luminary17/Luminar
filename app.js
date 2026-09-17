@@ -147,7 +147,6 @@ const DAILY_QUOTES = [
 
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
-const OFFICIAL_SAT_MATH_QUESTION_BANK_URL = 'https://satsuiteeducatorquestionbank.collegeboard.org/digital/search';
 const LUMINARY_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
 const IELTS_SKILL_DETAILS = {
   Listening: 'Train comprehension, vocabulary and attention to spoken detail.',
@@ -1499,14 +1498,14 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
   questionBankLoads[exam] = (async () => {
     try {
       const data = await fetchDatabaseData(QUESTION_DATABASE_URL, `question-bank/${exam}`, 60000);
-      store.items = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion).filter((question) => exam !== 'sat' || question.set !== 'math');
+      store.items = Object.entries(data || {}).map(([id, item]) => remoteQuestion(id, item, `${exam}-bank`)).filter(validRemoteQuestion);
       store.status = 'ready';
       writeQuestionCache(exam, store.items);
       return store.items;
     } catch {
       const cachedItems = await readQuestionCache(exam);
       if (cachedItems?.length) {
-        store.items = cachedItems.filter((question) => exam !== 'sat' || question.set !== 'math').map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
+        store.items = cachedItems.map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
         store.status = 'ready';
         return store.items;
       }
@@ -1789,12 +1788,9 @@ function renderQuestionBank() {
     library.innerHTML = sections.map((set) => {
       const [mark, title, copy] = sectionDetails[set] || [questionSetName(set).slice(0, 1), questionSetName(set), 'Focused exam practice.'];
       const count = questionsForSet(set).length;
-      const officialMath = exam === 'sat' && set === 'math';
-      const unavailable = !officialMath && store.status === 'ready' && count === 0;
-      const availability = officialMath ? 'Official College Board question bank' : store.status === 'ready' ? (count ? `${count.toLocaleString('en-US')} question${count === 1 ? '' : 's'}` : 'Coming soon') : 'Loading questions';
-      const action = officialMath ? 'Open official Math questions' : unavailable ? 'Questions are being prepared' : 'Choose topics';
-      const dataAction = officialMath ? 'data-open-official-math' : `data-select-set="${set}"`;
-      return `<button class="library-card qbank-section qbank-section-${set}" ${dataAction} type="button" ${unavailable ? 'disabled' : ''}><span class="qbank-section-mark" aria-hidden="true">${escapeHtml(mark)}</span><span class="qbank-section-copy"><small>${escapeHtml(availability)}</small><strong>${escapeHtml(title)}</strong><p>${escapeHtml(copy)}</p></span><b>${escapeHtml(action)} <i aria-hidden="true">${unavailable ? '' : '→'}</i></b></button>`;
+      const unavailable = store.status === 'ready' && count === 0;
+      const availability = store.status === 'ready' ? (count ? `${count.toLocaleString('en-US')} question${count === 1 ? '' : 's'}` : 'Coming soon') : 'Loading questions';
+      return `<button class="library-card qbank-section qbank-section-${set}" data-select-set="${set}" type="button" ${unavailable ? 'disabled' : ''}><span class="qbank-section-mark" aria-hidden="true">${escapeHtml(mark)}</span><span class="qbank-section-copy"><small>${escapeHtml(availability)}</small><strong>${escapeHtml(title)}</strong><p>${escapeHtml(copy)}</p></span><b>${unavailable ? 'Questions are being prepared' : 'Choose topics'} <i aria-hidden="true">${unavailable ? '' : '→'}</i></b></button>`;
     }).join('');
     return;
   }
@@ -2872,8 +2868,6 @@ function bindEvents() {
     if (jump) { jumpToQuestion(Number(jump.dataset.jumpQuestion)); return; }
     const section = event.target.closest('[data-select-set]');
     if (section) { currentSet = section.dataset.selectSet; selectedQuestionTopics = []; questionBankView = 'topics'; renderQuestionBank(); return; }
-    const officialMath = event.target.closest('[data-open-official-math]');
-    if (officialMath) { window.open(OFFICIAL_SAT_MATH_QUESTION_BANK_URL, '_blank', 'noopener'); return; }
     const topic = event.target.closest('[data-toggle-topic]');
     if (topic) { toggleQuestionTopic(topic.dataset.toggleTopic); return; }
     const startSelected = event.target.closest('[data-start-selected-topics]');
