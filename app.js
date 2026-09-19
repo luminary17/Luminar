@@ -2406,9 +2406,15 @@ function speakBrowserVoice(text) {
       /Microsoft David/i,
       /Daniel/i
     ];
-    utterance.voice = preferredVoiceNames
+    const maleVoice = preferredVoiceNames
       .map((pattern) => voices.find((voice) => pattern.test(voice.name) && /^en[-_]/i.test(voice.lang)))
-      .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
+      .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || null;
+    if (!maleVoice) {
+      showToast('Install an English male system voice to use Mr. Monday’s voice.');
+      resolve();
+      return;
+    }
+    utterance.voice = maleVoice;
     voiceLab.utterance = utterance;
     voiceLab.speaking = true;
     renderVoiceState();
@@ -2433,33 +2439,6 @@ async function speakVoiceReply(text) {
   if (!text) return;
   lockVoiceInputForExaminer();
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 9_000);
-    const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    if (!response.ok) throw new Error('Gemini voice is unavailable.');
-    const audioUrl = URL.createObjectURL(await response.blob());
-    const audio = new Audio(audioUrl);
-    voiceLab.utterance = audio;
-    voiceLab.speaking = true;
-    renderVoiceState();
-    await new Promise((resolve, reject) => {
-      audio.onended = resolve;
-      audio.onerror = reject;
-      audio.play().catch(reject);
-    });
-    URL.revokeObjectURL(audioUrl);
-    if (voiceLab.utterance === audio) {
-      voiceLab.utterance = null;
-      voiceLab.speaking = false;
-      renderVoiceState();
-    }
-  } catch {
     await speakBrowserVoice(text);
   } finally {
     voiceLab.examinerTurn = false;

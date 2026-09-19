@@ -22,8 +22,8 @@ assert.match(app, /voiceLab\.recognition\?\.abort\(\)/);
 assert.match(app, /voiceLab\.examinerTurn/);
 assert.match(app, /utterance\.pitch = 0\.78/);
 assert.match(worker, /deep, mature, authoritative professor-style voice/);
-assert.match(app, /controller\.abort\(\), 9_000/);
-assert.match(css, /\.voice-dome \{ grid-column: 1; \}/);
-assert.match(css, /\.voice-caption-panel \{ grid-column: 2; \}/);
+assert.doesNotMatch(app.slice(app.indexOf('async function speakVoiceReply'), app.indexOf('function clearVoiceAnswerTiming')), /\/speaking\/tts/);
+assert.match(css, /\.voice-dome \{ grid-column: 1; grid-row: 1; \}/);
+assert.match(css, /\.voice-caption-panel \{ grid-column: 2; grid-row: 1; \}/);
 
 console.log('Mock analysis and voice experience contract tests passed');
