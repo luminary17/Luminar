@@ -1575,7 +1575,7 @@ async function loadQuestionTopics(exam, topics) {
   return loaded.filter((question) => !question.skill || selectedSkills.has(question.skill));
 }
 
-function currentMockKey(){return state.profile.exam==='ielts'?`ielts/${(currentSkill||'Listening').toLowerCase()}`:'sat/all';}
+function currentMockKey(){return state.profile.exam==='ielts'?(currentSkill?`ielts/${currentSkill.toLowerCase()}`:'ielts/all'):'sat/all';}
 async function loadRemoteMocks(){
   const key=currentMockKey();if(remotePractice.mocks[key]?.status==='loading'||remotePractice.mocks[key]?.status==='ready')return;
   remotePractice.mocks[key]={status:'loading',items:[]};renderMocks();
@@ -1583,6 +1583,7 @@ async function loadRemoteMocks(){
   remotePractice.fullMocks[examKey]={status:'loading',items:[]};
   try { let groups;
     if(key==='sat/all')groups=await Promise.all(['reading','math'].map(async skill=>[skill,await fetchMaterialData(`mocks/sat/${skill}`)]));
+    else if(key==='ielts/all')groups=[];
     else {const skill=key.split('/')[1];groups=[[skill,await fetchMaterialData(`mocks/ielts/${skill}`)]];}
     remotePractice.mocks[key]={status:'ready',items:groups.flatMap(([skill,data])=>Object.entries(data||{}).map(([id,item])=>({id,skill,...item})))};
   } catch {remotePractice.mocks[key]={status:'error',items:[]};}
@@ -1602,15 +1603,21 @@ function renderMocks() {
   const ielts = state.profile.exam === 'ielts';
   const skill = currentSkill || 'Listening';
   $('mocks-kicker').textContent = ielts ? 'IELTS practice' : 'SAT practice';
-  $('mocks-title').textContent = ielts ? `${skill} Mocks` : 'SAT Mocks';
+  $('mocks-title').textContent = ielts ? (currentSkill ? `${skill} Mocks` : 'IELTS Mocks') : 'SAT Mocks';
   const store=remotePractice.mocks[currentMockKey()];
   const fullStore=remotePractice.fullMocks[ielts?'ielts-academic':'sat'];
   if(!store){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';loadRemoteMocks();return;}
   if(store.status==='loading'||fullStore?.status==='loading'){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';return;}
   const fullItems=fullStore?.items||[];
-  if(!store.items.length&&!fullItems.length){$('mock-list').innerHTML=`<article class="empty-state"><strong>${store.status==='error'&&fullStore?.status==='error'?'Mocks could not be loaded.':'No mocks have been added yet.'}</strong></article>`;return;}
-  const fullCards=fullItems.map((mock,index)=>`<article class="mock-card"><div><span class="full-mock-card-badge">Full ${ielts?'IELTS Academic':'Digital SAT'}</span><strong>${escapeHtml(mock.title||`Full Mock ${index+1}`)}</strong><small>${escapeHtml(mock.description||'Complete timed exam')}</small></div><div class="mock-spec"><b>${mock.sections.length} sections</b><small>Timed · autosaved</small></div><button class="button button-primary" data-start-full-mock="${escapeHtml(mock.id)}" type="button">Start full test</button></article>`).join('');
-  const skillCards=store.items.map((mock,index)=>`<article>${safeImageSource(mock.image)?`<img class="mock-cover" src="${escapeHtml(safeImageSource(mock.image))}" alt="">`:''}<div><span>${escapeHtml(mock.skill)} practice</span><strong>${escapeHtml(mock.title||`Mock ${index+1}`)}</strong><small>${escapeHtml(mock.desc||'Timed practice')}</small></div>${Array.isArray(mock.questions)&&mock.questions.length?`<button class="button button-primary" data-start-mock="${escapeHtml(currentMockKey())}" data-mock-id="${escapeHtml(mock.id)}" type="button">Start test</button>`:`<a class="button button-primary" href="${escapeHtml(mock.url||'#')}" target="_blank" rel="noopener">Open</a>`}</article>`).join('');
+  const skillItems=ielts&&!currentSkill?[]:store.items;
+  if(!skillItems.length&&!fullItems.length){$('mock-list').innerHTML=`<article class="empty-state"><strong>${store.status==='error'&&fullStore?.status==='error'?'Mocks could not be loaded.':'No mocks have been added yet.'}</strong></article>`;return;}
+  const fullCards=fullItems.map((mock,index)=>{
+    const questionCount=mock.sections.reduce((total,section)=>total+section.modules.reduce((moduleTotal,module)=>moduleTotal+window.FullExamSchema.allQuestions(module).length,0),0);
+    const moduleCount=mock.sections.reduce((total,section)=>total+section.modules.length,0);
+    const audioPending=ielts&&mock.sections.some(section=>section.id==='listening'&&section.modules.some(module=>module.parts.some(part=>!part.audioUrl)));
+    return `<article class="mock-card"><div><span class="full-mock-card-badge">${ielts?'IELTS Academic':'Digital SAT'}</span><strong>${escapeHtml(mock.title||`Practice ${index+1}`)}</strong><small>${escapeHtml(mock.description||'Complete timed practice')}</small></div><div class="mock-spec"><b>${ielts?'L · R · W':`${questionCount} questions`}</b><small>${audioPending?'Listening audio pending':`${moduleCount} timed modules · autosaved`}</small></div><button class="button button-primary" data-start-full-mock="${escapeHtml(mock.id)}" type="button">Start practice</button></article>`;
+  }).join('');
+  const skillCards=skillItems.map((mock,index)=>`<article>${safeImageSource(mock.image)?`<img class="mock-cover" src="${escapeHtml(safeImageSource(mock.image))}" alt="">`:''}<div><span>${escapeHtml(mock.skill)} practice</span><strong>${escapeHtml(mock.title||`Mock ${index+1}`)}</strong><small>${escapeHtml(mock.desc||'Timed practice')}</small></div>${Array.isArray(mock.questions)&&mock.questions.length?`<button class="button button-primary" data-start-mock="${escapeHtml(currentMockKey())}" data-mock-id="${escapeHtml(mock.id)}" type="button">Start test</button>`:`<a class="button button-primary" href="${escapeHtml(mock.url||'#')}" target="_blank" rel="noopener">Open</a>`}</article>`).join('');
   $('mock-list').innerHTML=fullCards+skillCards;
 }
 
@@ -3019,7 +3026,7 @@ function bindEvents() {
     const analyzeMock = event.target.closest('[data-analyze-mock]');
     if (analyzeMock) { analyzeMockResult(analyzeMock.dataset.analyzeMock); return; }
     const openMocks = event.target.closest('[data-open-mocks]');
-    if (openMocks) { if (state.profile.exam === 'ielts' && !currentSkill) currentSkill = 'Listening'; openPage('mocks'); renderMocks(); return; }
+    if (openMocks) { if (state.profile.exam === 'ielts') currentSkill = ''; openPage('mocks'); renderMocks(); return; }
     const training = event.target.closest('[data-train-topic]');
     if (training) { startRecommendedTraining(training.dataset.trainTopic, training.dataset.trainSet); return; }
     const reviewTopic = event.target.closest('[data-review-topic]');

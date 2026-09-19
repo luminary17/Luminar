@@ -36,7 +36,12 @@ Images and recordings should normally use HTTPS Firebase Storage URLs. Data URLs
 
 ## Digital SAT
 
-SAT must contain `rw` and `math` sections. Each section needs three modules with stages `routing`, `lower`, and `higher`. Reading and Writing modules contain 27 questions and last 32 minutes. Math modules contain 22 questions and last 35 minutes.
+SAT must contain `rw` and `math` sections. Luminary supports two delivery modes:
+
+- `"deliveryMode": "adaptive"` (default): each section has `routing`, `lower`, and `higher` modules.
+- `"deliveryMode": "linear"`: each section has exactly two sequential modules, matching a fixed four-module Practice booklet.
+
+Reading and Writing modules contain 27 questions and last 32 minutes. Math modules contain 22 questions and last 35 minutes.
 
 The student completes the routing module and then receives the lower or higher second module. `threshold` is a practice routing rule, not College Board's proprietary scoring algorithm.
 
@@ -95,7 +100,7 @@ Use `numeric` for Math student-produced responses. Include every mathematically 
 
 IELTS Academic must contain `listening`, `reading`, and `writing` sections. Listening and Reading each contain 40 questions. Writing contains two tasks.
 
-Listening should use four parts. Set `audioUrl` on each part:
+Listening should use four parts. Set `audioUrl` on each part when the recording is ready. A Practice with an empty `audioUrl` remains publishable and is labelled **Listening audio pending** in the student interface:
 
 ```json
 {

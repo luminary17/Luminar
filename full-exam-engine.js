@@ -44,13 +44,13 @@
   function currentResponse(question = currentQuestion()) { return question ? state.responses[responseKey(question)] : undefined; }
   function sectionDeliveredItems(section) {
     if (section.id === 'writing') return section.modules.flatMap((module) => global.FullExamSchema.allQuestions(module)).length;
-    if (state.mock?.exam !== 'sat') return section.modules.reduce((total, module) => total + global.FullExamSchema.modulePoints(module), 0);
+    if (state.mock?.exam !== 'sat' || state.mock?.deliveryMode === 'linear') return section.modules.reduce((total, module) => total + global.FullExamSchema.modulePoints(module), 0);
     const routing = section.modules.find((module) => module.stage === 'routing');
     const branches = section.modules.filter((module) => ['lower', 'higher'].includes(module.stage));
     return global.FullExamSchema.modulePoints(routing) + Math.max(0, ...branches.map((module) => global.FullExamSchema.modulePoints(module)));
   }
   function sectionDeliveredMinutes(section) {
-    if (state.mock?.exam !== 'sat') return section.modules.reduce((total, module) => total + module.durationMinutes, 0);
+    if (state.mock?.exam !== 'sat' || state.mock?.deliveryMode === 'linear') return section.modules.reduce((total, module) => total + module.durationMinutes, 0);
     const routing = section.modules.find((module) => module.stage === 'routing');
     const branches = section.modules.filter((module) => ['lower', 'higher'].includes(module.stage));
     return Number(routing?.durationMinutes || 0) + Math.max(0, ...branches.map((module) => module.durationMinutes));
@@ -64,11 +64,27 @@
 
   async function list(exam) {
     const path = exam === 'ielts' || exam === 'ielts-academic' ? 'ielts-academic' : 'sat';
-    const data = await fetchJson(`full-mocks/${path}`);
-    return Object.entries(data || {}).map(([firebaseId, raw]) => {
+    const [bundledResult, remoteResult] = await Promise.allSettled([
+      fetch(`data/full-mocks/${path}.json?v=1`, { cache: 'no-store' }).then((response) => {
+        if (!response.ok) throw new Error('Bundled mocks could not be loaded.');
+        return response.json();
+      }),
+      fetchJson(`full-mocks/${path}`)
+    ]);
+    if (bundledResult.status === 'rejected' && remoteResult.status === 'rejected') throw new Error('Mocks could not be loaded.');
+    const merged = new Map();
+    const bundled = bundledResult.status === 'fulfilled' && Array.isArray(bundledResult.value) ? bundledResult.value : [];
+    bundled.forEach((raw) => {
       const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
-      return validation.valid && validation.mock.published ? { firebaseId, ...validation.mock } : null;
-    }).filter(Boolean);
+      if (validation.valid && validation.mock.published) merged.set(validation.mock.id, { source: 'bundled', ...validation.mock });
+    });
+    const remote = remoteResult.status === 'fulfilled' ? remoteResult.value : {};
+    Object.entries(remote || {}).forEach(([firebaseId, raw]) => {
+      const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
+      if (validation.valid && validation.mock.published) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
+      else if (validation.mock?.id) merged.delete(validation.mock.id);
+    });
+    return [...merged.values()].sort((left, right) => (left.order || 999) - (right.order || 999) || left.title.localeCompare(right.title));
   }
 
   function ensureShell() {
@@ -131,7 +147,7 @@
     const sat = state.mock.exam === 'sat';
     $('full-exam-context').innerHTML = '';
     hideAudioDock();
-    $('full-exam-stage').innerHTML = `<article class="full-exam-intro"><p class="kicker">${sat ? 'Digital SAT' : 'IELTS Academic'}</p><h1>${escapeHtml(state.mock.title)}</h1><p>${escapeHtml(state.mock.description || (sat ? 'A complete adaptive SAT simulation.' : 'A complete Listening, Reading and Writing simulation.'))}</p><div class="full-exam-overview">${state.mock.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span><strong>${sectionDeliveredItems(section)} ${section.id === 'writing' ? 'tasks' : 'questions'}</strong><small>${sectionDeliveredMinutes(section)} minutes</small></article>`).join('')}</div><aside><strong>Before you begin</strong><p>Your progress is saved on this device. Once a timed module is submitted, you cannot return to it.</p></aside><button class="button button-primary" data-full-begin type="button">Start exam</button></article>`;
+    $('full-exam-stage').innerHTML = `<article class="full-exam-intro"><p class="kicker">${sat ? 'Digital SAT' : 'IELTS Academic'}</p><h1>${escapeHtml(state.mock.title)}</h1><p>${escapeHtml(state.mock.description || (sat ? 'A complete timed SAT simulation.' : 'A complete Listening, Reading and Writing simulation.'))}</p><div class="full-exam-overview">${state.mock.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span><strong>${sectionDeliveredItems(section)} ${section.id === 'writing' ? 'tasks' : 'questions'}</strong><small>${sectionDeliveredMinutes(section)} minutes</small></article>`).join('')}</div><aside><strong>Before you begin</strong><p>Your progress is saved on this device. Once a timed module is submitted, you cannot return to it.${!sat && state.mock.sections.some((section) => section.id === 'listening' && section.modules.some((module) => module.parts.some((part) => !part.audioUrl))) ? ' Listening audio is pending and can be added later in Admin.' : ''}</p></aside><button class="button button-primary" data-full-begin type="button">Start exam</button></article>`;
     $('full-exam-footer').innerHTML = '';
     renderTimer();
     persistSession();
@@ -322,7 +338,14 @@
   function renderPartAudio(part, audioUrl) {
     const dock = $('full-exam-audio-dock');
     if (!dock) return;
-    if (!audioUrl) { hideAudioDock(); return; }
+    if (!audioUrl) {
+      if (currentSection()?.id === 'listening') {
+        dock.dataset.partId = part.id;
+        dock.hidden = false;
+        dock.innerHTML = `<div><span>${escapeHtml(part.title || 'Listening recording')}</span><strong>Audio will be added later</strong></div>`;
+      } else hideAudioDock();
+      return;
+    }
     if (dock.dataset.partId === part.id && dock.querySelector('audio')) { dock.hidden = false; return; }
     const completed = Boolean(state.audioCompleted[part.id]);
     const started = Boolean(state.audioStarted[part.id]);
@@ -431,6 +454,21 @@
     const module = currentModule();
     state.completedModules.push(module.id);
     if (state.mock.exam === 'sat') {
+      if (state.mock.deliveryMode === 'linear') {
+        const nextModule = section.modules[section.modules.findIndex((candidate) => candidate.id === module.id) + 1];
+        if (nextModule) {
+          showTransition(state.sectionIndex, nextModule.id, timedOut ? 'Time expired. Your answers were submitted.' : 'The next module is ready.');
+          return;
+        }
+        if (state.sectionIndex + 1 < state.mock.sections.length) {
+          const nextIndex = state.sectionIndex + 1;
+          const nextSection = state.mock.sections[nextIndex];
+          showTransition(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes ? `${section.breakMinutes}-minute break before the next section.` : 'The next section is ready.');
+          return;
+        }
+        finishExam();
+        return;
+      }
       if (module.stage === 'routing') {
         const score = moduleScore(module);
         const route = score.ratio >= (section.route?.threshold ?? 0.6) ? 'higher' : 'lower';
@@ -496,8 +534,8 @@
 
   function renderResults() {
     $('full-exam-context').innerHTML = '';
-    const scoreNote = state.mock.exam === 'sat' ? 'Official SAT scoring requires calibrated item parameters, so Luminary reports raw section performance and the adaptive route.' : 'Listening and Reading bands are practice estimates. Writing requires examiner or rubric-based assessment.';
-    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Exam complete</p><h1>${escapeHtml(state.mock.title)}</h1><p>Your responses have been saved. ${scoreNote}</p><div class="full-exam-result-grid">${state.result.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span>${section.total ? `<strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small>` : `<strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small>`}</article>`).join('')}</div>${state.mock.exam === 'sat' ? `<p class="full-exam-route-result">Adaptive routes: ${Object.entries(state.routes).map(([section, route]) => `${section.toUpperCase()} ${route}`).join(' · ')}</p>` : ''}<button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
+    const scoreNote = state.mock.exam === 'sat' ? `Official SAT scoring requires calibrated item parameters, so Luminary reports raw section performance${state.mock.deliveryMode === 'adaptive' ? ' and the adaptive route' : ''}.` : 'Listening and Reading bands are practice estimates. Writing requires examiner or rubric-based assessment.';
+    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Exam complete</p><h1>${escapeHtml(state.mock.title)}</h1><p>Your responses have been saved. ${scoreNote}</p><div class="full-exam-result-grid">${state.result.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span>${section.total ? `<strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small>` : `<strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small>`}</article>`).join('')}</div>${state.mock.exam === 'sat' && Object.keys(state.routes).length ? `<p class="full-exam-route-result">Adaptive routes: ${Object.entries(state.routes).map(([section, route]) => `${section.toUpperCase()} ${route}`).join(' · ')}</p>` : ''}<button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
     $('full-exam-footer').innerHTML = '';
     $('full-exam-stage').querySelector('[data-full-finish]').addEventListener('click', exit);
     renderTimer();

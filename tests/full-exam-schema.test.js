@@ -65,6 +65,16 @@ productionSat.sections[1].modules = [satModule('pmath-route', 'routing', 22), sa
 productionSat.sections[1].route = { threshold: .6, lowerModuleId: 'pmath-low', higherModuleId: 'pmath-high' };
 assert.equal(schema.validate(productionSat, { strictCounts: true }).valid, true);
 
+const linearSat = structuredClone(productionSat);
+linearSat.id = 'linear-sat-practice';
+linearSat.deliveryMode = 'linear';
+linearSat.sections.forEach((section) => {
+  section.modules = section.modules.slice(0, 2).map((module) => ({ ...module, stage: 'linear' }));
+  delete section.route;
+});
+assert.equal(schema.validate(linearSat, { strictCounts: true }).valid, true);
+assert.equal(schema.validate(linearSat).mock.deliveryMode, 'linear');
+
 const productionIelts = structuredClone(ielts);
 productionIelts.sections[0].modules[0].parts = Array.from({ length: 4 }, (_, partIndex) => ({ id: `pl-part-${partIndex + 1}`, audioUrl: `https://example.com/${partIndex + 1}.mp3`, questions: Array.from({ length: 10 }, (_, index) => ({ id: `pl${partIndex * 10 + index + 1}`, type: 'text', prompt: `Listening ${partIndex * 10 + index + 1}`, acceptedAnswers: ['answer'] })) }));
 productionIelts.sections[1].modules[0].parts = [14, 13, 13].map((count, partIndex) => {
@@ -75,6 +85,12 @@ productionIelts.sections[1].modules[0].parts = [14, 13, 13].map((count, partInde
 productionIelts.sections[2].modules[0].questions[0].passage = 'A table showing original data for Task 1.';
 assert.equal(schema.validate(productionIelts, { strictCounts: true }).valid, true);
 assert.equal(schema.modulePoints(schema.validate(productionIelts).mock.sections[1].modules[0]), 40);
+
+const pendingAudioIelts = structuredClone(productionIelts);
+pendingAudioIelts.sections[0].modules[0].parts.forEach((part) => { part.audioUrl = ''; });
+const pendingAudioResult = schema.validate(pendingAudioIelts, { strictCounts: true });
+assert.equal(pendingAudioResult.valid, true, pendingAudioResult.errors.join('\n'));
+assert.ok(pendingAudioResult.warnings.some((warning) => warning.includes('audio pending')));
 
 const invalidMultiple = structuredClone(ielts);
 invalidMultiple.sections[1].modules[0].parts[0].questions = [{ id: 'bad-multiple', type: 'multiple_choice', prompt: 'Choose two', options: ['A', 'B'], correct: [0, 2] }];

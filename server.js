@@ -120,7 +120,7 @@ function send(response, status, body, type = 'application/json; charset=utf-8') 
 async function staticFile(url, response) {
   const pathname = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
   const file = path.resolve(ROOT, `.${pathname}`);
-  if (!file.startsWith(ROOT) || !['.html', '.css', '.js', '.md', '.png', '.jpg', '.jpeg', '.webp', '.svg'].includes(path.extname(file))) return send(response, 404, { error: 'Not found' });
+  if (!file.startsWith(ROOT) || !['.html', '.css', '.js', '.json', '.md', '.png', '.jpg', '.jpeg', '.webp', '.svg'].includes(path.extname(file))) return send(response, 404, { error: 'Not found' });
   try {
     const body = await fs.readFile(file);
     response.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });

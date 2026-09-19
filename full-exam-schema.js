@@ -81,6 +81,7 @@
       passage: text(raw.passage || raw.text),
       image: text(raw.image || raw.imageUrl),
       audioUrl: text(raw.audioUrl || raw.audio || raw.recording),
+      transcript: text(raw.transcript || raw.script),
       questions
     };
   }
@@ -95,7 +96,7 @@
       stage: text(raw.stage || 'linear').toLowerCase(),
       durationMinutes: Math.max(1, number(raw.durationMinutes || raw.minutes, sectionId === 'rw' ? 32 : sectionId === 'math' ? 35 : 60)),
       instructions: text(raw.instructions),
-      parts: parts.length ? parts : [{ id: `${fallbackId}-part`, title: '', instructions: '', passage: '', image: '', audioUrl: '', questions: directQuestions }]
+      parts: parts.length ? parts : [{ id: `${fallbackId}-part`, title: '', instructions: '', passage: '', image: '', audioUrl: '', transcript: '', questions: directQuestions }]
     };
   }
 
@@ -123,10 +124,13 @@
     const raw = input && typeof input === 'object' ? input : {};
     const examRaw = text(raw.exam || raw.type).toLowerCase();
     const exam = examRaw === 'ielts' ? 'ielts-academic' : examRaw;
+    const deliveryMode = exam === 'sat' && text(raw.deliveryMode || raw.delivery).toLowerCase() === 'linear' ? 'linear' : 'adaptive';
     return {
       schemaVersion: number(raw.schemaVersion, VERSION),
       id: questionId(raw, `mock-${Date.now()}`),
       exam,
+      deliveryMode,
+      order: Math.max(0, number(raw.order, 0)),
       title: text(raw.title || raw.name),
       description: text(raw.description || raw.desc),
       published: raw.published !== false,
@@ -168,11 +172,15 @@
       if (!section.modules.length) fail(errors, `${sectionPath}.modules`, 'must contain at least one module');
       if (mock.exam === 'sat') {
         const stages = section.modules.map((module) => module.stage);
-        ['routing', 'lower', 'higher'].forEach((stage) => { if (!stages.includes(stage)) fail(errors, `${sectionPath}.modules`, `missing "${stage}" module`); });
-        if (!section.route) fail(errors, `${sectionPath}.route`, 'is required for adaptive SAT routing');
-        if (options.strictCounts && section.modules.length !== 3) fail(errors, `${sectionPath}.modules`, 'must contain exactly routing, lower, and higher modules');
-        if (section.route && !section.modules.some((module) => module.id === section.route.lowerModuleId || module.stage === 'lower')) fail(errors, `${sectionPath}.route.lowerModuleId`, 'does not identify a lower module');
-        if (section.route && !section.modules.some((module) => module.id === section.route.higherModuleId || module.stage === 'higher')) fail(errors, `${sectionPath}.route.higherModuleId`, 'does not identify a higher module');
+        if (mock.deliveryMode === 'linear') {
+          if (options.strictCounts && section.modules.length !== 2) fail(errors, `${sectionPath}.modules`, 'linear SAT practice must contain exactly two modules');
+        } else {
+          ['routing', 'lower', 'higher'].forEach((stage) => { if (!stages.includes(stage)) fail(errors, `${sectionPath}.modules`, `missing "${stage}" module`); });
+          if (!section.route) fail(errors, `${sectionPath}.route`, 'is required for adaptive SAT routing');
+          if (options.strictCounts && section.modules.length !== 3) fail(errors, `${sectionPath}.modules`, 'must contain exactly routing, lower, and higher modules');
+          if (section.route && !section.modules.some((module) => module.id === section.route.lowerModuleId || module.stage === 'lower')) fail(errors, `${sectionPath}.route.lowerModuleId`, 'does not identify a lower module');
+          if (section.route && !section.modules.some((module) => module.id === section.route.higherModuleId || module.stage === 'higher')) fail(errors, `${sectionPath}.route.higherModuleId`, 'does not identify a higher module');
+        }
       }
       section.modules.forEach((module, moduleIndex) => {
         const modulePath = `${sectionPath}.modules[${moduleIndex}]`;
@@ -244,7 +252,7 @@
       });
       if (options.strictCounts && listeningParts.length !== 4) fail(errors, 'sections.listening.parts', 'must contain exactly 4 parts');
       if (options.strictCounts && readingParts.length !== 3) fail(errors, 'sections.reading.parts', 'must contain exactly 3 passages');
-      if (options.strictCounts) listeningParts.forEach((part, index) => { if (!part.audioUrl) fail(errors, `sections.listening.parts[${index}].audioUrl`, 'is required'); });
+      listeningParts.forEach((part, index) => { if (!part.audioUrl && options.strictCounts) warnings.push(`sections.listening.parts[${index}].audioUrl: audio pending`); });
       if (options.strictCounts) readingParts.forEach((part, index) => { if (!part.passage) fail(errors, `sections.reading.parts[${index}].passage`, 'is required'); });
       if (options.strictCounts && writingTasks[0] && !writingTasks[0].image && !writingTasks[0].passage) fail(errors, 'sections.writing.task1', 'requires a chart, table, map, process, diagram, or complete reference');
       if (options.strictCounts && writingTasks[0] && writingTasks[0].minWords < 150) fail(errors, 'sections.writing.task1.minWords', 'must be at least 150');
