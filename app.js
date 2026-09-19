@@ -154,19 +154,7 @@ const IELTS_SKILL_DETAILS = {
   Writing: 'Practise task response, structure, vocabulary and clear argument.',
   Speaking: 'Develop fluent, confident answers in a realistic interview flow.'
 };
-const IELTS_SPEAKING_QUESTIONS = [
-  { part: 1, text: 'Good morning. My name is Luminary. What is your full name?' },
-  { part: 1, text: 'Do you work, or are you a student?' },
-  { part: 1, text: 'What do you enjoy most about your work or studies?' },
-  { part: 1, text: 'Let’s talk about your hometown. What kind of place is it?' },
-  { part: 1, text: 'What do you usually enjoy doing in your free time?' },
-  { part: 2, preparationSeconds: 60, text: 'Now I’d like you to describe a skill you would like to learn. You should say what the skill is, why you want to learn it, how you could learn it, and explain how it would be useful to you. You have one minute to prepare.', followUp: 'Can you tell me a little more about how learning this skill could change your daily life?' },
-  { part: 3, text: 'Why do people continue learning new skills as adults?' },
-  { part: 3, text: 'How has technology changed the way people learn practical skills?' },
-  { part: 3, text: 'Should schools spend more time teaching practical skills? Why or why not?' },
-  { part: 3, text: 'Do you think some skills are becoming less important today?' },
-  { part: 3, text: 'What responsibilities do governments and employers have for helping adults learn new skills?' }
-];
+const createIeltsSpeakingTest = () => window.IeltsSpeaking.createTest();
 const IELTS_PODCASTS = {
   Listening: [
     ['Everyday detail', 'Short conversations with changing speakers and practical information.'],
@@ -257,6 +245,8 @@ let voiceLab = {
   preparing: false,
   stage: 'briefing',
   questionIndex: 0,
+  testId: '',
+  questions: createIeltsSpeakingTest().questions,
   answers: [],
   finalText: '',
   interimText: '',
@@ -268,9 +258,17 @@ let voiceLab = {
   answerLimitTimer: null,
   answerStartedAt: 0,
   answerLimitReached: false,
+  answerInterrupted: false,
   answeringFollowUp: false,
   finalizeAnswer: false,
-  utterance: null
+  examinerTurn: false,
+  utterance: null,
+  mediaStream: null,
+  mediaRecorder: null,
+  audioChunks: [],
+  recordingPromise: null,
+  resolveRecording: null,
+  assessmentRequestId: 0
 };
 
 const $ = (id) => document.getElementById(id);
@@ -497,7 +495,7 @@ async function openRecommendedMaterial(topic) {
 }
 
 function mockScoreLabel(result) {
-  if (result.exam === 'sat') return `${result.estimatedScore}`;
+  if (result.exam === 'sat') return result.estimatedScore ? `${result.estimatedScore}` : `${result.correct} / ${result.total}`;
   return `${result.correct} / ${result.total}`;
 }
 
@@ -535,9 +533,11 @@ function renderHomeGuidance() {
   if (pending) {
     $('home-guidance-kicker').textContent = 'Your last score';
     $('home-guidance-title').textContent = state.profile.exam === 'sat' ? `Estimated ${mockScoreLabel(pending)}` : `${mockScoreLabel(pending)} correct`;
-    $('home-guidance-description').textContent = `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
+    $('home-guidance-description').textContent = pending.analyzing
+      ? 'Luminary is turning this result into a focused study plan.'
+      : `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
     metrics.innerHTML = `<article><strong>${pending.correct}/${pending.total}</strong><span>Correct</span></article><article><strong>${pending.accuracy}%</strong><span>Accuracy</span></article>`;
-    actions.innerHTML = `<button class="button button-primary" data-analyze-mock="${escapeHtml(pending.id)}" type="button">Analyze now</button>`;
+    actions.innerHTML = `<button class="button button-primary" data-analyze-mock="${escapeHtml(pending.id)}" type="button" ${pending.analyzing ? 'disabled' : ''}>${pending.analyzing ? 'Analyzing…' : 'Analyze with Luminary'}</button>`;
     return;
   }
 
@@ -548,9 +548,14 @@ function renderHomeGuidance() {
   if (suggestions.length) {
     const fromMocks = mockWeaknesses.length > 0;
     $('home-guidance-kicker').textContent = fromMocks ? 'From your recent mocks' : 'Based on your settings';
+    const latestAnalysis = [...results].reverse().find((result) => result.exam === state.profile.exam && result.analysis?.summary)?.analysis;
     $('home-guidance-title').textContent = fromMocks ? 'Turn recent errors into your next wins.' : 'Start with the topics you find difficult.';
-    $('home-guidance-description').textContent = fromMocks ? 'Luminary found the areas costing you the most points.' : 'These materials match the weak areas you selected.';
-    actions.innerHTML = suggestions.map((item) => `<button class="home-suggestion-button" data-review-topic="${escapeHtml(item.skill || item.domain)}" type="button"><span>${escapeHtml(item.domain)}</span>${item.skill ? `<small>${escapeHtml(item.skill)}</small>` : '<small>Open recommended material</small>'}<b>Review →</b></button>`).join('');
+    $('home-guidance-description').textContent = fromMocks ? (latestAnalysis.summary || 'Luminary found the areas costing you the most points.') : 'These materials match the weak areas you selected.';
+    actions.innerHTML = suggestions.map((item) => {
+      const whatToDo = item.whatToDo || item.skill || 'Open recommended material';
+      const howToDo = item.howToDo ? `<em>How: ${escapeHtml(item.howToDo)}</em>` : '';
+      return `<button class="home-suggestion-button" data-review-topic="${escapeHtml(item.skill || item.domain)}" type="button"><span>${escapeHtml(item.domain)}</span><small>${escapeHtml(whatToDo)}</small>${howToDo}<b>Review →</b></button>`;
+    }).join('');
     return;
   }
 
@@ -612,30 +617,59 @@ function renderIeltsProgress() {
   chart.innerHTML = `<svg viewBox="0 0 800 226" role="img" aria-label="IELTS mock accuracy over time"><g class="ielts-progress-grid">${grid}</g>${results.length > 1 ? `<polyline class="ielts-progress-line-glow" points="${points}"></polyline><polyline class="ielts-progress-line" points="${points}"></polyline>` : ''}${dots}</svg>`;
 }
 
-function analyzeMockResult(resultId) {
-  const result = (state.progress.mockResults || []).find((item) => item.id === resultId);
-  if (!result || result.analyzedAt) return;
-  const groups = new Map();
-  (result.answers || []).forEach((answer) => {
-    const domain = answer.domain || answer.set || 'Practice';
-    const key = `${domain}::${answer.skill || ''}`;
-    const group = groups.get(key) || { domain, skill: answer.skill || '', set: answer.set || '', attempts: 0, errors: 0 };
-    group.attempts += 1;
-    if (!answer.correct) group.errors += 1;
-    groups.set(key, group);
-  });
-  const weaknesses = [...groups.values()].filter((item) => item.errors > 0).sort((a, b) => b.errors - a.errors || a.attempts - b.attempts).slice(0, 4);
-  result.analysis = { weaknesses, correct: result.correct, total: result.total };
-  result.analyzedAt = Date.now();
+function mockAnalysisPayload(result) {
+  return {
+    exam: result.exam,
+    title: result.title || 'Practice mock',
+    correct: result.correct,
+    total: result.total,
+    accuracy: result.accuracy,
+    answers: (result.answers || []).slice(0, 100).map((answer) => {
+      const total = Number(answer.total);
+      const attempts = Number.isFinite(total) && total > 0 ? total : 1;
+      const numericCorrect = Number(answer.correct);
+      const correct = Number.isFinite(numericCorrect) && numericCorrect >= 0 && numericCorrect <= attempts
+        ? numericCorrect
+        : answer.correct ? 1 : 0;
+      return { set: answer.set || '', domain: answer.domain || answer.set || 'Practice', skill: answer.skill || '', attempts, correct };
+    })
+  };
+}
+
+function saveMockQuestionHistory(result) {
   const history = state.progress.questionHistory || (state.progress.questionHistory = []);
   (result.answers || []).forEach((answer) => {
     if (history.some((entry) => entry.mockResultId === result.id && entry.id === answer.id)) return;
-    history.push({ id: answer.id, exam: result.exam, set: answer.set || '', domain: answer.domain || '', skill: answer.skill || '', difficulty: answer.difficulty || '', correct: Boolean(answer.correct), responseSeconds: 0, answeredAt: result.completedAt, activePlanTaskId: '', mockResultId: result.id });
+    if (typeof answer.correct !== 'boolean') return;
+    history.push({ id: answer.id, exam: result.exam, set: answer.set || '', domain: answer.domain || '', skill: answer.skill || '', difficulty: answer.difficulty || '', correct: answer.correct, responseSeconds: 0, answeredAt: result.completedAt, activePlanTaskId: '', mockResultId: result.id });
   });
   if (history.length > 600) history.splice(0, history.length - 600);
-  persist();
+}
+
+async function analyzeMockResult(resultId) {
+  const result = (state.progress.mockResults || []).find((item) => item.id === resultId);
+  if (!result || result.analyzedAt || result.analyzing) return;
+  result.analyzing = true;
   renderHome();
-  showToast(weaknesses.length ? 'Mock analysed. Your next materials are ready.' : 'Mock analysed. Excellent work.');
+  try {
+    const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/mocks/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mockAnalysisPayload(result))
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.analysis) throw new Error(body.error || 'Mock analysis is unavailable.');
+    result.analysis = body.analysis;
+    result.analyzedAt = Date.now();
+    saveMockQuestionHistory(result);
+    persist();
+    renderHome();
+    showToast('Mock analysed. Your next steps are ready.');
+  } catch (error) {
+    result.analyzing = false;
+    renderHome();
+    showToast(error.message || 'Mock analysis is unavailable. Please try again.');
+  }
 }
 
 function renderHome() {
@@ -2275,15 +2309,20 @@ function renderVoiceStage() {
   $('voice-briefing').hidden = voiceLab.stage !== 'briefing';
   $('voice-live-view').hidden = voiceLab.stage !== 'live';
   $('voice-complete').hidden = voiceLab.stage !== 'complete';
-  const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex] || IELTS_SPEAKING_QUESTIONS[0];
+  const question = voiceLab.questions[voiceLab.questionIndex] || voiceLab.questions[0];
   $('voice-part-label').textContent = voiceLab.stage === 'live' ? `Part ${question.part}` : voiceLab.stage === 'complete' ? 'Complete' : 'IELTS Speaking';
   $('voice-session-time').hidden = !(voiceLab.stage === 'live' && voiceLab.preparing);
   if (voiceLab.stage === 'live') {
-    $('voice-question-progress').textContent = `Question ${voiceLab.questionIndex + 1} of ${IELTS_SPEAKING_QUESTIONS.length}`;
+    const questionsInPart = voiceLab.questions.filter((item) => item.part === question.part);
+    const partPosition = questionsInPart.findIndex((item) => item.id === question.id) + 1;
+    $('voice-question-progress').textContent = voiceLab.answeringFollowUp
+      ? 'Part 2 · Follow-up question'
+      : `Part ${question.part} · Question ${partPosition} of ${questionsInPart.length}`;
   }
   if ($('voice-begin')) {
-    $('voice-begin').disabled = !voiceLab.recognition;
-    $('voice-begin').textContent = voiceLab.recognition ? 'Begin speaking mock' : 'Use Chrome or Edge';
+    const voiceSupported = Boolean(voiceLab.recognition && navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
+    $('voice-begin').disabled = !voiceSupported;
+    $('voice-begin').textContent = voiceSupported ? 'Begin speaking mock' : 'Use Chrome or Edge';
   }
 }
 
@@ -2291,8 +2330,8 @@ function renderVoiceTranscript() {
   const draft = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
   const latestModel = [...voiceLab.messages].reverse().find((message) => message.role === 'model');
   const latestUser = [...voiceLab.messages].reverse().find((message) => message.role === 'user');
-  const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex] || IELTS_SPEAKING_QUESTIONS[0];
-  $('voice-caption-speaker').textContent = `Luminary · Part ${question.part}`;
+  const question = voiceLab.questions[voiceLab.questionIndex] || voiceLab.questions[0];
+  $('voice-caption-speaker').textContent = `Mr. Monday · Part ${question.part}`;
   $('voice-caption').textContent = latestModel?.text || question.text;
   const studentText = draft || (voiceLab.pending ? latestUser?.text : '');
   $('voice-user-caption').hidden = false;
@@ -2316,18 +2355,18 @@ function renderVoiceState() {
     : voiceLab.listening
     ? 'Listening…'
     : voiceLab.speaking
-      ? 'Luminary is speaking…'
+      ? 'Mr. Monday is speaking…'
       : voiceLab.pending
-        ? 'Luminary is thinking…'
+        ? 'Mr. Monday is preparing…'
         : 'Getting ready…';
   $('voice-hint').textContent = voiceLab.preparing
     ? 'Use this minute to plan your Part 2 answer.'
     : voiceLab.listening
     ? 'Speak naturally. Your answer is sent automatically when you pause.'
     : voiceLab.speaking
-      ? 'Listen to the question. Your microphone starts automatically.'
+      ? 'Mr. Monday has the floor. Your microphone opens as soon as he finishes.'
       : voiceLab.pending
-        ? 'Luminary is preparing the next question.'
+        ? 'Mr. Monday is preparing the next question.'
         : 'The microphone will reopen automatically.';
   $('voice-prep-skip').hidden = !voiceLab.preparing;
   $('voice-session-time').hidden = !voiceLab.preparing;
@@ -2340,6 +2379,19 @@ function setVoiceListening(listening) {
   renderVoiceState();
 }
 
+function lockVoiceInputForExaminer() {
+  voiceLab.examinerTurn = true;
+  clearTimeout(voiceLab.restartTimer);
+  clearTimeout(voiceLab.silenceTimer);
+  voiceLab.restartTimer = null;
+  voiceLab.silenceTimer = null;
+  if (voiceLab.listening) {
+    voiceLab.listening = false;
+    try { voiceLab.recognition?.abort(); } catch {}
+  }
+  renderVoiceState();
+}
+
 function speakBrowserVoice(text) {
   if (!('speechSynthesis' in window) || !text) return Promise.resolve();
   window.speechSynthesis.cancel();
@@ -2347,22 +2399,22 @@ function speakBrowserVoice(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
     const preferredVoiceNames = [
-      /Microsoft Aria Online/i,
-      /Microsoft Jenny Online/i,
-      /Google US English/i,
-      /Microsoft Ava/i,
-      /Samantha/i,
-      /Microsoft Zira/i
+      /Microsoft David Online/i,
+      /Microsoft Guy Online/i,
+      /Google UK English Male/i,
+      /Microsoft Mark/i,
+      /Microsoft David/i,
+      /Daniel/i
     ];
     utterance.voice = preferredVoiceNames
       .map((pattern) => voices.find((voice) => pattern.test(voice.name) && /^en[-_]/i.test(voice.lang)))
-      .find(Boolean) || voices.find((voice) => /^en-US/i.test(voice.lang) && !/male|david|mark/i.test(voice.name)) || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
+      .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
     voiceLab.utterance = utterance;
     voiceLab.speaking = true;
     renderVoiceState();
     utterance.lang = 'en-US';
-    utterance.rate = 0.92;
-    utterance.pitch = 1.02;
+    utterance.rate = 1;
+    utterance.pitch = 0.78;
     const finish = () => {
       if (voiceLab.utterance === utterance) {
         voiceLab.utterance = null;
@@ -2379,12 +2431,17 @@ function speakBrowserVoice(text) {
 
 async function speakVoiceReply(text) {
   if (!text) return;
+  lockVoiceInputForExaminer();
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9_000);
     const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     if (!response.ok) throw new Error('Gemini voice is unavailable.');
     const audioUrl = URL.createObjectURL(await response.blob());
     const audio = new Audio(audioUrl);
@@ -2404,6 +2461,8 @@ async function speakVoiceReply(text) {
     }
   } catch {
     await speakBrowserVoice(text);
+  } finally {
+    voiceLab.examinerTurn = false;
   }
 }
 
@@ -2412,25 +2471,85 @@ function clearVoiceAnswerTiming() {
   voiceLab.answerLimitTimer = null;
   voiceLab.answerStartedAt = 0;
   voiceLab.answerLimitReached = false;
+  voiceLab.answerInterrupted = false;
 }
 
-async function sendVoiceTurn(text, allowEmpty = false) {
+function startAnswerRecording() {
+  if (!voiceLab.mediaStream || voiceLab.mediaRecorder?.state === 'recording') return;
+  const preferredTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+  try {
+    const recorder = mimeType ? new MediaRecorder(voiceLab.mediaStream, { mimeType }) : new MediaRecorder(voiceLab.mediaStream);
+    voiceLab.audioChunks = [];
+    voiceLab.mediaRecorder = recorder;
+    voiceLab.recordingPromise = new Promise((resolve) => { voiceLab.resolveRecording = resolve; });
+    recorder.ondataavailable = (event) => {
+      if (event.data?.size) voiceLab.audioChunks.push(event.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(voiceLab.audioChunks, { type: recorder.mimeType || mimeType || 'audio/webm' });
+      voiceLab.resolveRecording?.(blob.size ? blob : null);
+      voiceLab.resolveRecording = null;
+    };
+    recorder.onerror = () => {
+      voiceLab.resolveRecording?.(null);
+      voiceLab.resolveRecording = null;
+    };
+    recorder.start(1000);
+  } catch {
+    voiceLab.mediaRecorder = null;
+    voiceLab.recordingPromise = Promise.resolve(null);
+  }
+}
+
+async function stopAnswerRecording() {
+  const recorder = voiceLab.mediaRecorder;
+  const recording = voiceLab.recordingPromise || Promise.resolve(null);
+  if (recorder?.state === 'recording') {
+    try { recorder.stop(); } catch {}
+  }
+  const blob = await recording;
+  voiceLab.mediaRecorder = null;
+  voiceLab.recordingPromise = null;
+  voiceLab.audioChunks = [];
+  return blob;
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
+    reader.onerror = () => reject(new Error('The recording could not be prepared.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function sendVoiceTurn(text, allowEmpty = false, audioBlob = null) {
   const message = String(text || '').replace(/\s+/g, ' ').trim();
   if (!message && !allowEmpty) { showToast('I did not hear any words. Please try again.'); return; }
-  const answeredQuestion = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
+  const answeredQuestion = voiceLab.questions[voiceLab.questionIndex];
   const answerWasFollowUp = voiceLab.answeringFollowUp;
   const responseSeconds = voiceLab.answerStartedAt ? Math.max(0, (Date.now() - voiceLab.answerStartedAt) / 1000) : 0;
+  const interrupted = voiceLab.answerInterrupted;
   const askedText = answerWasFollowUp ? answeredQuestion.followUp : answeredQuestion.text;
-  voiceLab.answers.push({ part: answeredQuestion.part, question: askedText, transcript: message, responseSeconds: Math.round(responseSeconds) });
+  voiceLab.answers.push({
+    part: answeredQuestion.part,
+    assessed: answeredQuestion.assessed !== false,
+    question: askedText,
+    transcript: message,
+    responseSeconds: Math.round(responseSeconds),
+    interrupted,
+    audioBlob
+  });
   if (message) voiceLab.messages.push({ role: 'user', text: message });
   clearVoiceAnswerTiming();
   voiceLab.pending = true;
   setVoiceListening(false);
   renderVoiceTranscript();
 
-  const needsPart2FollowUp = answeredQuestion.part === 2 && !answerWasFollowUp && (!message || responseSeconds < 105) && answeredQuestion.followUp;
+  const needsPart2FollowUp = answeredQuestion.part === 2 && !answerWasFollowUp && answeredQuestion.followUp;
   const nextIndex = needsPart2FollowUp ? voiceLab.questionIndex : voiceLab.questionIndex + 1;
-  const nextQuestion = IELTS_SPEAKING_QUESTIONS[nextIndex];
+  const nextQuestion = voiceLab.questions[nextIndex];
   const sessionComplete = !nextQuestion;
   let resumeListening = false;
   try {
@@ -2438,7 +2557,7 @@ async function sendVoiceTurn(text, allowEmpty = false) {
       ? answeredQuestion.followUp
       : sessionComplete
       ? 'Thank you. That is the end of your speaking mock.'
-      : `Thank you. ${nextQuestion.text}`;
+      : nextQuestion.text;
     if (!voiceLab.active || currentPage !== 'speaking-ai') return;
     voiceLab.answeringFollowUp = Boolean(needsPart2FollowUp);
     if (nextQuestion && !needsPart2FollowUp) voiceLab.questionIndex = nextIndex;
@@ -2461,20 +2580,20 @@ async function sendVoiceTurn(text, allowEmpty = false) {
     setVoiceListening(false);
     renderVoiceTranscript();
     if (resumeListening && voiceLab.active && currentPage === 'speaking-ai') {
-      voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
+      voiceLab.restartTimer = setTimeout(startVoiceLab, 90);
     }
   }
 }
 
 async function askFirstSpeakingQuestion() {
-  const question = IELTS_SPEAKING_QUESTIONS[0];
+  const question = voiceLab.questions[0];
   voiceLab.messages.push({ role: 'model', text: question.text });
   renderVoiceTranscript();
   await speakVoiceReply(question.text);
-  if (voiceLab.active && currentPage === 'speaking-ai') voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
+  if (voiceLab.active && currentPage === 'speaking-ai') voiceLab.restartTimer = setTimeout(startVoiceLab, 90);
 }
 
-function finishSpeakingPreparation() {
+async function finishSpeakingPreparation() {
   if (!voiceLab.preparing) return;
   clearTimeout(voiceLab.preparationTimer);
   clearInterval(voiceLab.preparationTicker);
@@ -2482,6 +2601,12 @@ function finishSpeakingPreparation() {
   voiceLab.preparationTicker = null;
   voiceLab.preparing = false;
   renderVoiceState();
+  const question = voiceLab.questions[voiceLab.questionIndex];
+  if (voiceLab.active && currentPage === 'speaking-ai' && question?.startPrompt) {
+    voiceLab.messages.push({ role: 'model', text: question.startPrompt });
+    renderVoiceTranscript();
+    await speakVoiceReply(question.startPrompt);
+  }
   if (voiceLab.active && currentPage === 'speaking-ai') startVoiceLab();
 }
 
@@ -2510,7 +2635,7 @@ function initVoiceLab() {
   voiceLab.recognition.maxAlternatives = 3;
   voiceLab.recognition.lang = 'en-US';
   voiceLab.recognition.onresult = (event) => {
-    if (!voiceLab.listening) return;
+    if (!voiceLab.listening || voiceLab.examinerTurn) return;
     let interim = '';
     for (let index = event.resultIndex; index < event.results.length; index += 1) {
       const alternatives = Array.from(event.results[index]);
@@ -2522,13 +2647,14 @@ function initVoiceLab() {
     voiceLab.interimText = interim;
     renderVoiceTranscript();
     clearTimeout(voiceLab.silenceTimer);
-    const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
+    const question = voiceLab.questions[voiceLab.questionIndex];
+    const silenceMilliseconds = question?.part === 2 ? 4000 : 3200;
     voiceLab.silenceTimer = setTimeout(() => {
       if (voiceLab.listening) {
         voiceLab.finalizeAnswer = true;
         try { voiceLab.recognition.stop(); } catch {}
       }
-    }, 2000);
+    }, silenceMilliseconds);
   };
   voiceLab.recognition.onerror = (event) => {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
@@ -2536,10 +2662,10 @@ function initVoiceLab() {
     else showToast('Voice recognition stopped. Please try again.');
     endVoiceSession();
   };
-  voiceLab.recognition.onend = () => {
+  voiceLab.recognition.onend = async () => {
     clearTimeout(voiceLab.silenceTimer);
     voiceLab.silenceTimer = null;
-    if (!voiceLab.listening) return;
+    if (!voiceLab.listening || voiceLab.examinerTurn) return;
     const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
     setVoiceListening(false);
     renderVoiceTranscript();
@@ -2547,21 +2673,22 @@ function initVoiceLab() {
     if (!voiceLab.finalizeAnswer && !voiceLab.answerLimitReached) {
       voiceLab.finalText = message;
       voiceLab.interimText = '';
-      voiceLab.restartTimer = setTimeout(startVoiceLab, 180);
+      voiceLab.restartTimer = setTimeout(startVoiceLab, 120);
       return;
     }
+    const audioBlob = await stopAnswerRecording();
     voiceLab.finalizeAnswer = false;
     voiceLab.finalText = '';
     voiceLab.interimText = '';
-    if (message) sendVoiceTurn(message);
-    else if (voiceLab.answerLimitReached && IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex]?.part === 2) sendVoiceTurn('', true);
-    else voiceLab.restartTimer = setTimeout(startVoiceLab, 250);
+    if (message) sendVoiceTurn(message, false, audioBlob);
+    else if (voiceLab.answerLimitReached) sendVoiceTurn('', true, audioBlob);
+    else voiceLab.restartTimer = setTimeout(startVoiceLab, 90);
   };
   renderVoiceState();
 }
 
 function startVoiceLab() {
-  if (!voiceLab.recognition || !voiceLab.active || voiceLab.preparing || voiceLab.listening || voiceLab.pending || voiceLab.speaking || currentPage !== 'speaking-ai') return;
+  if (!voiceLab.recognition || !voiceLab.active || voiceLab.preparing || voiceLab.listening || voiceLab.pending || voiceLab.speaking || voiceLab.examinerTurn || currentPage !== 'speaking-ai') return;
   clearTimeout(voiceLab.restartTimer);
   voiceLab.restartTimer = null;
   voiceLab.interimText = '';
@@ -2569,13 +2696,16 @@ function startVoiceLab() {
     voiceLab.recognition.start();
     setVoiceListening(true);
     if (!voiceLab.answerStartedAt) voiceLab.answerStartedAt = Date.now();
-    const question = IELTS_SPEAKING_QUESTIONS[voiceLab.questionIndex];
-    if (question?.part === 2 && !voiceLab.answeringFollowUp && !voiceLab.answerLimitTimer) {
+    startAnswerRecording();
+    const question = voiceLab.questions[voiceLab.questionIndex];
+    const answerLimitSeconds = voiceLab.answeringFollowUp ? question?.followUpAnswerLimitSeconds : question?.answerLimitSeconds;
+    if (answerLimitSeconds && !voiceLab.answerLimitTimer) {
       voiceLab.answerLimitTimer = setTimeout(() => {
         voiceLab.answerLimitReached = true;
+        voiceLab.answerInterrupted = true;
         voiceLab.finalizeAnswer = true;
         if (voiceLab.listening) { try { voiceLab.recognition.stop(); } catch {} }
-      }, 135000);
+      }, answerLimitSeconds * 1000);
     }
   } catch {
     voiceLab.active = false;
@@ -2584,31 +2714,117 @@ function startVoiceLab() {
   }
 }
 
-function beginSpeakingMock() {
-  if (!voiceLab.recognition) {
+async function beginSpeakingMock() {
+  if (!voiceLab.recognition || !navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
     showToast('Use Chrome or Edge to start a speaking mock.');
     return;
   }
   endVoiceSession();
+  try {
+    voiceLab.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  } catch {
+    showToast('Allow microphone access to start the speaking mock.');
+    return;
+  }
+  resetVoiceAssessment();
   voiceLab.stage = 'live';
   voiceLab.active = true;
+  const test = createIeltsSpeakingTest();
+  voiceLab.testId = test.id;
+  voiceLab.questions = test.questions;
   voiceLab.questionIndex = 0;
   voiceLab.answers = [];
   voiceLab.messages = [];
   voiceLab.answeringFollowUp = false;
   voiceLab.finalizeAnswer = false;
+  voiceLab.examinerTurn = false;
   clearVoiceAnswerTiming();
   renderVoiceStage();
   renderVoiceState();
   askFirstSpeakingQuestion();
 }
 
-function finishSpeakingMock() {
+function renderAssessmentList(elementId, items) {
+  const list = $(elementId);
+  const safeItems = Array.isArray(items) && items.length ? items : ['No reliable evidence available.'];
+  list.replaceChildren(...safeItems.map((item) => {
+    const entry = document.createElement('li');
+    entry.textContent = item;
+    return entry;
+  }));
+}
+
+function resetVoiceAssessment() {
+  voiceLab.assessmentRequestId += 1;
+  $('voice-assessment-state').hidden = false;
+  $('voice-assessment-state').textContent = 'Luminary is assessing the complete interview.';
+  $('voice-score-summary').hidden = true;
+  $('voice-criteria-grid').hidden = true;
+  $('voice-assessment-notes').hidden = true;
+}
+
+function renderVoiceAssessment(assessment) {
+  $('voice-assessment-state').hidden = true;
+  $('voice-score-summary').hidden = false;
+  $('voice-criteria-grid').hidden = false;
+  $('voice-assessment-notes').hidden = false;
+  $('voice-overall-band').textContent = Number(assessment.overall).toFixed(1);
+  $('voice-assessment-summary').textContent = assessment.summary || 'Practice estimate based on the complete recorded performance.';
+  const criteria = [
+    ['fluency', 'voice-fluency-band', 'voice-fluency-feedback'],
+    ['vocabulary', 'voice-vocabulary-band', 'voice-vocabulary-feedback'],
+    ['grammar', 'voice-grammar-band', 'voice-grammar-feedback'],
+    ['pronunciation', 'voice-pronunciation-band', 'voice-pronunciation-feedback']
+  ];
+  criteria.forEach(([key, bandId, feedbackId]) => {
+    $(bandId).textContent = Number(assessment[key]).toFixed(1);
+    $(feedbackId).textContent = assessment.feedback?.[key] || 'No criterion explanation was returned.';
+  });
+  renderAssessmentList('voice-strengths', assessment.strengths || []);
+  renderAssessmentList('voice-priorities', assessment.priorities || []);
+}
+
+async function requestSpeakingAssessment(answers) {
+  const assessedAnswers = answers.filter((answer) => answer.assessed && answer.audioBlob?.size);
+  if (assessedAnswers.length < 3) throw new Error('There was not enough recorded speech to produce a responsible band estimate.');
+  const payloadAnswers = [];
+  for (const answer of assessedAnswers) {
+    payloadAnswers.push({
+      part: answer.part,
+      question: answer.question,
+      transcript: answer.transcript,
+      durationSeconds: answer.responseSeconds,
+      interrupted: answer.interrupted,
+      mimeType: (answer.audioBlob.type || 'audio/webm').split(';')[0],
+      audioBase64: await blobToBase64(answer.audioBlob)
+    });
+  }
+  const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers: payloadAnswers })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.assessment) throw new Error(result.error || 'Luminary could not assess this interview.');
+  return result.assessment;
+}
+
+async function finishSpeakingMock() {
   const answerCount = voiceLab.answers.length;
+  const completedAnswers = voiceLab.answers.slice();
   endVoiceSession();
   voiceLab.stage = 'complete';
   $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts.`;
   renderVoiceStage();
+  const requestId = ++voiceLab.assessmentRequestId;
+  try {
+    const assessment = await requestSpeakingAssessment(completedAnswers);
+    if (requestId === voiceLab.assessmentRequestId && voiceLab.stage === 'complete') renderVoiceAssessment(assessment);
+  } catch (error) {
+    if (requestId !== voiceLab.assessmentRequestId || voiceLab.stage !== 'complete') return;
+    $('voice-assessment-state').hidden = false;
+    $('voice-assessment-state').textContent = error?.message || 'Luminary could not assess this interview.';
+  }
 }
 
 function resetSpeakingMock() {
@@ -2619,6 +2835,7 @@ function resetSpeakingMock() {
   voiceLab.messages = [];
   voiceLab.answeringFollowUp = false;
   voiceLab.finalizeAnswer = false;
+  resetVoiceAssessment();
   clearVoiceAnswerTiming();
   $('voice-exit-dialog').hidden = true;
   renderVoiceStage();
@@ -2656,8 +2873,10 @@ function endVoiceSession() {
   voiceLab.answerLimitTimer = null;
   voiceLab.answerStartedAt = 0;
   voiceLab.answerLimitReached = false;
+  voiceLab.answerInterrupted = false;
   voiceLab.answeringFollowUp = false;
   voiceLab.finalizeAnswer = false;
+  voiceLab.examinerTurn = false;
   voiceLab.active = false;
   voiceLab.preparing = false;
   voiceLab.finalText = '';
@@ -2667,12 +2886,21 @@ function endVoiceSession() {
     try { voiceLab.recognition.abort(); } catch {}
   }
   voiceLab.pending = false;
-  voiceLab.speaking = false;
-  voiceLab.utterance = null;
   if (voiceLab.utterance instanceof HTMLAudioElement) {
     voiceLab.utterance.pause();
     voiceLab.utterance.src = '';
   }
+  voiceLab.speaking = false;
+  voiceLab.utterance = null;
+  if (voiceLab.mediaRecorder?.state === 'recording') {
+    try { voiceLab.mediaRecorder.stop(); } catch {}
+  }
+  voiceLab.mediaRecorder = null;
+  voiceLab.recordingPromise = null;
+  voiceLab.resolveRecording = null;
+  voiceLab.audioChunks = [];
+  if (voiceLab.mediaStream) voiceLab.mediaStream.getTracks().forEach((track) => track.stop());
+  voiceLab.mediaStream = null;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   renderVoiceState();
   renderVoiceTranscript();

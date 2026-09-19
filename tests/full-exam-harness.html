@@ -25,8 +25,8 @@
       {id:'reading',title:'Academic Reading',modules:[{id:'read',title:'Reading',durationMinutes:60,parts:[{id:'read-p1',passage:'A short original passage for layout verification.',questions:[{id:'rq1',type:'matching',prompt:'Match the item.',prompts:[{id:'A',text:'Paragraph A'}],options:['Heading i','Heading ii'],matches:{A:'Heading i'}}]}]}]},
       {id:'writing',title:'Academic Writing',modules:[{id:'write',title:'Writing',durationMinutes:60,questions:[{id:'w1',type:'writing',prompt:'Summarise the information.',minWords:150},{id:'w2',type:'writing',prompt:'Discuss both views and give your opinion.',minWords:250}]}]}
     ]};
-    document.getElementById('sat').onclick=()=>FullExamEngine.start(sat);
-    document.getElementById('ielts').onclick=()=>FullExamEngine.start(ielts);
+    document.getElementById('sat').onclick=()=>FullExamEngine.start(sat,{allowIncomplete:true});
+    document.getElementById('ielts').onclick=()=>FullExamEngine.start(ielts,{allowIncomplete:true});
   </script>
 </body>
 </html>

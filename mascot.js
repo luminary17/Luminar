@@ -38,11 +38,11 @@
   }
 
   if (!('speechSynthesis' in window)) {
-    quoteButton.hidden = true;
+    if (quoteButton) quoteButton.hidden = true;
     questionButton.hidden = true;
     return;
   }
-  quoteButton.addEventListener('click', () => {
+  if (quoteButton) quoteButton.addEventListener('click', () => {
     if (current?.button === quoteButton) { stop(); return; }
     read(document.getElementById('daily-quote').textContent, quoteButton, quoteButton.closest('.hero-quote'));
   });

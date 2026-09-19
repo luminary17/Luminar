@@ -204,9 +204,20 @@
             if (!question.prompt) fail(errors, `${path}.prompt`, 'is required');
             if (['single_choice', 'multiple_choice'].includes(question.type) && question.options.length < 2) fail(errors, `${path}.options`, 'must contain at least two choices');
             if (question.type === 'single_choice' && (!Number.isInteger(question.correct) || question.correct < 0 || question.correct >= question.options.length)) fail(errors, `${path}.correct`, 'must identify one valid option');
-            if (question.type === 'multiple_choice' && (!Array.isArray(question.correct) || !question.correct.length)) fail(errors, `${path}.correct`, 'must contain one or more valid option indexes');
+            if (question.type === 'multiple_choice') {
+              if (!Array.isArray(question.correct) || !question.correct.length) fail(errors, `${path}.correct`, 'must contain one or more valid option indexes');
+              else if (question.correct.some((answer) => !Number.isInteger(answer) || answer < 0 || answer >= question.options.length)) fail(errors, `${path}.correct`, 'contains an invalid option index');
+              else if (new Set(question.correct).size !== question.correct.length) fail(errors, `${path}.correct`, 'must not contain duplicate option indexes');
+              if (question.maxSelections < question.correct.length) fail(errors, `${path}.maxSelections`, 'must allow every correct selection');
+            }
             if (['text', 'numeric'].includes(question.type) && !question.acceptedAnswers.length) fail(errors, `${path}.acceptedAnswers`, 'must contain at least one accepted answer');
-            if (question.type === 'matching' && (!question.prompts.length || !question.options.length)) fail(errors, path, 'matching requires prompts and options');
+            if (question.type === 'matching') {
+              if (!question.prompts.length || !question.options.length) fail(errors, path, 'matching requires prompts and options');
+              question.prompts.forEach((prompt) => {
+                if (!Object.prototype.hasOwnProperty.call(question.matches, prompt.id)) fail(errors, `${path}.matches.${prompt.id}`, 'is required');
+                else if (!question.options.includes(text(question.matches[prompt.id]))) fail(errors, `${path}.matches.${prompt.id}`, 'must match one of the provided options');
+              });
+            }
             if (mock.exam === 'sat' && section.id === 'rw' && question.type !== 'single_choice') fail(errors, `${path}.type`, 'SAT Reading and Writing uses single-choice questions');
             if (mock.exam === 'sat' && section.id === 'math' && !['single_choice', 'numeric'].includes(question.type)) fail(errors, `${path}.type`, 'SAT Math uses single-choice or numeric responses');
             if (mock.exam === 'ielts-academic' && section.id !== 'writing' && question.type === 'writing') fail(errors, `${path}.type`, 'writing tasks belong in the Writing section');
@@ -228,11 +239,16 @@
       else if (writingTasks.length !== 2) warnings.push(`Writing contains ${writingTasks.length} tasks; official format uses 2`);
       const listeningParts = listening ? listening.modules.flatMap((module) => module.parts) : [];
       const readingParts = reading ? reading.modules.flatMap((module) => module.parts) : [];
+      if (options.strictCounts) [listening, reading, writing].filter(Boolean).forEach((section) => {
+        if (section.modules.length !== 1) fail(errors, `sections.${section.id}.modules`, 'must contain exactly one timed module');
+      });
       if (options.strictCounts && listeningParts.length !== 4) fail(errors, 'sections.listening.parts', 'must contain exactly 4 parts');
       if (options.strictCounts && readingParts.length !== 3) fail(errors, 'sections.reading.parts', 'must contain exactly 3 passages');
       if (options.strictCounts) listeningParts.forEach((part, index) => { if (!part.audioUrl) fail(errors, `sections.listening.parts[${index}].audioUrl`, 'is required'); });
       if (options.strictCounts) readingParts.forEach((part, index) => { if (!part.passage) fail(errors, `sections.reading.parts[${index}].passage`, 'is required'); });
       if (options.strictCounts && writingTasks[0] && !writingTasks[0].image && !writingTasks[0].passage) fail(errors, 'sections.writing.task1', 'requires a chart, table, map, process, diagram, or complete reference');
+      if (options.strictCounts && writingTasks[0] && writingTasks[0].minWords < 150) fail(errors, 'sections.writing.task1.minWords', 'must be at least 150');
+      if (options.strictCounts && writingTasks[1] && writingTasks[1].minWords < 250) fail(errors, 'sections.writing.task2.minWords', 'must be at least 250');
       writingTasks.forEach((task, index) => { if (task.type !== 'writing') fail(errors, `sections.writing.tasks[${index}].type`, 'must be "writing"'); });
     }
     return { valid: errors.length === 0, errors, warnings, mock };

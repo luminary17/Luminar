@@ -66,7 +66,7 @@
     const path = exam === 'ielts' || exam === 'ielts-academic' ? 'ielts-academic' : 'sat';
     const data = await fetchJson(`full-mocks/${path}`);
     return Object.entries(data || {}).map(([firebaseId, raw]) => {
-      const validation = global.FullExamSchema.validate(raw);
+      const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
       return validation.valid && validation.mock.published ? { firebaseId, ...validation.mock } : null;
     }).filter(Boolean);
   }
@@ -78,7 +78,6 @@
         <header class="full-exam-topbar">
           <button class="full-exam-link" id="full-exam-exit" type="button">Exit test</button>
           <div class="full-exam-clock" id="full-exam-clock"><strong id="full-exam-timer">00:00</strong><button id="full-exam-hide-timer" type="button">Hide</button></div>
-          <button class="full-exam-link" id="full-exam-directions" type="button">Directions</button>
         </header>
         <div class="full-exam-context" id="full-exam-context"></div>
         <div class="full-exam-audio-dock" id="full-exam-audio-dock" hidden></div>
@@ -88,7 +87,6 @@
       </section>`);
     $('full-exam-exit').addEventListener('click', requestExit);
     $('full-exam-hide-timer').addEventListener('click', () => { state.timerHidden = !state.timerHidden; renderTimer(); persistSession(); });
-    $('full-exam-directions').addEventListener('click', showDirections);
     $('full-exam-audio-dock').addEventListener('click', handleAudioClick);
     $('full-exam-stage').addEventListener('click', handleStageClick);
     $('full-exam-stage').addEventListener('input', handleStageInput);
@@ -96,9 +94,9 @@
     $('full-exam-modal').addEventListener('click', handleModalClick);
   }
 
-  function start(rawMock) {
+  function start(rawMock, options = {}) {
     ensureShell();
-    const validation = global.FullExamSchema.validate(rawMock);
+    const validation = global.FullExamSchema.validate(rawMock, { strictCounts: options.allowIncomplete !== true });
     if (!validation.valid) throw new Error(validation.errors.join('\n'));
     resetState(validation.mock);
     showIntro();
@@ -128,6 +126,7 @@
   }
 
   function showIntro() {
+    $('full-exam-engine').dataset.exam = state.mock.exam;
     state.screen = 'intro';
     const sat = state.mock.exam === 'sat';
     $('full-exam-context').innerHTML = '';
@@ -203,6 +202,7 @@
   }
 
   function renderQuestion() {
+    $('full-exam-engine').dataset.exam = state.mock.exam;
     const module = currentModule();
     const questions = currentQuestions();
     const question = questions[state.questionIndex];
@@ -223,6 +223,9 @@
     </div>`;
     renderPartAudio(part, audio);
     $('full-exam-footer').innerHTML = `<button class="full-exam-counter" data-full-review type="button">Question ${state.questionIndex + 1} of ${questions.length}</button><div><button class="button button-quiet" data-full-previous type="button" ${state.questionIndex === 0 ? 'disabled' : ''}>Previous</button><button class="button button-primary" data-full-next type="button">${state.questionIndex === questions.length - 1 ? 'Review module' : 'Next'}</button></div>`;
+    if (state.mock.exam === 'ielts-academic') {
+      $('full-exam-footer').insertAdjacentHTML('afterbegin', `<nav class="full-exam-number-strip" aria-label="Questions">${questions.map((item, index) => `<button type="button" data-full-question="${index}" aria-label="Question ${index + 1}" ${index === state.questionIndex ? 'aria-current="step"' : ''} class="${hasResponse(item) ? 'is-answered' : ''}">${index + 1}</button>`).join('')}</nav>`);
+    }
     if (partChanged) $('full-exam-stage').scrollTop = 0;
   }
 
@@ -354,6 +357,8 @@
   }
 
   function handleFooterClick(event) {
+    const target = event.target.closest('[data-full-question]');
+    if (target) { state.questionIndex = Number(target.dataset.fullQuestion); renderQuestion(); persistSession(); return; }
     if (event.target.closest('[data-full-previous]')) move(-1);
     if (event.target.closest('[data-full-next]')) move(1);
     if (event.target.closest('[data-full-review]')) showReview();
@@ -500,12 +505,6 @@
 
   function wordCount(value) { return String(value || '').trim() ? String(value).trim().split(/\s+/).length : 0; }
 
-  function showDirections() {
-    if (!state.mock) return;
-    $('full-exam-modal').hidden = false;
-    $('full-exam-dialog').innerHTML = `<header><div><p class="kicker">Directions</p><h2>${escapeHtml(currentSection()?.title || state.mock.title)}</h2></div><button data-full-close-modal type="button">Close</button></header><p>${escapeHtml(currentModule()?.instructions || currentSection()?.instructions || 'Complete the section within the time shown.')}</p>`;
-  }
-
   function persistSession() {
     if (!state.mock || state.screen === 'results') return;
     const snapshot = { mock: state.mock, screen: state.screen, sectionIndex: state.sectionIndex, moduleId: state.moduleId, partIndex: state.partIndex, questionIndex: state.questionIndex, responses: state.responses, marked: state.marked, completedModules: state.completedModules, routes: state.routes, secondsRemaining: state.secondsRemaining, deadline: state.deadline, timerHidden: state.timerHidden, audioProgress: state.audioProgress, audioStarted: state.audioStarted, audioCompleted: state.audioCompleted };
@@ -517,7 +516,7 @@
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
       if (!saved?.mock) return false;
-      const validation = global.FullExamSchema.validate(saved.mock);
+      const validation = global.FullExamSchema.validate(saved.mock, { strictCounts: true });
       if (!validation.valid) throw new Error('Invalid saved exam.');
       Object.assign(state, saved, { mock: validation.mock, timer: null });
       $('full-exam-engine').hidden = false;

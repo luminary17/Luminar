@@ -1,8 +1,8 @@
 .is-full-exam-open { overflow: hidden; }
-.full-exam-engine { position: fixed; inset: 0; z-index: 1200; display: grid; grid-template-rows: 64px auto auto 1fr 72px; background: var(--bg); color: var(--text); }
+.full-exam-engine { position: fixed; inset: 0; z-index: 1200; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; background: var(--bg); color: var(--text); }
 .full-exam-engine[hidden] { display: none; }
 .full-exam-topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 clamp(16px, 4vw, 48px); border-bottom: 1px solid var(--line); background: var(--surface); }
-.full-exam-topbar > :last-child { justify-self: end; }
+.full-exam-topbar > .full-exam-clock { justify-self: center; }
 .full-exam-link, .full-exam-clock button, .full-exam-mark, .full-exam-counter, .full-exam-dialog header button { border: 0; background: transparent; color: var(--accent-hover); font: inherit; font-weight: 800; cursor: pointer; }
 .full-exam-clock { display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
 .full-exam-clock strong { min-width: 74px; font-size: 19px; text-align: center; }
@@ -74,10 +74,75 @@
 .full-exam-route-result { margin: 18px 0; font-weight: 800; }
 .full-mock-card-badge { display: inline-flex !important; width: fit-content; margin-bottom: 8px; padding: 4px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-hover) !important; }
 
+/* Exam surfaces deliberately use their own palette, independently of the app theme. */
+.full-exam-engine { --bg: #fff; --surface: #fff; --surface-raised: #f5f6f7; --text: #202124; --text-soft: #54585e; --line: #c9cdd2; --accent: #1765ad; --accent-hover: #13558e; --accent-soft: #eaf2fa; --on-accent: #fff; --danger: #b32332; font-family: Arial, Helvetica, sans-serif; font-size: 15px; color-scheme: light; }
+.full-exam-engine, .full-exam-engine * { box-sizing: border-box; }
+.full-exam-topbar { grid-row: 1; }
+.full-exam-context { grid-row: 2; }
+.full-exam-audio-dock { grid-row: 3; }
+.full-exam-stage { grid-row: 4; }
+.full-exam-footer { grid-row: 5; }
+.full-exam-topbar { min-height: 54px; padding: 7px 28px; }
+.full-exam-context { min-height: 42px; padding: 6px 28px; gap: 20px; }
+.full-exam-context div:first-child { display: flex; gap: 12px; align-items: baseline; }
+.full-exam-context div:first-child strong { margin: 0; }
+.full-exam-context .full-exam-progress { height: 3px; }
+.full-exam-footer { min-height: 54px; padding: 8px 28px; gap: 12px; }
+.full-exam-engine .button { min-height: 34px; height: auto; padding: 7px 19px; border-radius: 5px; font: 600 14px Arial, sans-serif; box-shadow: none; cursor: pointer; }
+.full-exam-engine .button-primary { color: #fff; background: var(--accent); border: 1px solid var(--accent); }
+.full-exam-engine .button-quiet { color: var(--text); background: #fff; border: 1px solid #aeb4bc; }
+.full-exam-engine button:disabled { opacity: .45; cursor: default; }
+.full-exam-engine button:focus-visible { outline: 3px solid #6e9cd2; outline-offset: 3px; }
+.full-exam-question-shell, .full-exam-question-shell.has-reference { width: 100%; }
+.full-exam-question-shell:not(.has-reference) { max-width: 820px; }
+.full-exam-reference, .full-exam-question { padding: 28px 36px; }
+.full-exam-question > header { margin-bottom: 20px; padding-bottom: 10px; }
+.full-exam-question h2 { font-size: 18px; line-height: 1.5; margin: 0 0 20px; }
+.full-exam-passage { font-size: 17px; line-height: 1.65; }
+.full-exam-choice { min-height: 46px; border-radius: 5px; padding: 8px 12px; font-size: 16px; }
+.full-exam-intro, .full-exam-results { margin: 32px auto; padding: 30px; border-radius: 8px; box-shadow: none; }
+.full-exam-intro h1, .full-exam-results h1 { font-size: 32px; }
+.full-exam-overview article, .full-exam-result-grid article, .full-exam-intro > aside { border-radius: 5px; }
+.full-exam-engine[data-exam="sat"] .full-exam-topbar { border-bottom: 0; }
+.full-exam-engine[data-exam="sat"] .full-exam-context { background: #fff; border-bottom: 2px dashed #8e949b; }
+.full-exam-engine[data-exam="sat"] .full-exam-reference { background: #fff; border-right: 2px solid #b6b8bb; }
+.full-exam-engine[data-exam="sat"] .full-exam-question > header { background: #f0f1f2; padding: 0 12px 0 0; border: 0; }
+.full-exam-engine[data-exam="sat"] .full-exam-question > header > span { border-radius: 0; background: #25292e; }
+.full-exam-engine[data-exam="sat"] .full-exam-footer { border-top: 2px dashed #8e949b; display: grid; grid-template-columns: 1fr auto 1fr; }
+.full-exam-engine[data-exam="sat"] .full-exam-counter { grid-column: 2; background: #25292e; color: white; padding: 9px 16px; border-radius: 5px; font-size: 14px; }
+.full-exam-engine[data-exam="sat"] .full-exam-footer > div { justify-self: end; }
+.full-exam-engine[data-exam="sat"] .full-exam-footer .button { border-radius: 20px; }
+.full-exam-engine[data-exam="ielts-academic"] { --accent: #066965; --accent-hover: #055653; --accent-soft: #e5f3f1; --surface-raised: #f3f5f5; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-topbar { background: #f1f3f4; border-top: 4px solid #cf233d; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-context { background: #e8eeee; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-passage { font-family: Arial, Helvetica, sans-serif; font-size: 16px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-reference { background: #fff; border-right: 6px solid #e6e9eb; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-question > header > span { background: #e8eeee; color: #202124; border-radius: 3px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-choice { border: 1px solid transparent; min-height: 40px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-choice.is-selected { border-color: var(--accent); box-shadow: none; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-text-answer input, .full-exam-engine[data-exam="ielts-academic"] .full-exam-writing textarea, .full-exam-engine[data-exam="ielts-academic"] .full-exam-matching select { background: #fff; border-radius: 2px; padding: 9px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { background: #eef1f2; flex-wrap: wrap; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-counter { display: none; }
+.full-exam-number-strip { display: flex; gap: 5px; overflow-x: auto; flex: 1; min-width: 120px; padding: 2px; }
+.full-exam-number-strip button { flex: 0 0 30px; height: 30px; border: 1px solid #a9b3b6; border-radius: 2px; background: #fff; color: #242b2d; cursor: pointer; }
+.full-exam-number-strip button.is-answered { background: #d8e9e6; }
+.full-exam-number-strip button[aria-current] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 @media (max-width: 760px) {
-  .full-exam-engine { grid-template-rows: 56px auto auto 1fr 70px; }
+  .full-exam-topbar, .full-exam-context, .full-exam-footer { padding-inline: 14px; }
+  .full-exam-reference, .full-exam-question { padding: 20px; }
+  .full-exam-engine[data-exam="sat"] .full-exam-footer { grid-template-columns: auto 1fr; }
+  .full-exam-engine[data-exam="sat"] .full-exam-counter { grid-column: 1; }
+  .full-exam-footer .button { padding: 7px 10px; font-size: 12px; white-space: nowrap; }
+  .full-exam-engine[data-exam="sat"] .full-exam-counter { padding: 8px; font-size: 12px; white-space: nowrap; }
+  .full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { flex-wrap: nowrap; gap: 6px; }
+  .full-exam-number-strip { min-width: 30px; }
+  .full-exam-engine[data-exam="sat"] .full-exam-reference, .full-exam-engine[data-exam="ielts-academic"] .full-exam-reference { border-right: 0; }
+}
+
+@media (max-width: 760px) {
+  .full-exam-engine { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
   .full-exam-topbar { grid-template-columns: 1fr auto; }
-  .full-exam-topbar > :last-child { display: none; }
   .full-exam-context { grid-template-columns: 1fr auto; gap: 10px; }
   .full-exam-progress { grid-column: 1 / -1; grid-row: 2; }
   .full-exam-question-shell.has-reference { display: block; }

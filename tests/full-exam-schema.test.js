@@ -76,4 +76,12 @@ productionIelts.sections[2].modules[0].questions[0].passage = 'A table showing o
 assert.equal(schema.validate(productionIelts, { strictCounts: true }).valid, true);
 assert.equal(schema.modulePoints(schema.validate(productionIelts).mock.sections[1].modules[0]), 40);
 
+const invalidMultiple = structuredClone(ielts);
+invalidMultiple.sections[1].modules[0].parts[0].questions = [{ id: 'bad-multiple', type: 'multiple_choice', prompt: 'Choose two', options: ['A', 'B'], correct: [0, 2] }];
+assert.ok(schema.validate(invalidMultiple).errors.some((error) => error.includes('invalid option index')));
+
+const invalidMatching = structuredClone(ielts);
+invalidMatching.sections[1].modules[0].parts[0].questions = [{ id: 'bad-matching', type: 'matching', prompt: 'Match', prompts: [{ id: 'a', text: 'A' }], options: ['i'], matches: {} }];
+assert.ok(schema.validate(invalidMatching).errors.some((error) => error.includes('matches.a')));
+
 console.log('full-exam-schema tests passed');
