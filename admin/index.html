@@ -1965,7 +1965,8 @@ function previewFullMock(){
   }catch(error){fullMockImportCache=null;button.disabled=true;status.style.color='#f87171';status.textContent=error.message;}
 }
 async function importFullMock(){
-  if(!fullMockImportCache){previewFullMock();return;}
+  previewFullMock();
+  if(!fullMockImportCache)return;
   const button=document.getElementById('full-mock-import'),status=document.getElementById('full-mock-status'),mock=fullMockImportCache;
   button.disabled=true;status.textContent='Uploading full exam…';
   try{

@@ -399,8 +399,9 @@
   function showReview() {
     const questions = currentQuestions();
     const unanswered = questions.filter((question) => !hasResponse(question)).length;
+    $('full-exam-modal').classList.add('is-review-page');
     $('full-exam-modal').hidden = false;
-    $('full-exam-dialog').innerHTML = `<header><div><p class="kicker">${escapeHtml(currentModule().title)}</p><h2>Review your answers</h2></div><button data-full-close-modal type="button">Close</button></header><p>${unanswered ? `${unanswered} question${unanswered === 1 ? '' : 's'} unanswered.` : 'Every question has a response.'}</p><div class="full-exam-review-grid">${questions.map((question, index) => `<button data-full-jump="${index}" class="${hasResponse(question) ? 'is-answered' : ''} ${state.marked[responseKey(question)] ? 'is-marked' : ''}" type="button">${index + 1}</button>`).join('')}</div><button class="button button-primary" data-full-submit-module type="button">Submit module</button>`;
+    $('full-exam-dialog').innerHTML = `<div class="full-review-content"><h1>Check Your Work</h1><p>You can return to any question in this module to check your answers.</p><p>For this practice, click Next when you are ready to move on.</p><section class="full-review-card" aria-label="Module review"><header><h2>Section ${state.sectionIndex + 1}: ${escapeHtml(currentSection().title)} Questions</h2><div class="full-review-legend"><span><i class="review-unanswered"></i> Unanswered</span><span><i class="review-flag"></i> For Review</span></div></header><div class="full-exam-review-grid">${questions.map((question, index) => `<button data-full-jump="${index}" aria-label="Question ${index + 1}, ${hasResponse(question) ? 'answered' : 'unanswered'}${state.marked[responseKey(question)] ? ', marked for review' : ''}" class="${hasResponse(question) ? 'is-answered' : ''} ${state.marked[responseKey(question)] ? 'is-marked' : ''}" type="button">${index + 1}</button>`).join('')}</div><p class="full-review-status">${unanswered ? `${unanswered} unanswered` : 'All questions answered'} · ${escapeHtml(currentModule().title)}</p></section></div><footer class="full-review-footer"><strong>Luminary</strong><div><button data-full-close-modal type="button">Back</button><button data-full-submit-module type="button">Next</button></div></footer>`;
   }
 
   function handleModalClick(event) {
@@ -412,9 +413,10 @@
     if (event.target.closest('[data-full-cancel-exit]')) closeModal();
   }
 
-  function closeModal() { $('full-exam-modal').hidden = true; }
+  function closeModal() { $('full-exam-modal').hidden = true; $('full-exam-modal').classList.remove('is-review-page'); }
 
   function requestExit() {
+    $('full-exam-modal').classList.remove('is-review-page');
     if (state.screen === 'results' || state.screen === 'intro') { exit(); return; }
     $('full-exam-modal').hidden = false;
     $('full-exam-dialog').innerHTML = `<header><h2>Exit this test?</h2></header><p>Your current session will stay saved on this device.</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-cancel-exit type="button">Keep working</button><button class="button button-primary" data-full-confirm-exit type="button">Exit test</button></div>`;
@@ -449,6 +451,7 @@
 
   function finishModule(timedOut) {
     if (state.screen !== 'question') return;
+    closeModal();
     stopTimer();
     const section = currentSection();
     const module = currentModule();
