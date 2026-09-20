@@ -2997,6 +2997,7 @@ function applyAuthenticatedUser(user) {
 }
 
 function bindEvents() {
+  document.addEventListener('luminaryFullExamHome', () => { currentSkill = ''; setMobileDrawer(false); openPage('home'); renderHome(); });
   document.addEventListener('luminaryFullExamComplete',(event)=>{
     const result=event.detail;if(!result||!Array.isArray(result.sections))return;
     const correct=result.sections.reduce((sum,section)=>sum+(Number(section.correct)||0),0);

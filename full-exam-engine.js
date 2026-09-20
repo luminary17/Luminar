@@ -92,7 +92,7 @@
     document.body.insertAdjacentHTML('beforeend', `
       <section class="full-exam-engine" id="full-exam-engine" hidden aria-label="Full mock exam">
         <header class="full-exam-topbar">
-          <button class="full-exam-link" id="full-exam-exit" type="button">Exit test</button>
+          <button class="full-exam-link" id="full-exam-exit" type="button" aria-label="Return to home">Home</button>
           <div class="full-exam-clock" id="full-exam-clock"><strong id="full-exam-timer">00:00</strong><button id="full-exam-hide-timer" type="button">Hide</button></div>
         </header>
         <div class="full-exam-context" id="full-exam-context"></div>
@@ -409,7 +409,7 @@
     const jump = event.target.closest('[data-full-jump]');
     if (jump) { state.questionIndex = Number(jump.dataset.fullJump); closeModal(); renderQuestion(); }
     if (event.target.closest('[data-full-submit-module]')) { closeModal(); finishModule(false); }
-    if (event.target.closest('[data-full-confirm-exit]')) exit();
+    if (event.target.closest('[data-full-confirm-exit]')) { exit(); document.dispatchEvent(new CustomEvent('luminaryFullExamHome')); }
     if (event.target.closest('[data-full-cancel-exit]')) closeModal();
   }
 
@@ -417,9 +417,8 @@
 
   function requestExit() {
     $('full-exam-modal').classList.remove('is-review-page');
-    if (state.screen === 'results' || state.screen === 'intro') { exit(); return; }
     $('full-exam-modal').hidden = false;
-    $('full-exam-dialog').innerHTML = `<header><h2>Exit this test?</h2></header><p>Your current session will stay saved on this device.</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-cancel-exit type="button">Keep working</button><button class="button button-primary" data-full-confirm-exit type="button">Exit test</button></div>`;
+    $('full-exam-dialog').innerHTML = `<header><h2>Return to Home?</h2></header><p>Leave this test and return to the home page?</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-cancel-exit type="button">Keep working</button><button class="button button-primary" data-full-confirm-exit type="button">Go to Home</button></div>`;
   }
 
   function questionScore(question, response) {
