@@ -3041,7 +3041,7 @@ function bindEvents() {
       requestAnimationFrame(() => field.focus({ preventScroll: true }));
       return;
     }
-    const exam = event.target.closest('[data-exam]');
+    const exam = event.target.closest('button[data-exam]');
     if (exam) { setExam(exam.dataset.exam); setMobileDrawer(false); persist(); return; }
     const ieltsPath = event.target.closest('[data-ielts-path]');
     if (ieltsPath) { openIeltsPath(ieltsPath.dataset.ieltsPath); return; }
