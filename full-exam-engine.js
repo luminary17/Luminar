@@ -238,7 +238,9 @@
     $('full-exam-context').innerHTML = `<div><span>${escapeHtml(currentSection().title)}</span><strong>${escapeHtml(module.title)}</strong></div><div class="full-exam-progress"><i style="width:${Math.round(answeredCount / Math.max(1, questions.length) * 100)}%"></i></div><span>${answeredCount}/${questions.length} answered</span>`;
     const sharedPassage = question.passage || part.passage;
     const sharedImage = safeUrl(question.image || part.image);
-    const audio = safeUrl(part.audioUrl, true);
+    const partNumber = String(part.id || '').match(/part-(\d+)$/i)?.[1];
+    const bundledAudio = currentSection()?.id === 'listening' && partNumber ? `assets/ielts-audio/${state.mock.id}-part-${partNumber}.wav` : '';
+    const audio = safeUrl(part.audioUrl, true) || safeUrl(bundledAudio, true);
     const partChanged = state.partIndex !== currentParts().findIndex((candidate) => candidate.id === part.id);
     state.partIndex = currentParts().findIndex((candidate) => candidate.id === part.id);
     $('full-exam-stage').innerHTML = `<div class="full-exam-question-shell ${sharedPassage || sharedImage ? 'has-reference' : ''}">
