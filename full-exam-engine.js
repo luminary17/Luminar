@@ -29,6 +29,8 @@
   const safeUrl = (value, audio = false) => {
     const source = String(value || '').trim();
     if (/^https?:\/\//i.test(source)) return source;
+    if (audio && /^assets\/ielts-audio\/[a-z0-9_.-]+\.(?:mp3|wav|ogg|webm)$/i.test(source)) return source;
+    if (!audio && /^assets\/ielts-task1\/[a-z0-9_.-]+\.svg$/i.test(source)) return source;
     if (audio && (/^data:audio\/(mpeg|mp3|wav|ogg|webm);base64,/i.test(source) || /^(?:\.?\/?[a-z0-9_-]+\/)+[a-z0-9_.-]+\.(?:mp3|wav|ogg|webm)$/i.test(source))) return source;
     if (!audio && (/^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,/i.test(source) || /^(?:\.?\/?[a-z0-9_-]+\/)+[a-z0-9_.-]+\.(?:png|jpe?g|webp|gif|svg)$/i.test(source))) return source;
     return '';
