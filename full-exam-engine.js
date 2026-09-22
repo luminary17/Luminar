@@ -29,8 +29,8 @@
   const safeUrl = (value, audio = false) => {
     const source = String(value || '').trim();
     if (/^https?:\/\//i.test(source)) return source;
-    if (audio && /^data:audio\/(mpeg|mp3|wav|ogg|webm);base64,/i.test(source)) return source;
-    if (!audio && /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(source)) return source;
+    if (audio && (/^data:audio\/(mpeg|mp3|wav|ogg|webm);base64,/i.test(source) || /^(?:\.?\/?[a-z0-9_-]+\/)+[a-z0-9_.-]+\.(?:mp3|wav|ogg|webm)$/i.test(source))) return source;
+    if (!audio && (/^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,/i.test(source) || /^(?:\.?\/?[a-z0-9_-]+\/)+[a-z0-9_.-]+\.(?:png|jpe?g|webp|gif|svg)$/i.test(source))) return source;
     return '';
   };
 
@@ -65,7 +65,7 @@
   async function list(exam) {
     const path = exam === 'ielts' || exam === 'ielts-academic' ? 'ielts-academic' : 'sat';
     const [bundledResult, remoteResult] = await Promise.allSettled([
-      fetch(`data/full-mocks/${path}.json?v=1`, { cache: 'no-store' }).then((response) => {
+      fetch(`data/full-mocks/${path}.json?v=2`, { cache: 'no-store' }).then((response) => {
         if (!response.ok) throw new Error('Bundled mocks could not be loaded.');
         return response.json();
       }),
@@ -81,8 +81,14 @@
     const remote = remoteResult.status === 'fulfilled' ? remoteResult.value : {};
     Object.entries(remote || {}).forEach(([firebaseId, raw]) => {
       const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
-      if (validation.valid && validation.mock.published) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
-      else if (validation.mock?.id) merged.delete(validation.mock.id);
+      if (validation.valid && validation.mock.published) {
+        const existing = merged.get(validation.mock.id);
+        if (!existing || (validation.mock.contentRevision || 1) >= (existing.contentRevision || 1)) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
+      }
+      else if (validation.mock?.id) {
+        const existing = merged.get(validation.mock.id);
+        if (!existing || (validation.mock.contentRevision || 1) >= (existing.contentRevision || 1)) merged.delete(validation.mock.id);
+      }
     });
     return [...merged.values()].sort((left, right) => (left.order || 999) - (right.order || 999) || left.title.localeCompare(right.title));
   }

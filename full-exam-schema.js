@@ -127,6 +127,7 @@
     const deliveryMode = exam === 'sat' && text(raw.deliveryMode || raw.delivery).toLowerCase() === 'linear' ? 'linear' : 'adaptive';
     return {
       schemaVersion: number(raw.schemaVersion, VERSION),
+      contentRevision: number(raw.contentRevision, 1),
       id: questionId(raw, `mock-${Date.now()}`),
       exam,
       deliveryMode,
