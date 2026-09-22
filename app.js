@@ -250,12 +250,16 @@ let voiceLab = {
   answers: [],
   finalText: '',
   interimText: '',
+  transcriptEdited: false,
+  aiVoiceUnavailable: false,
   messages: [],
   restartTimer: null,
   silenceTimer: null,
   preparationTimer: null,
   preparationTicker: null,
   answerLimitTimer: null,
+  answerTicker: null,
+  answerRemaining: 0,
   answerStartedAt: 0,
   answerLimitReached: false,
   answerInterrupted: false,
@@ -678,6 +682,12 @@ function renderHome() {
   renderHomeQuote();
   $('home-kicker').textContent = isIelts ? 'IELTS thought of the day' : 'SAT thought of the day';
   $('goal-score').textContent = target || '--';
+  const latestResult = [...(state.progress.mockResults || [])].reverse().find((result) => result.exam === state.profile.exam);
+  if (!latestResult) $('latest-mock-score').textContent = 'No mock yet';
+  else if (isIelts) {
+    const bands = (latestResult.answers || []).filter((answer) => ['listening', 'reading'].includes(answer.id) && Number.isFinite(Number(answer.band)));
+    $('latest-mock-score').textContent = bands.length ? bands.map((answer) => `${answer.id === 'listening' ? 'L' : 'R'} ${Number(answer.band).toFixed(1)}`).join(' · ') : `${mockScoreLabel(latestResult)} correct`;
+  } else $('latest-mock-score').textContent = latestResult.estimatedScore ? `Estimated ${latestResult.estimatedScore}` : `${mockScoreLabel(latestResult)} correct`;
   $('goal-date').textContent = date ? dateText(date) : 'Not selected';
   if (date) {
     const days = Math.ceil((new Date(`${date}T12:00:00`) - new Date()) / 86400000);
@@ -2358,7 +2368,7 @@ function renderVoiceStage() {
   $('voice-complete').hidden = voiceLab.stage !== 'complete';
   const question = voiceLab.questions[voiceLab.questionIndex] || voiceLab.questions[0];
   $('voice-part-label').textContent = voiceLab.stage === 'live' ? `Part ${question.part}` : voiceLab.stage === 'complete' ? 'Complete' : 'IELTS Speaking';
-  $('voice-session-time').hidden = !(voiceLab.stage === 'live' && voiceLab.preparing);
+  $('voice-session-time').hidden = !(voiceLab.stage === 'live' && (voiceLab.preparing || voiceLab.listening));
   if (voiceLab.stage === 'live') {
     const questionsInPart = voiceLab.questions.filter((item) => item.part === question.part);
     const partPosition = questionsInPart.findIndex((item) => item.id === question.id) + 1;
@@ -2381,9 +2391,10 @@ function renderVoiceTranscript() {
   $('voice-caption-speaker').textContent = `Mr. Monday · Part ${question.part}`;
   $('voice-caption').textContent = latestModel?.text || question.text;
   const studentText = draft || (voiceLab.pending ? latestUser?.text : '');
-  $('voice-user-caption').hidden = false;
-  $('voice-user-caption').classList.toggle('is-placeholder', !studentText);
-  $('voice-user-caption').textContent = studentText || (voiceLab.listening ? 'Listening for your answer…' : 'Your words will appear here.');
+  const transcriptField = $('voice-user-caption');
+  transcriptField.readOnly = !voiceLab.listening;
+  transcriptField.placeholder = voiceLab.listening ? 'Listening for your answer…' : 'Your words will appear here.';
+  if (!voiceLab.transcriptEdited) transcriptField.value = studentText || '';
 }
 
 function renderVoiceState() {
@@ -2409,15 +2420,24 @@ function renderVoiceState() {
   $('voice-hint').textContent = voiceLab.preparing
     ? 'Use this minute to plan your Part 2 answer.'
     : voiceLab.listening
-    ? 'Speak naturally. Your answer is sent automatically when you pause.'
+    ? 'Speak naturally. Short pauses are fine; press Done answering when you finish.'
     : voiceLab.speaking
       ? 'Mr. Monday has the floor. Your microphone opens as soon as he finishes.'
       : voiceLab.pending
         ? 'Mr. Monday is preparing the next question.'
         : 'The microphone will reopen automatically.';
   $('voice-prep-skip').hidden = !voiceLab.preparing;
-  $('voice-session-time').hidden = !voiceLab.preparing;
-  if (voiceLab.preparing) $('voice-session-time').textContent = formatVoiceTime(voiceLab.preparationRemaining);
+  $('voice-answer-done').hidden = !voiceLab.listening;
+  $('voice-prep-notes-wrap').hidden = !(voiceLab.stage === 'live' && voiceLab.questions[voiceLab.questionIndex]?.part === 2 && (voiceLab.preparing || voiceLab.listening));
+  const secondsLeft = voiceLab.preparing ? voiceLab.preparationRemaining : voiceLab.listening ? voiceLab.answerRemaining : 0;
+  const showTime = voiceLab.preparing || voiceLab.listening;
+  $('voice-session-time').hidden = !showTime;
+  $('voice-time-left').hidden = !showTime;
+  if (showTime) {
+    const label = `${voiceLab.preparing ? 'Prepare' : 'Answer'} ${formatVoiceTime(secondsLeft)}`;
+    $('voice-session-time').textContent = label;
+    $('voice-time-left').textContent = label;
+  }
   renderVoiceStage();
 }
 
@@ -2456,12 +2476,8 @@ function speakBrowserVoice(text) {
     const maleVoice = preferredVoiceNames
       .map((pattern) => voices.find((voice) => pattern.test(voice.name) && /^en[-_]/i.test(voice.lang)))
       .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || null;
-    if (!maleVoice) {
-      showToast('Install an English male system voice to use Mr. Monday’s voice.');
-      resolve();
-      return;
-    }
-    utterance.voice = maleVoice;
+    const englishVoice = maleVoice || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
+    if (englishVoice) utterance.voice = englishVoice;
     voiceLab.utterance = utterance;
     voiceLab.speaking = true;
     renderVoiceState();
@@ -2486,7 +2502,40 @@ async function speakVoiceReply(text) {
   if (!text) return;
   lockVoiceInputForExaminer();
   try {
-    await speakBrowserVoice(text);
+    try {
+      if (voiceLab.aiVoiceUnavailable) throw new Error('Use browser voice');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      let response;
+      try {
+        response = await fetch(`${LUMINARY_AI_SERVICE_URL}/speaking/tts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: controller.signal });
+      } finally { clearTimeout(timeout); }
+      if (!response.ok) throw new Error('AI voice unavailable');
+      const audioUrl = URL.createObjectURL(await response.blob());
+      let audio;
+      try {
+        await new Promise((resolve, reject) => {
+          audio = new Audio(audioUrl);
+          voiceLab.utterance = audio;
+          voiceLab.speaking = true;
+          renderVoiceState();
+          audio.onended = resolve;
+          audio.onpause = resolve;
+          audio.onerror = reject;
+          audio.play().catch(reject);
+        });
+      } finally {
+        URL.revokeObjectURL(audioUrl);
+        if (voiceLab.utterance === audio) {
+          voiceLab.utterance = null;
+          voiceLab.speaking = false;
+          renderVoiceState();
+        }
+      }
+    } catch {
+      voiceLab.aiVoiceUnavailable = true;
+      if (voiceLab.active) await speakBrowserVoice(text);
+    }
   } finally {
     voiceLab.examinerTurn = false;
   }
@@ -2494,10 +2543,14 @@ async function speakVoiceReply(text) {
 
 function clearVoiceAnswerTiming() {
   clearTimeout(voiceLab.answerLimitTimer);
+  clearInterval(voiceLab.answerTicker);
   voiceLab.answerLimitTimer = null;
+  voiceLab.answerTicker = null;
+  voiceLab.answerRemaining = 0;
   voiceLab.answerStartedAt = 0;
   voiceLab.answerLimitReached = false;
   voiceLab.answerInterrupted = false;
+  voiceLab.transcriptEdited = false;
 }
 
 function startAnswerRecording() {
@@ -2590,7 +2643,7 @@ async function sendVoiceTurn(text, allowEmpty = false, audioBlob = null) {
     voiceLab.messages.push({ role: 'model', text: reply });
     voiceLab.pending = false;
     renderVoiceTranscript();
-    await speakVoiceReply(reply);
+    await speakVoiceReply(sessionComplete || needsPart2FollowUp ? reply : `Next question. ${reply}`);
     if (!voiceLab.active || currentPage !== 'speaking-ai') return;
     if (sessionComplete) {
       finishSpeakingMock();
@@ -2649,6 +2702,12 @@ function startSpeakingPreparation(seconds) {
   voiceLab.preparationTimer = setTimeout(finishSpeakingPreparation, seconds * 1000);
 }
 
+function finishVoiceAnswer() {
+  if (!voiceLab.listening || !voiceLab.recognition) return;
+  voiceLab.finalizeAnswer = true;
+  try { voiceLab.recognition.stop(); } catch {}
+}
+
 function initVoiceLab() {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) {
@@ -2674,7 +2733,7 @@ function initVoiceLab() {
     renderVoiceTranscript();
     clearTimeout(voiceLab.silenceTimer);
     const question = voiceLab.questions[voiceLab.questionIndex];
-    const silenceMilliseconds = question?.part === 2 ? 4000 : 3200;
+    const silenceMilliseconds = question?.part === 2 ? 12000 : 8000;
     voiceLab.silenceTimer = setTimeout(() => {
       if (voiceLab.listening) {
         voiceLab.finalizeAnswer = true;
@@ -2692,7 +2751,7 @@ function initVoiceLab() {
     clearTimeout(voiceLab.silenceTimer);
     voiceLab.silenceTimer = null;
     if (!voiceLab.listening || voiceLab.examinerTurn) return;
-    const message = `${voiceLab.finalText} ${voiceLab.interimText}`.replace(/\s+/g, ' ').trim();
+    const message = (voiceLab.transcriptEdited ? $('voice-user-caption').value : `${voiceLab.finalText} ${voiceLab.interimText}`).replace(/\s+/g, ' ').trim();
     setVoiceListening(false);
     renderVoiceTranscript();
     if (!voiceLab.active || currentPage !== 'speaking-ai') return;
@@ -2707,7 +2766,7 @@ function initVoiceLab() {
     voiceLab.finalText = '';
     voiceLab.interimText = '';
     if (message) sendVoiceTurn(message, false, audioBlob);
-    else if (voiceLab.answerLimitReached) sendVoiceTurn('', true, audioBlob);
+    else if (audioBlob?.size) sendVoiceTurn('', true, audioBlob);
     else voiceLab.restartTimer = setTimeout(startVoiceLab, 90);
   };
   renderVoiceState();
@@ -2726,6 +2785,13 @@ function startVoiceLab() {
     const question = voiceLab.questions[voiceLab.questionIndex];
     const answerLimitSeconds = voiceLab.answeringFollowUp ? question?.followUpAnswerLimitSeconds : question?.answerLimitSeconds;
     if (answerLimitSeconds && !voiceLab.answerLimitTimer) {
+      const answerEndsAt = Date.now() + answerLimitSeconds * 1000;
+      const updateAnswerTime = () => {
+        voiceLab.answerRemaining = Math.max(0, Math.ceil((answerEndsAt - Date.now()) / 1000));
+        renderVoiceState();
+      };
+      updateAnswerTime();
+      voiceLab.answerTicker = setInterval(updateAnswerTime, 250);
       voiceLab.answerLimitTimer = setTimeout(() => {
         voiceLab.answerLimitReached = true;
         voiceLab.answerInterrupted = true;
@@ -2761,6 +2827,9 @@ async function beginSpeakingMock() {
   voiceLab.questionIndex = 0;
   voiceLab.answers = [];
   voiceLab.messages = [];
+  voiceLab.transcriptEdited = false;
+  voiceLab.aiVoiceUnavailable = false;
+  $('voice-prep-notes').value = '';
   voiceLab.answeringFollowUp = false;
   voiceLab.finalizeAnswer = false;
   voiceLab.examinerTurn = false;
@@ -2859,6 +2928,8 @@ function resetSpeakingMock() {
   voiceLab.questionIndex = 0;
   voiceLab.answers = [];
   voiceLab.messages = [];
+  voiceLab.transcriptEdited = false;
+  $('voice-prep-notes').value = '';
   voiceLab.answeringFollowUp = false;
   voiceLab.finalizeAnswer = false;
   resetVoiceAssessment();
@@ -2892,11 +2963,14 @@ function endVoiceSession() {
   clearTimeout(voiceLab.preparationTimer);
   clearInterval(voiceLab.preparationTicker);
   clearTimeout(voiceLab.answerLimitTimer);
+  clearInterval(voiceLab.answerTicker);
   voiceLab.restartTimer = null;
   voiceLab.silenceTimer = null;
   voiceLab.preparationTimer = null;
   voiceLab.preparationTicker = null;
   voiceLab.answerLimitTimer = null;
+  voiceLab.answerTicker = null;
+  voiceLab.answerRemaining = 0;
   voiceLab.answerStartedAt = 0;
   voiceLab.answerLimitReached = false;
   voiceLab.answerInterrupted = false;
@@ -2907,6 +2981,7 @@ function endVoiceSession() {
   voiceLab.preparing = false;
   voiceLab.finalText = '';
   voiceLab.interimText = '';
+  voiceLab.transcriptEdited = false;
   if (voiceLab.listening && voiceLab.recognition) {
     voiceLab.listening = false;
     try { voiceLab.recognition.abort(); } catch {}
@@ -3043,7 +3118,7 @@ function bindEvents() {
     const correct=result.sections.reduce((sum,section)=>sum+(Number(section.correct)||0),0);
     const total=result.sections.reduce((sum,section)=>sum+(Number(section.total)||0),0);
     const completedAt=Number(result.completedAt)||Date.now();
-    const record={id:`full-mock-result-${completedAt}`,sourceId:String(result.mockId||''),title:String(result.title||'Full mock'),skill:'Full exam',exam:result.exam==='ielts-academic'?'ielts':'sat',correct,total,accuracy:total?Math.round(correct/total*100):0,estimatedScore:0,completedAt,analyzedAt:0,analysis:null,answers:result.sections.map(section=>({id:section.id,set:section.id,correct:section.correct,total:section.total,band:section.band}))};
+    const record={id:`full-mock-result-${completedAt}`,sourceId:String(result.mockId||''),title:String(result.title||'Full mock'),skill:'Full exam',exam:result.exam==='ielts-academic'?'ielts':'sat',correct,total,accuracy:total?Math.round(correct/total*100):0,estimatedScore:Number(result.estimatedScore)||0,completedAt,analyzedAt:0,analysis:null,answers:result.sections.map(section=>({id:section.id,set:section.id,correct:section.correct,total:section.total,band:section.band}))};
     const results=state.progress.mockResults||(state.progress.mockResults=[]);results.push(record);if(results.length>30)results.splice(0,results.length-30);
     const now=new Date(),yesterdayDate=new Date(now);yesterdayDate.setDate(now.getDate()-1);const today=localDateKey(now),yesterday=localDateKey(yesterdayDate);
     state.progress.sessions+=1;state.progress.streak=state.progress.lastSessionDate===today?Math.max(1,state.progress.streak):state.progress.lastSessionDate===yesterday?state.progress.streak+1:1;state.progress.lastSessionDate=today;
@@ -3252,6 +3327,8 @@ function bindEvents() {
   $('voice-begin').addEventListener('click', beginSpeakingMock);
   $('voice-toggle').addEventListener('click', requestVoiceExit);
   $('voice-prep-skip').addEventListener('click', finishSpeakingPreparation);
+  $('voice-answer-done').addEventListener('click', finishVoiceAnswer);
+  $('voice-user-caption').addEventListener('input', () => { if (voiceLab.listening) voiceLab.transcriptEdited = true; });
   $('voice-again').addEventListener('click', resetSpeakingMock);
   $('voice-finish').addEventListener('click', leaveSpeakingExperience);
   $('voice-lab-back').addEventListener('click', requestVoiceExit);

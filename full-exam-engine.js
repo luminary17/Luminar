@@ -12,12 +12,17 @@
     questionIndex: 0,
     responses: {},
     marked: {},
+    notes: {},
+    highlights: {},
+    selectedText: '',
     completedModules: [],
     routes: {},
     secondsRemaining: 0,
     deadline: 0,
     timerHidden: false,
     timer: null,
+    breakTimer: null,
+    breakEndsAt: 0,
     audioProgress: {},
     audioStarted: {},
     audioCompleted: {},
@@ -114,6 +119,8 @@
     $('full-exam-audio-dock').addEventListener('click', handleAudioClick);
     $('full-exam-stage').addEventListener('click', handleStageClick);
     $('full-exam-stage').addEventListener('input', handleStageInput);
+    $('full-exam-stage').addEventListener('mouseup', rememberSelection);
+    $('full-exam-stage').addEventListener('keyup', rememberSelection);
     $('full-exam-footer').addEventListener('click', handleFooterClick);
     $('full-exam-modal').addEventListener('click', handleModalClick);
   }
@@ -128,6 +135,7 @@
 
   function resetState(mock) {
     clearInterval(state.timer);
+    clearInterval(state.breakTimer);
     state.mock = mock;
     state.screen = 'intro';
     state.sectionIndex = 0;
@@ -136,10 +144,14 @@
     state.questionIndex = 0;
     state.responses = {};
     state.marked = {};
+    state.notes = {};
+    state.highlights = {};
+    state.selectedText = '';
     state.completedModules = [];
     state.routes = {};
     state.secondsRemaining = 0;
     state.deadline = 0;
+    state.breakEndsAt = 0;
     state.timerHidden = false;
     state.audioProgress = {};
     state.audioStarted = {};
@@ -184,6 +196,37 @@
     persistSession();
   }
 
+  function showBreak(sectionIndex, moduleId, minutes, savedEnd = 0) {
+    stopTimer();
+    clearInterval(state.breakTimer);
+    state.screen = 'break';
+    state.breakNext = { sectionIndex, moduleId };
+    state.breakEndsAt = savedEnd || Date.now() + minutes * 60000;
+    $('full-exam-context').innerHTML = '';
+    hideAudioDock();
+    $('full-exam-stage').innerHTML = `<article class="full-exam-intro full-exam-break"><p class="kicker">Scheduled break</p><h1>Take a ${minutes}-minute break.</h1><p>Your Reading &amp; Writing section is complete. Math begins after the break. You can start sooner when you feel ready.</p><strong id="full-exam-break-time" aria-live="off">${minutes}:00</strong><button class="button button-primary" data-full-end-break type="button">Start Math now</button></article>`;
+    $('full-exam-footer').innerHTML = '';
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((state.breakEndsAt - Date.now()) / 1000));
+      const clock = $('full-exam-break-time');
+      if (clock) clock.textContent = `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
+      if (!remaining) finishBreak();
+    };
+    tick();
+    if (state.screen === 'break') state.breakTimer = setInterval(tick, 1000);
+    persistSession();
+  }
+
+  function finishBreak() {
+    if (state.screen !== 'break') return;
+    clearInterval(state.breakTimer);
+    state.breakTimer = null;
+    state.breakEndsAt = 0;
+    const next = state.breakNext;
+    state.breakNext = null;
+    showTransition(next.sectionIndex, next.moduleId, 'Break complete. The next section is ready.');
+  }
+
   function defaultDirections(sectionId) {
     if (sectionId === 'listening') return 'You will hear each recording once. Answer all questions as you listen.';
     if (sectionId === 'reading') return 'Read each passage and answer all questions. The timer includes answer transfer time.';
@@ -225,6 +268,28 @@
     $('full-exam-clock').classList.toggle('is-urgent', state.secondsRemaining > 0 && state.secondsRemaining <= 300);
   }
 
+  function highlightedPassage(text, key) {
+    const ranges = (state.highlights[key] || []).map((phrase) => {
+      const start = text.indexOf(phrase);
+      return { start, end: start + phrase.length };
+    }).filter((range) => range.start >= 0).sort((a, b) => a.start - b.start);
+    let offset = 0;
+    let html = '';
+    for (const range of ranges) {
+      if (range.start < offset) continue;
+      html += escapeHtml(text.slice(offset, range.start));
+      html += `<mark class="full-exam-highlight">${escapeHtml(text.slice(range.start, range.end))}</mark>`;
+      offset = range.end;
+    }
+    return (html + escapeHtml(text.slice(offset))).replace(/\n/g, '<br>');
+  }
+
+  function rememberSelection() {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim() || '';
+    if (text && text.length <= 500 && $('full-exam-stage').contains(selection.anchorNode) && $('full-exam-stage').contains(selection.focusNode)) state.selectedText = text;
+  }
+
   function renderQuestion() {
     $('full-exam-engine').dataset.exam = state.mock.exam;
     const module = currentModule();
@@ -234,6 +299,8 @@
     const part = questionPart(question);
     const response = currentResponse(question);
     const marked = Boolean(state.marked[responseKey(question)]);
+    const key = responseKey(question);
+    state.selectedText = '';
     const answeredCount = questions.filter((item) => hasResponse(item)).length;
     $('full-exam-context').innerHTML = `<div><span>${escapeHtml(currentSection().title)}</span><strong>${escapeHtml(module.title)}</strong></div><div class="full-exam-progress"><i style="width:${Math.round(answeredCount / Math.max(1, questions.length) * 100)}%"></i></div><span>${answeredCount}/${questions.length} answered</span>`;
     const sharedPassage = question.passage || part.passage;
@@ -244,8 +311,8 @@
     const partChanged = state.partIndex !== currentParts().findIndex((candidate) => candidate.id === part.id);
     state.partIndex = currentParts().findIndex((candidate) => candidate.id === part.id);
     $('full-exam-stage').innerHTML = `<div class="full-exam-question-shell ${sharedPassage || sharedImage ? 'has-reference' : ''}">
-      ${(sharedPassage || sharedImage) ? `<aside class="full-exam-reference">${part.title ? `<p class="kicker">${escapeHtml(part.title)}</p>` : ''}${sharedImage ? `<img src="${escapeHtml(sharedImage)}" alt="Question reference">` : ''}${sharedPassage ? `<div class="full-exam-passage">${escapeHtml(sharedPassage).replace(/\n/g, '<br>')}</div>` : ''}</aside>` : ''}
-      <article class="full-exam-question"><header><span>${state.questionIndex + 1}</span><button class="full-exam-mark ${marked ? 'is-marked' : ''}" data-full-mark type="button">${marked ? 'Marked for review' : 'Mark for review'}</button></header>${part.instructions || question.instructions ? `<p class="full-exam-instructions">${escapeHtml(question.instructions || part.instructions)}</p>` : ''}<h2>${escapeHtml(question.prompt)}</h2>${renderResponseControl(question, response)}</article>
+      ${(sharedPassage || sharedImage) ? `<aside class="full-exam-reference">${part.title ? `<p class="kicker">${escapeHtml(part.title)}</p>` : ''}${sharedImage ? `<img src="${escapeHtml(sharedImage)}" alt="Question reference">` : ''}${sharedPassage ? `<div class="full-exam-passage">${highlightedPassage(sharedPassage, key)}</div>` : ''}</aside>` : ''}
+      <article class="full-exam-question"><header><span>${state.questionIndex + 1}</span><button class="full-exam-mark ${marked ? 'is-marked' : ''}" data-full-mark type="button">${marked ? 'Marked for review' : 'Mark for review'}</button></header>${part.instructions || question.instructions ? `<p class="full-exam-instructions">${escapeHtml(question.instructions || part.instructions)}</p>` : ''}<h2>${highlightedPassage(question.prompt, key)}</h2>${renderResponseControl(question, response)}<div class="full-exam-note-tools"><button data-full-highlight type="button">Highlight selection</button><button data-full-quote type="button">Add selection to note</button>${currentSection().id === 'math' ? '<a href="https://www.desmos.com/calculator" target="_blank" rel="noopener noreferrer">Open Desmos ↗</a>' : ''}</div><label class="full-exam-note-label">Notes for this question<textarea data-full-note placeholder="Write here while you work…">${escapeHtml(state.notes[key] || '')}</textarea></label><p class="full-exam-note-status" data-full-note-status aria-live="polite"></p></article>
     </div>`;
     renderPartAudio(part, audio);
     $('full-exam-footer').innerHTML = `<button class="full-exam-counter" data-full-review type="button">Question ${state.questionIndex + 1} of ${questions.length}</button><div><button class="button button-quiet" data-full-previous type="button" ${state.questionIndex === 0 ? 'disabled' : ''}>Previous</button><button class="button button-primary" data-full-next type="button">${state.questionIndex === questions.length - 1 ? 'Review module' : 'Next'}</button></div>`;
@@ -284,6 +351,26 @@
   function handleStageClick(event) {
     if (event.target.closest('[data-full-begin]')) { showTransition(0, firstModuleForSection(state.mock.sections[0]).id); return; }
     if (event.target.closest('[data-full-start-module]')) { beginModule(); return; }
+    if (event.target.closest('[data-full-end-break]')) { finishBreak(); return; }
+    if (event.target.closest('[data-full-highlight]')) {
+      const question = currentQuestion();
+      const phrase = state.selectedText;
+      const passage = question?.passage || questionPart(question)?.passage || '';
+      if (!phrase || (!passage.includes(phrase) && !question.prompt.includes(phrase))) { document.querySelector('[data-full-note-status]').textContent = 'Select text in the question or passage first.'; return; }
+      const key = responseKey(question);
+      state.highlights[key] ||= [];
+      if (!state.highlights[key].includes(phrase)) state.highlights[key].push(phrase);
+      renderQuestion(); persistSession();
+      return;
+    }
+    if (event.target.closest('[data-full-quote]')) {
+      const note = document.querySelector('[data-full-note]');
+      if (!state.selectedText) { document.querySelector('[data-full-note-status]').textContent = 'Select text from the question or passage first.'; return; }
+      note.value = `${note.value}${note.value ? '\n' : ''}“${state.selectedText}” `;
+      state.notes[responseKey(currentQuestion())] = note.value;
+      note.focus(); persistSession();
+      return;
+    }
     const choice = event.target.closest('[data-full-choice]');
     if (choice) { setResponse(Number(choice.dataset.fullChoice)); return; }
     const multiple = event.target.closest('[data-full-multiple]');
@@ -306,6 +393,7 @@
   function handleStageInput(event) {
     const question = currentQuestion();
     if (!question) return;
+    if (event.target.matches('[data-full-note]')) { state.notes[responseKey(question)] = event.target.value; persistSession(); return; }
     if (event.target.matches('[data-full-text], [data-full-writing]')) {
       state.responses[responseKey(question)] = event.target.value;
       const counter = document.querySelector('[data-full-word-count]');
@@ -475,7 +563,8 @@
         if (state.sectionIndex + 1 < state.mock.sections.length) {
           const nextIndex = state.sectionIndex + 1;
           const nextSection = state.mock.sections[nextIndex];
-          showTransition(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes ? `${section.breakMinutes}-minute break before the next section.` : 'The next section is ready.');
+          if (section.breakMinutes) showBreak(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes);
+          else showTransition(nextIndex, firstModuleForSection(nextSection).id, 'The next section is ready.');
           return;
         }
         finishExam();
@@ -492,7 +581,8 @@
       if (state.sectionIndex + 1 < state.mock.sections.length) {
         const nextIndex = state.sectionIndex + 1;
         const nextSection = state.mock.sections[nextIndex];
-        showTransition(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes ? `${section.breakMinutes}-minute break before the next section.` : 'The next section is ready.');
+        if (section.breakMinutes) showBreak(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes);
+        else showTransition(nextIndex, firstModuleForSection(nextSection).id, 'The next section is ready.');
         return;
       }
       finishExam();
@@ -521,6 +611,11 @@
     return (tables.find(([minimum]) => scaledRaw >= minimum) || [0, 0])[1];
   }
 
+  function satPracticeSectionScore(correct, total) {
+    if (!total) return null;
+    return Math.max(200, Math.min(800, Math.round((200 + 600 * correct / total) / 10) * 10));
+  }
+
   function finishExam() {
     stopTimer();
     state.secondsRemaining = 0;
@@ -533,9 +628,10 @@
       const correct = scores.reduce((sum, score) => sum + score.correct, 0);
       const total = scores.reduce((sum, score) => sum + score.total, 0);
       const writingTasks = objectiveModules.flatMap((module) => global.FullExamSchema.allQuestions(module)).filter((question) => question.type === 'writing');
-      return { id: section.id, title: section.title, correct, total, writingTasks, band: state.mock.exam === 'ielts-academic' && ['listening', 'reading'].includes(section.id) ? ieltsBand(correct, total, section.id) : null };
+      return { id: section.id, title: section.title, correct, total, writingTasks, band: state.mock.exam === 'ielts-academic' && ['listening', 'reading'].includes(section.id) ? ieltsBand(correct, total, section.id) : null, practiceScore: state.mock.exam === 'sat' ? satPracticeSectionScore(correct, total) : null };
     });
-    state.result = { mockId: state.mock.id, title: state.mock.title, exam: state.mock.exam, completedAt: Date.now(), routes: state.routes, sections, responses: state.responses };
+    const estimatedScore = state.mock.exam === 'sat' && sections.every((section) => section.practiceScore !== null) ? sections.reduce((sum, section) => sum + section.practiceScore, 0) : null;
+    state.result = { mockId: state.mock.id, title: state.mock.title, exam: state.mock.exam, completedAt: Date.now(), routes: state.routes, sections, estimatedScore, responses: state.responses, notes: state.notes, highlights: state.highlights };
     const history = JSON.parse(localStorage.getItem('luminary-full-exam-results-v1') || '[]');
     history.push(state.result);
     localStorage.setItem('luminary-full-exam-results-v1', JSON.stringify(history.slice(-30)));
@@ -546,8 +642,19 @@
 
   function renderResults() {
     $('full-exam-context').innerHTML = '';
-    const scoreNote = state.mock.exam === 'sat' ? `Official SAT scoring requires calibrated item parameters, so Luminary reports raw section performance${state.mock.deliveryMode === 'adaptive' ? ' and the adaptive route' : ''}.` : 'Listening and Reading bands are practice estimates. Writing requires examiner or rubric-based assessment.';
-    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Exam complete</p><h1>${escapeHtml(state.mock.title)}</h1><p>Your responses have been saved. ${scoreNote}</p><div class="full-exam-result-grid">${state.result.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span>${section.total ? `<strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small>` : `<strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small>`}</article>`).join('')}</div>${state.mock.exam === 'sat' && Object.keys(state.routes).length ? `<p class="full-exam-route-result">Adaptive routes: ${Object.entries(state.routes).map(([section, route]) => `${section.toUpperCase()} ${route}`).join(' · ')}</p>` : ''}<button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
+    const scoreNote = state.mock.exam === 'sat' ? 'This is a practice estimate based on correct answers. Official SAT scoring uses calibrated questions and can differ.' : 'Listening and Reading bands are practice estimates. Writing requires examiner or rubric-based assessment.';
+    const notes = Object.entries(state.result.notes || {}).filter(([, value]) => String(value).trim());
+    const noteLabel = (key) => {
+      const [moduleId, questionId] = key.split(':');
+      for (const section of state.mock.sections) {
+        const module = section.modules.find((item) => item.id === moduleId);
+        if (!module) continue;
+        const position = global.FullExamSchema.allQuestions(module).findIndex((question) => question.id === questionId);
+        return `${section.title} · ${module.title} · Question ${position + 1}`;
+      }
+      return 'Question note';
+    };
+    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Exam complete</p><h1>${escapeHtml(state.mock.title)}</h1>${state.result.estimatedScore !== null ? `<div class="full-exam-score"><span>Your estimated SAT score</span><strong>${state.result.estimatedScore}</strong><small>Reading &amp; Writing ${state.result.sections[0]?.practiceScore} · Math ${state.result.sections[1]?.practiceScore}</small></div>` : ''}<p>Your responses have been saved. ${scoreNote}</p><div class="full-exam-result-grid">${state.result.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span>${section.total ? `<strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small>` : `<strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small>`}</article>`).join('')}</div>${notes.length ? `<details class="full-exam-saved-notes"><summary>Your notes (${notes.length})</summary>${notes.map(([key, value]) => `<article><strong>${escapeHtml(noteLabel(key))}</strong><p>${escapeHtml(value)}</p></article>`).join('')}</details>` : ''}${state.mock.exam === 'sat' && Object.keys(state.routes).length ? `<p class="full-exam-route-result">Adaptive routes: ${Object.entries(state.routes).map(([section, route]) => `${section.toUpperCase()} ${route}`).join(' · ')}</p>` : ''}<button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
     $('full-exam-footer').innerHTML = '';
     $('full-exam-stage').querySelector('[data-full-finish]').addEventListener('click', exit);
     renderTimer();
@@ -557,7 +664,7 @@
 
   function persistSession() {
     if (!state.mock || state.screen === 'results') return;
-    const snapshot = { mock: state.mock, screen: state.screen, sectionIndex: state.sectionIndex, moduleId: state.moduleId, partIndex: state.partIndex, questionIndex: state.questionIndex, responses: state.responses, marked: state.marked, completedModules: state.completedModules, routes: state.routes, secondsRemaining: state.secondsRemaining, deadline: state.deadline, timerHidden: state.timerHidden, audioProgress: state.audioProgress, audioStarted: state.audioStarted, audioCompleted: state.audioCompleted };
+    const snapshot = { mock: state.mock, screen: state.screen, sectionIndex: state.sectionIndex, moduleId: state.moduleId, partIndex: state.partIndex, questionIndex: state.questionIndex, responses: state.responses, marked: state.marked, notes: state.notes, highlights: state.highlights, completedModules: state.completedModules, routes: state.routes, secondsRemaining: state.secondsRemaining, deadline: state.deadline, breakEndsAt: state.breakEndsAt, breakNext: state.breakNext, timerHidden: state.timerHidden, audioProgress: state.audioProgress, audioStarted: state.audioStarted, audioCompleted: state.audioCompleted };
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot)); } catch { /* Large image data may exceed storage. */ }
   }
 
@@ -568,10 +675,11 @@
       if (!saved?.mock) return false;
       const validation = global.FullExamSchema.validate(saved.mock, { strictCounts: true });
       if (!validation.valid) throw new Error('Invalid saved exam.');
-      Object.assign(state, saved, { mock: validation.mock, timer: null });
+      Object.assign(state, saved, { mock: validation.mock, timer: null, breakTimer: null, notes: saved.notes || {}, highlights: saved.highlights || {}, selectedText: '' });
       $('full-exam-engine').hidden = false;
       document.body.classList.add('is-full-exam-open');
       if (state.screen === 'question') { startTimer(); renderQuestion(); }
+      else if (state.screen === 'break' && state.breakNext) showBreak(state.breakNext.sectionIndex, state.breakNext.moduleId, Math.max(1, Math.ceil((state.breakEndsAt - Date.now()) / 60000)), state.breakEndsAt);
       else if (state.screen === 'transition') showTransition(state.sectionIndex, state.moduleId);
       else showIntro();
       return true;
@@ -580,6 +688,7 @@
 
   function exit() {
     clearInterval(state.timer);
+    clearInterval(state.breakTimer);
     if (state.screen === 'results' || state.screen === 'intro') sessionStorage.removeItem(STORAGE_KEY);
     $('full-exam-engine').hidden = true;
     document.body.classList.remove('is-full-exam-open');

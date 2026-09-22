@@ -963,21 +963,17 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat01-math1-1",
-                "type": "single_choice",
-                "prompt": "If 3x + 6 = 18, what is x?",
-                "passage": "",
-                "options": [
-                  "7",
-                  "5",
-                  "3",
-                  "4"
-                ],
-                "correct": 3,
-                "explanation": "Subtract 6: 3x = 12. Dividing by 3 gives x = 4.",
+                "id": "varied-sat-practice-01-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
-                "difficulty": "easy"
+                "type": "numeric",
+                "skill": "Linear functions",
+                "prompt": "The table shows the total fare for a taxi ride. What is the fare, in dollars, for 9 miles?",
+                "acceptedAnswers": [
+                  "32"
+                ],
+                "explanation": "The fare increases by $3 per mile. Since 2 miles cost $11, the starting fee is $5; 5 + 3(9) = 32.",
+                "passage": "Miles: 2 | 4 | 6\nFare ($): 11 | 17 | 23",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat01-math1-2",
@@ -1198,16 +1194,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat01-math1-16",
-                "type": "numeric",
-                "prompt": "A jacket costs $90 before a 20% discount. What is the sale price, in dollars?",
-                "acceptedAnswers": [
-                  "72"
-                ],
-                "explanation": "The customer pays 80% of the original price: 0.8 × 90 = 72.",
+                "id": "varied-sat-practice-01-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "One-variable data: Distributions and measures of center and spread",
+                "prompt": "What is the median of the five values shown?",
+                "options": [
+                  "2",
+                  "3",
+                  "5",
+                  "8"
+                ],
+                "correct": 1,
+                "explanation": "The ordered list is 2, 3, 3, 8, 12. The middle value is 3.",
+                "passage": "Values: 2 | 3 | 3 | 8 | 12",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat01-math1-17",
@@ -1414,16 +1415,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat01-math2-8",
-                "type": "numeric",
-                "prompt": "The quadratic x² − 6x + k = 0 has exactly one real solution. What is k?",
-                "acceptedAnswers": [
-                  "9"
-                ],
-                "explanation": "The discriminant must be zero: (6)² − 4k = 0. Thus k = 9.",
+                "id": "varied-sat-practice-01-2",
                 "domain": "Advanced Math",
-                "skill": "Nonlinear equations in one variable and systems of equations in two variables",
-                "difficulty": "hard"
+                "type": "single_choice",
+                "skill": "Nonlinear functions",
+                "prompt": "The graph of y = (x + 2)² − 9 crosses the x-axis at which two x-values?",
+                "options": [
+                  "−5 and 1",
+                  "−3 and 3",
+                  "−2 and 9",
+                  "1 and 5"
+                ],
+                "correct": 0,
+                "explanation": "Set (x + 2)² = 9, so x + 2 = ±3 and x = −5 or 1.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat01-math2-9",
@@ -1593,21 +1599,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat01-math2-20",
-                "type": "single_choice",
-                "prompt": "Two similar solids have corresponding lengths in the ratio 1:3. What is the ratio of the smaller volume to the larger volume?",
-                "passage": "",
-                "options": [
-                  "1:9",
-                  "1:3",
-                  "3:1",
-                  "1:27"
-                ],
-                "correct": 3,
-                "explanation": "Volumes scale by the cube of the length factor. The volume ratio is 1:27.",
+                "id": "varied-sat-practice-01-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "hard"
+                "type": "numeric",
+                "skill": "Circles",
+                "prompt": "A circle has radius 5. What is its area in terms of π? Enter the coefficient of π.",
+                "acceptedAnswers": [
+                  "25"
+                ],
+                "explanation": "Area = πr² = 25π.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat01-math2-21",
@@ -2734,21 +2736,17 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat02-math1-9",
-                "type": "single_choice",
-                "prompt": "Which expression is equivalent to (x + 4)(x − 4)?",
-                "passage": "",
-                "options": [
-                  "x² − 8x + 16",
-                  "x² + 16",
-                  "x² − 4",
-                  "x² − 16"
-                ],
-                "correct": 3,
-                "explanation": "The middle terms cancel: x² − 4x + 4x − 16 = x² − 16.",
+                "id": "varied-sat-practice-02-2",
                 "domain": "Advanced Math",
-                "skill": "Equivalent expressions",
-                "difficulty": "easy"
+                "type": "numeric",
+                "skill": "Nonlinear functions",
+                "prompt": "A population of 200 grows by 50% each year. What is the population after 2 years?",
+                "acceptedAnswers": [
+                  "450"
+                ],
+                "explanation": "Multiply by 1.5 twice: 200(1.5)² = 450.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat02-math1-10",
@@ -2901,21 +2899,21 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat02-math1-20",
-                "type": "single_choice",
-                "prompt": "A circle has radius 4 centimeters. What is its area, in square centimeters?",
-                "passage": "",
-                "options": [
-                  "4π",
-                  "8π",
-                  "64π",
-                  "16π"
-                ],
-                "correct": 3,
-                "explanation": "Area is πr² = π(4)² = 16π. Circumference would use 2πr.",
+                "id": "varied-sat-practice-02-4",
                 "domain": "Geometry and Trigonometry",
+                "type": "single_choice",
                 "skill": "Area and volume",
-                "difficulty": "easy"
+                "prompt": "A rectangular prism measures 3 by 4 by 10 units. What is its volume?",
+                "options": [
+                  "17",
+                  "40",
+                  "120",
+                  "240"
+                ],
+                "correct": 2,
+                "explanation": "Volume is length × width × height = 3 × 4 × 10 = 120.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat02-math1-21",
@@ -2955,15 +2953,20 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat02-math2-1",
-                "type": "numeric",
-                "prompt": "For what value of k does 4(x − 2) = 4x + k have infinitely many solutions?",
-                "acceptedAnswers": [
-                  "-8"
-                ],
-                "explanation": "Expanding gives 4x − 8 = 4x + k. The constants must agree, so k = −8.",
+                "id": "varied-sat-practice-02-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
+                "type": "single_choice",
+                "skill": "Systems of two linear equations in two variables",
+                "prompt": "A gym offers Plan A for $18 plus $4 per week and Plan B for $10 plus $6 per week. After how many weeks do the plans cost the same?",
+                "options": [
+                  "2",
+                  "4",
+                  "6",
+                  "8"
+                ],
+                "correct": 1,
+                "explanation": "Set 18 + 4w = 10 + 6w. Then 8 = 2w, so w = 4.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -3175,20 +3178,16 @@
                 "difficulty": "hard"
               },
               {
-                "id": "v2-sat02-math2-16",
-                "type": "single_choice",
-                "prompt": "A price increases by 30% and then decreases by 23.08%. Compared with the original price, the final price is",
-                "passage": "",
-                "options": [
-                  "lower by 5%",
-                  "higher by 5%",
-                  "lower by 10%",
-                  "unchanged"
-                ],
-                "correct": 3,
-                "explanation": "The second multiplier is 100/(100 + 30), so the two multipliers multiply to 1.",
+                "id": "varied-sat-practice-02-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
+                "type": "numeric",
+                "skill": "One-variable data: Distributions and measures of center and spread",
+                "prompt": "A student scores 80, 90, and 100 on three equally weighted tests. What is the mean score?",
+                "acceptedAnswers": [
+                  "90"
+                ],
+                "explanation": "(80 + 90 + 100)/3 = 90.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -4253,21 +4252,17 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat03-math1-1",
-                "type": "single_choice",
-                "prompt": "If 5x + 8 = 38, what is x?",
-                "passage": "",
-                "options": [
-                  "11",
-                  "7",
-                  "5",
-                  "6"
-                ],
-                "correct": 3,
-                "explanation": "Subtract 8: 5x = 30. Dividing by 5 gives x = 6.",
+                "id": "varied-sat-practice-03-1",
                 "domain": "Algebra",
+                "type": "numeric",
                 "skill": "Linear equations in one variable",
-                "difficulty": "easy"
+                "prompt": "The formula C = (F − 32) × 5/9 converts degrees Fahrenheit to Celsius. What is C when F = 68?",
+                "acceptedAnswers": [
+                  "20"
+                ],
+                "explanation": "Substitute 68: (68 − 32) × 5/9 = 36 × 5/9 = 20.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat03-math1-2",
@@ -4488,16 +4483,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat03-math1-16",
-                "type": "numeric",
-                "prompt": "A jacket costs $110 before a 20% discount. What is the sale price, in dollars?",
-                "acceptedAnswers": [
-                  "88"
-                ],
-                "explanation": "The customer pays 80% of the original price: 0.8 × 110 = 88.",
+                "id": "varied-sat-practice-03-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Ratios, rates, proportional relationships, and units",
+                "prompt": "Red and blue beads are in the ratio 2:5. There are 84 beads in all. How many are red?",
+                "options": [
+                  "12",
+                  "24",
+                  "30",
+                  "60"
+                ],
+                "correct": 1,
+                "explanation": "There are 7 equal parts. Red beads account for 2/7 of 84, or 24.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat03-math1-17",
@@ -4704,16 +4704,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat03-math2-8",
-                "type": "numeric",
-                "prompt": "The quadratic x² − 10x + k = 0 has exactly one real solution. What is k?",
-                "acceptedAnswers": [
-                  "25"
-                ],
-                "explanation": "The discriminant must be zero: (10)² − 4k = 0. Thus k = 25.",
+                "id": "varied-sat-practice-03-2",
                 "domain": "Advanced Math",
+                "type": "single_choice",
                 "skill": "Nonlinear equations in one variable and systems of equations in two variables",
-                "difficulty": "hard"
+                "prompt": "If √(3x + 1) = 7, what is x?",
+                "options": [
+                  "8",
+                  "12",
+                  "16",
+                  "24"
+                ],
+                "correct": 2,
+                "explanation": "Square both sides: 3x + 1 = 49, so 3x = 48 and x = 16.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat03-math2-9",
@@ -4883,21 +4888,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat03-math2-20",
-                "type": "single_choice",
-                "prompt": "Two similar solids have corresponding lengths in the ratio 1:5. What is the ratio of the smaller volume to the larger volume?",
-                "passage": "",
-                "options": [
-                  "1:25",
-                  "1:5",
-                  "5:1",
-                  "1:125"
-                ],
-                "correct": 3,
-                "explanation": "Volumes scale by the cube of the length factor. The volume ratio is 1:125.",
+                "id": "varied-sat-practice-03-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "hard"
+                "type": "numeric",
+                "skill": "Right triangles and trigonometry",
+                "prompt": "A right triangle has legs of length 9 and 12. What is the hypotenuse?",
+                "acceptedAnswers": [
+                  "15"
+                ],
+                "explanation": "By the Pythagorean theorem, the hypotenuse is √(9² + 12²) = 15.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat03-math2-21",
@@ -6024,21 +6025,17 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat04-math1-9",
-                "type": "single_choice",
-                "prompt": "Which expression is equivalent to (x + 6)(x − 6)?",
-                "passage": "",
-                "options": [
-                  "x² − 12x + 36",
-                  "x² + 36",
-                  "x² − 6",
-                  "x² − 36"
-                ],
-                "correct": 3,
-                "explanation": "The middle terms cancel: x² − 6x + 6x − 36 = x² − 36.",
+                "id": "varied-sat-practice-04-2",
                 "domain": "Advanced Math",
+                "type": "numeric",
                 "skill": "Equivalent expressions",
-                "difficulty": "easy"
+                "prompt": "How many distinct real zeros does the function f(x) = x³ − 4x have?",
+                "acceptedAnswers": [
+                  "3"
+                ],
+                "explanation": "Factor x³ − 4x as x(x − 2)(x + 2). The distinct zeros are −2, 0, and 2.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat04-math1-10",
@@ -6191,21 +6188,21 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat04-math1-20",
-                "type": "single_choice",
-                "prompt": "A circle has radius 6 centimeters. What is its area, in square centimeters?",
-                "passage": "",
-                "options": [
-                  "6π",
-                  "12π",
-                  "144π",
-                  "36π"
-                ],
-                "correct": 3,
-                "explanation": "Area is πr² = π(6)² = 36π. Circumference would use 2πr.",
+                "id": "varied-sat-practice-04-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Lines, angles, and triangles",
+                "prompt": "Two angles of a triangle measure 45° and 55°. What is the third angle?",
+                "options": [
+                  "70°",
+                  "80°",
+                  "90°",
+                  "100°"
+                ],
+                "correct": 1,
+                "explanation": "Triangle angles sum to 180°, so the third is 180 − 45 − 55 = 80°.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat04-math1-21",
@@ -6245,15 +6242,16 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat04-math2-1",
-                "type": "numeric",
-                "prompt": "For what value of k does 6(x − 2) = 6x + k have infinitely many solutions?",
-                "acceptedAnswers": [
-                  "-12"
-                ],
-                "explanation": "Expanding gives 6x − 12 = 6x + k. The constants must agree, so k = −12.",
+                "id": "varied-sat-practice-04-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
+                "type": "numeric",
+                "skill": "Systems of two linear equations in two variables",
+                "prompt": "Ten people buy tickets. Adult tickets cost $12, child tickets cost $8, and the total is $96. How many adult tickets were bought?",
+                "acceptedAnswers": [
+                  "4"
+                ],
+                "explanation": "If a is the number of adult tickets, 12a + 8(10 − a) = 96. Thus 4a = 16 and a = 4.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -6465,20 +6463,16 @@
                 "difficulty": "hard"
               },
               {
-                "id": "v2-sat04-math2-16",
-                "type": "single_choice",
-                "prompt": "A price increases by 40% and then decreases by 28.57%. Compared with the original price, the final price is",
-                "passage": "",
-                "options": [
-                  "lower by 5%",
-                  "higher by 5%",
-                  "lower by 10%",
-                  "unchanged"
-                ],
-                "correct": 3,
-                "explanation": "The second multiplier is 100/(100 + 40), so the two multipliers multiply to 1.",
+                "id": "varied-sat-practice-04-3",
                 "domain": "Problem-Solving and Data Analysis",
+                "type": "numeric",
                 "skill": "Percentages",
+                "prompt": "A restaurant bill is $48 before a 15% tip. How much is the tip, in dollars?",
+                "acceptedAnswers": [
+                  "7.2"
+                ],
+                "explanation": "0.15 × 48 = 7.2 dollars.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -7543,21 +7537,21 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat05-math1-1",
+                "id": "varied-sat-practice-05-1",
+                "domain": "Algebra",
                 "type": "single_choice",
-                "prompt": "If 7x + 10 = 66, what is x?",
-                "passage": "",
+                "skill": "Linear functions",
+                "prompt": "A line has slope −2 and passes through (3, 5). What is its y-intercept?",
                 "options": [
-                  "9",
-                  "7",
-                  "8",
-                  "15"
+                  "−1",
+                  "5",
+                  "11",
+                  "13"
                 ],
                 "correct": 2,
-                "explanation": "Subtract 10: 7x = 56. Dividing by 7 gives x = 8.",
-                "domain": "Algebra",
-                "skill": "Linear equations in one variable",
-                "difficulty": "easy"
+                "explanation": "Use y = −2x + b. Substituting (3, 5) gives 5 = −6 + b, so b = 11.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat05-math1-2",
@@ -7778,16 +7772,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat05-math1-16",
-                "type": "numeric",
-                "prompt": "A jacket costs $130 before a 20% discount. What is the sale price, in dollars?",
-                "acceptedAnswers": [
-                  "104"
-                ],
-                "explanation": "The customer pays 80% of the original price: 0.8 × 130 = 104.",
+                "id": "varied-sat-practice-05-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Ratios, rates, proportional relationships, and units",
+                "prompt": "A board is 12 feet long. How many inches long is it?",
+                "options": [
+                  "120",
+                  "132",
+                  "144",
+                  "156"
+                ],
+                "correct": 2,
+                "explanation": "Each foot is 12 inches, so 12 feet is 12 × 12 = 144 inches.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat05-math1-17",
@@ -7994,16 +7993,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat05-math2-8",
-                "type": "numeric",
-                "prompt": "The quadratic x² − 14x + k = 0 has exactly one real solution. What is k?",
-                "acceptedAnswers": [
-                  "49"
-                ],
-                "explanation": "The discriminant must be zero: (14)² − 4k = 0. Thus k = 49.",
+                "id": "varied-sat-practice-05-2",
                 "domain": "Advanced Math",
-                "skill": "Nonlinear equations in one variable and systems of equations in two variables",
-                "difficulty": "hard"
+                "type": "single_choice",
+                "skill": "Equivalent expressions",
+                "prompt": "For x ≠ 5, the expression (x² − 25)/(x − 5) is equivalent to which expression?",
+                "options": [
+                  "x − 5",
+                  "x + 5",
+                  "x² + 5",
+                  "5x"
+                ],
+                "correct": 1,
+                "explanation": "Factor the numerator as (x − 5)(x + 5), then cancel x − 5.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat05-math2-9",
@@ -8173,21 +8177,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat05-math2-20",
-                "type": "single_choice",
-                "prompt": "Two similar solids have corresponding lengths in the ratio 1:7. What is the ratio of the smaller volume to the larger volume?",
-                "passage": "",
-                "options": [
-                  "1:49",
-                  "1:7",
-                  "7:1",
-                  "1:343"
-                ],
-                "correct": 3,
-                "explanation": "Volumes scale by the cube of the length factor. The volume ratio is 1:343.",
+                "id": "varied-sat-practice-05-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "hard"
+                "type": "numeric",
+                "skill": "Lines, angles, and triangles",
+                "prompt": "A triangle with sides 3, 4, and 5 is enlarged by a scale factor of 4. What is the perimeter of the enlarged triangle?",
+                "acceptedAnswers": [
+                  "48"
+                ],
+                "explanation": "The original perimeter is 12. Scaling all sides by 4 gives perimeter 48.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat05-math2-21",
@@ -9314,21 +9314,17 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat06-math1-9",
-                "type": "single_choice",
-                "prompt": "Which expression is equivalent to (x + 8)(x − 8)?",
-                "passage": "",
-                "options": [
-                  "x² − 16x + 64",
-                  "x² − 64",
-                  "x² − 8",
-                  "x² + 64"
-                ],
-                "correct": 1,
-                "explanation": "The middle terms cancel: x² − 8x + 8x − 64 = x² − 64.",
+                "id": "varied-sat-practice-06-2",
                 "domain": "Advanced Math",
-                "skill": "Equivalent expressions",
-                "difficulty": "easy"
+                "type": "numeric",
+                "skill": "Nonlinear functions",
+                "prompt": "Let g(x) = x² + 1 and f(x) = 3x − 4. What is f(g(2))?",
+                "acceptedAnswers": [
+                  "11"
+                ],
+                "explanation": "g(2) = 5, then f(5) = 15 − 4 = 11.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat06-math1-10",
@@ -9481,21 +9477,21 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat06-math1-20",
-                "type": "single_choice",
-                "prompt": "A circle has radius 8 centimeters. What is its area, in square centimeters?",
-                "passage": "",
-                "options": [
-                  "8π",
-                  "16π",
-                  "256π",
-                  "64π"
-                ],
-                "correct": 3,
-                "explanation": "Area is πr² = π(8)² = 64π. Circumference would use 2πr.",
+                "id": "varied-sat-practice-06-4",
                 "domain": "Geometry and Trigonometry",
+                "type": "single_choice",
                 "skill": "Area and volume",
-                "difficulty": "easy"
+                "prompt": "A cylinder has radius 2 and height 7. What is its volume?",
+                "options": [
+                  "14π",
+                  "28π",
+                  "49π",
+                  "56π"
+                ],
+                "correct": 1,
+                "explanation": "Volume = πr²h = π(2²)(7) = 28π.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat06-math1-21",
@@ -9535,15 +9531,16 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat06-math2-1",
-                "type": "numeric",
-                "prompt": "For what value of k does 8(x − 2) = 8x + k have infinitely many solutions?",
-                "acceptedAnswers": [
-                  "-16"
-                ],
-                "explanation": "Expanding gives 8x − 16 = 8x + k. The constants must agree, so k = −16.",
+                "id": "varied-sat-practice-06-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
+                "type": "numeric",
+                "skill": "Linear functions",
+                "prompt": "Two cyclists start together. One travels at 45 miles per hour and the other at 60 miles per hour. How many miles apart are they after 2 hours if they travel in the same direction?",
+                "acceptedAnswers": [
+                  "30"
+                ],
+                "explanation": "Their relative speed is 60 − 45 = 15 miles per hour. In 2 hours the gap is 30 miles.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -9755,20 +9752,16 @@
                 "difficulty": "hard"
               },
               {
-                "id": "v2-sat06-math2-16",
-                "type": "single_choice",
-                "prompt": "A price increases by 50% and then decreases by 33.33%. Compared with the original price, the final price is",
-                "passage": "",
-                "options": [
-                  "lower by 5%",
-                  "higher by 5%",
-                  "lower by 10%",
-                  "unchanged"
-                ],
-                "correct": 3,
-                "explanation": "The second multiplier is 100/(100 + 50), so the two multipliers multiply to 1.",
+                "id": "varied-sat-practice-06-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
+                "type": "numeric",
+                "skill": "Probability and conditional probability",
+                "prompt": "A bag contains 3 red, 5 blue, and 2 green marbles. What is the probability of drawing a blue marble? Enter a decimal.",
+                "acceptedAnswers": [
+                  "0.5"
+                ],
+                "explanation": "There are 10 marbles and 5 are blue. The probability is 5/10 = 0.5.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -10833,21 +10826,21 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat07-math1-1",
+                "id": "varied-sat-practice-07-1",
+                "domain": "Algebra",
                 "type": "single_choice",
-                "prompt": "If 9x + 12 = 102, what is x?",
-                "passage": "",
+                "skill": "Linear functions",
+                "prompt": "The table gives points on a line. What is the slope?",
                 "options": [
-                  "11",
-                  "9",
-                  "10",
-                  "19"
+                  "−3",
+                  "1/3",
+                  "3",
+                  "12"
                 ],
                 "correct": 2,
-                "explanation": "Subtract 12: 9x = 90. Dividing by 9 gives x = 10.",
-                "domain": "Algebra",
-                "skill": "Linear equations in one variable",
-                "difficulty": "easy"
+                "explanation": "The change in y is 5 − (−7) = 12 while the change in x is 4, so slope = 12/4 = 3.",
+                "passage": "x: 0 | 2 | 4\ny: −7 | −1 | 5",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat07-math1-2",
@@ -11068,16 +11061,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat07-math1-16",
-                "type": "numeric",
-                "prompt": "A jacket costs $150 before a 20% discount. What is the sale price, in dollars?",
-                "acceptedAnswers": [
-                  "120"
-                ],
-                "explanation": "The customer pays 80% of the original price: 0.8 × 150 = 120.",
+                "id": "varied-sat-practice-07-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Inference from sample statistics and margin of error",
+                "prompt": "A survey estimates support at 60% with a margin of error of 4 percentage points. Which interval reflects that margin?",
+                "options": [
+                  "52%–68%",
+                  "56%–64%",
+                  "58%–62%",
+                  "60%–64%"
+                ],
+                "correct": 1,
+                "explanation": "Subtract and add 4 percentage points to 60%: 56% to 64%.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat07-math1-17",
@@ -11284,16 +11282,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat07-math2-8",
-                "type": "numeric",
-                "prompt": "The quadratic x² − 18x + k = 0 has exactly one real solution. What is k?",
-                "acceptedAnswers": [
-                  "81"
-                ],
-                "explanation": "The discriminant must be zero: (18)² − 4k = 0. Thus k = 81.",
+                "id": "varied-sat-practice-07-2",
                 "domain": "Advanced Math",
+                "type": "single_choice",
                 "skill": "Nonlinear equations in one variable and systems of equations in two variables",
-                "difficulty": "hard"
+                "prompt": "How many distinct real solutions does x² − 6x + 9 = 0 have?",
+                "options": [
+                  "0",
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "correct": 1,
+                "explanation": "The equation factors as (x − 3)² = 0, giving one distinct solution.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat07-math2-9",
@@ -11463,21 +11466,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat07-math2-20",
-                "type": "single_choice",
-                "prompt": "Two similar solids have corresponding lengths in the ratio 1:9. What is the ratio of the smaller volume to the larger volume?",
-                "passage": "",
-                "options": [
-                  "1:81",
-                  "1:9",
-                  "9:1",
-                  "1:729"
-                ],
-                "correct": 3,
-                "explanation": "Volumes scale by the cube of the length factor. The volume ratio is 1:729.",
+                "id": "varied-sat-practice-07-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "hard"
+                "type": "numeric",
+                "skill": "Lines, angles, and triangles",
+                "prompt": "What is the distance between (0, 0) and (6, 8) in the coordinate plane?",
+                "acceptedAnswers": [
+                  "10"
+                ],
+                "explanation": "Distance = √(6² + 8²) = √100 = 10.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat07-math2-21",
@@ -12604,21 +12603,17 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat08-math1-9",
-                "type": "single_choice",
-                "prompt": "Which expression is equivalent to (x + 10)(x − 10)?",
-                "passage": "",
-                "options": [
-                  "x² − 10",
-                  "x² − 20x + 100",
-                  "x² + 100",
-                  "x² − 100"
-                ],
-                "correct": 3,
-                "explanation": "The middle terms cancel: x² − 10x + 10x − 100 = x² − 100.",
+                "id": "varied-sat-practice-08-2",
                 "domain": "Advanced Math",
-                "skill": "Equivalent expressions",
-                "difficulty": "easy"
+                "type": "numeric",
+                "skill": "Nonlinear functions",
+                "prompt": "A quantity of 80 decreases by 25% and then by another 25%. What is its final value?",
+                "acceptedAnswers": [
+                  "45"
+                ],
+                "explanation": "Each decrease multiplies by 0.75. Thus 80(0.75)² = 45.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat08-math1-10",
@@ -12771,21 +12766,21 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat08-math1-20",
-                "type": "single_choice",
-                "prompt": "A circle has radius 10 centimeters. What is its area, in square centimeters?",
-                "passage": "",
-                "options": [
-                  "10π",
-                  "20π",
-                  "400π",
-                  "100π"
-                ],
-                "correct": 3,
-                "explanation": "Area is πr² = π(10)² = 100π. Circumference would use 2πr.",
+                "id": "varied-sat-practice-08-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Lines, angles, and triangles",
+                "prompt": "A line has slope 2. What is the slope of a perpendicular line?",
+                "options": [
+                  "−2",
+                  "−1/2",
+                  "1/2",
+                  "2"
+                ],
+                "correct": 1,
+                "explanation": "Perpendicular slopes are negative reciprocals, so the slope is −1/2.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat08-math1-21",
@@ -12825,15 +12820,16 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat08-math2-1",
-                "type": "numeric",
-                "prompt": "For what value of k does 10(x − 2) = 10x + k have infinitely many solutions?",
-                "acceptedAnswers": [
-                  "-20"
-                ],
-                "explanation": "Expanding gives 10x − 20 = 10x + k. The constants must agree, so k = −20.",
+                "id": "varied-sat-practice-08-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
+                "type": "numeric",
+                "skill": "Systems of two linear equations in two variables",
+                "prompt": "Three notebooks and two pens cost $17. Each notebook costs $3. What is the cost, in dollars, of one pen?",
+                "acceptedAnswers": [
+                  "4"
+                ],
+                "explanation": "The notebooks cost $9, leaving $8 for two pens. Each pen costs $4.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -13045,20 +13041,20 @@
                 "difficulty": "hard"
               },
               {
-                "id": "v2-sat08-math2-16",
-                "type": "single_choice",
-                "prompt": "A price increases by 60% and then decreases by 37.50%. Compared with the original price, the final price is",
-                "passage": "",
-                "options": [
-                  "lower by 5%",
-                  "higher by 5%",
-                  "lower by 10%",
-                  "unchanged"
-                ],
-                "correct": 3,
-                "explanation": "The second multiplier is 100/(100 + 60), so the two multipliers multiply to 1.",
+                "id": "varied-sat-practice-08-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
+                "type": "single_choice",
+                "skill": "Two-variable data: Models and scatterplots",
+                "prompt": "The points in the table show a positive association. Which statement best describes the pattern?",
+                "options": [
+                  "y tends to rise as x rises",
+                  "y tends to fall as x rises",
+                  "y stays constant",
+                  "x and y must be equal"
+                ],
+                "correct": 0,
+                "explanation": "As x increases from 1 to 4, y increases from 3 to 9.",
+                "passage": "x: 1 | 2 | 3 | 4\ny: 3 | 5 | 7 | 9",
                 "difficulty": "medium"
               },
               {
@@ -14123,21 +14119,21 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat09-math1-1",
-                "type": "single_choice",
-                "prompt": "If 11x + 14 = 146, what is x?",
-                "passage": "",
-                "options": [
-                  "13",
-                  "11",
-                  "23",
-                  "12"
-                ],
-                "correct": 3,
-                "explanation": "Subtract 14: 11x = 132. Dividing by 11 gives x = 12.",
+                "id": "varied-sat-practice-09-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Linear inequalities in one or two variables",
+                "prompt": "A park charges $7 for entry and $5 per ride. With $40, what is the greatest number of rides a visitor can buy?",
+                "options": [
+                  "5",
+                  "6",
+                  "7",
+                  "8"
+                ],
+                "correct": 1,
+                "explanation": "7 + 5r ≤ 40, so r ≤ 6.6. The greatest whole number is 6.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat09-math1-2",
@@ -14358,16 +14354,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat09-math1-16",
-                "type": "numeric",
-                "prompt": "A jacket costs $170 before a 20% discount. What is the sale price, in dollars?",
-                "acceptedAnswers": [
-                  "136"
-                ],
-                "explanation": "The customer pays 80% of the original price: 0.8 × 170 = 136.",
+                "id": "varied-sat-practice-09-3",
                 "domain": "Problem-Solving and Data Analysis",
-                "skill": "Percentages",
-                "difficulty": "easy"
+                "type": "numeric",
+                "skill": "Probability and conditional probability",
+                "prompt": "Of 40 students, 18 play soccer and 10 of those 18 also play chess. If a soccer player is chosen at random, what is the probability that the student plays chess? Enter a fraction.",
+                "acceptedAnswers": [
+                  "5/9"
+                ],
+                "explanation": "The conditional probability is 10/18, which simplifies to 5/9.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat09-math1-17",
@@ -14574,16 +14571,21 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat09-math2-8",
-                "type": "numeric",
-                "prompt": "The quadratic x² − 22x + k = 0 has exactly one real solution. What is k?",
-                "acceptedAnswers": [
-                  "121"
-                ],
-                "explanation": "The discriminant must be zero: (22)² − 4k = 0. Thus k = 121.",
+                "id": "varied-sat-practice-09-2",
                 "domain": "Advanced Math",
-                "skill": "Nonlinear equations in one variable and systems of equations in two variables",
-                "difficulty": "hard"
+                "type": "single_choice",
+                "skill": "Nonlinear functions",
+                "prompt": "A projectile’s height is h(t) = −2(t − 3)² + 18. What is its greatest height?",
+                "options": [
+                  "3",
+                  "12",
+                  "18",
+                  "20"
+                ],
+                "correct": 2,
+                "explanation": "The squared term is never positive after multiplying by −2, so the maximum is 18.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat09-math2-9",
@@ -14753,21 +14755,17 @@
                 "difficulty": "medium"
               },
               {
-                "id": "v2-sat09-math2-20",
-                "type": "single_choice",
-                "prompt": "Two similar solids have corresponding lengths in the ratio 1:11. What is the ratio of the smaller volume to the larger volume?",
-                "passage": "",
-                "options": [
-                  "1:121",
-                  "1:11",
-                  "11:1",
-                  "1:1331"
-                ],
-                "correct": 3,
-                "explanation": "Volumes scale by the cube of the length factor. The volume ratio is 1:1331.",
+                "id": "varied-sat-practice-09-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "hard"
+                "type": "numeric",
+                "skill": "Circles",
+                "prompt": "A 90° sector of a circle has radius 8. What is its area in terms of π? Enter the coefficient of π.",
+                "acceptedAnswers": [
+                  "16"
+                ],
+                "explanation": "The sector is one-fourth of the circle. (1/4)π(8²) = 16π.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat09-math2-21",
@@ -15894,21 +15892,17 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat10-math1-9",
-                "type": "single_choice",
-                "prompt": "Which expression is equivalent to (x + 12)(x − 12)?",
-                "passage": "",
-                "options": [
-                  "x² − 24x + 144",
-                  "x² + 144",
-                  "x² − 144",
-                  "x² − 12"
-                ],
-                "correct": 2,
-                "explanation": "The middle terms cancel: x² − 12x + 12x − 144 = x² − 144.",
+                "id": "varied-sat-practice-10-2",
                 "domain": "Advanced Math",
+                "type": "numeric",
                 "skill": "Equivalent expressions",
-                "difficulty": "easy"
+                "prompt": "If 4^x = 2^6, what is x?",
+                "acceptedAnswers": [
+                  "3"
+                ],
+                "explanation": "Since 4 = 2², the equation becomes 2^(2x) = 2^6. Therefore x = 3.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat10-math1-10",
@@ -16061,21 +16055,21 @@
                 "difficulty": "easy"
               },
               {
-                "id": "v2-sat10-math1-20",
-                "type": "single_choice",
-                "prompt": "A circle has radius 12 centimeters. What is its area, in square centimeters?",
-                "passage": "",
-                "options": [
-                  "12π",
-                  "24π",
-                  "576π",
-                  "144π"
-                ],
-                "correct": 3,
-                "explanation": "Area is πr² = π(12)² = 144π. Circumference would use 2πr.",
+                "id": "varied-sat-practice-10-4",
                 "domain": "Geometry and Trigonometry",
-                "skill": "Area and volume",
-                "difficulty": "easy"
+                "type": "single_choice",
+                "skill": "Right triangles and trigonometry",
+                "prompt": "In a right triangle, the side opposite angle θ is 5 and the hypotenuse is 13. What is sin θ?",
+                "options": [
+                  "5/13",
+                  "12/13",
+                  "5/12",
+                  "13/5"
+                ],
+                "correct": 0,
+                "explanation": "Sine is opposite over hypotenuse, so sin θ = 5/13.",
+                "passage": "",
+                "difficulty": "medium"
               },
               {
                 "id": "v2-sat10-math1-21",
@@ -16115,15 +16109,16 @@
             "durationMinutes": 35,
             "questions": [
               {
-                "id": "v2-sat10-math2-1",
-                "type": "numeric",
-                "prompt": "For what value of k does 12(x − 2) = 12x + k have infinitely many solutions?",
-                "acceptedAnswers": [
-                  "-24"
-                ],
-                "explanation": "Expanding gives 12x − 24 = 12x + k. The constants must agree, so k = −24.",
+                "id": "varied-sat-practice-10-1",
                 "domain": "Algebra",
-                "skill": "Linear equations in one variable",
+                "type": "numeric",
+                "skill": "Linear functions",
+                "prompt": "A sequence begins 4, 9, 14, 19, ... What is its 12th term?",
+                "acceptedAnswers": [
+                  "59"
+                ],
+                "explanation": "The sequence increases by 5. Its 12th term is 4 + 11(5) = 59.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
@@ -16335,20 +16330,20 @@
                 "difficulty": "hard"
               },
               {
-                "id": "v2-sat10-math2-16",
-                "type": "single_choice",
-                "prompt": "A price increases by 70% and then decreases by 41.18%. Compared with the original price, the final price is",
-                "passage": "",
-                "options": [
-                  "lower by 5%",
-                  "higher by 5%",
-                  "lower by 10%",
-                  "unchanged"
-                ],
-                "correct": 3,
-                "explanation": "The second multiplier is 100/(100 + 70), so the two multipliers multiply to 1.",
+                "id": "varied-sat-practice-10-3",
                 "domain": "Problem-Solving and Data Analysis",
+                "type": "single_choice",
                 "skill": "Percentages",
+                "prompt": "A price rises from $80 to $100. What is the percent increase?",
+                "options": [
+                  "20%",
+                  "25%",
+                  "40%",
+                  "80%"
+                ],
+                "correct": 1,
+                "explanation": "The increase is $20. Relative to the original $80, 20/80 = 25%.",
+                "passage": "",
                 "difficulty": "medium"
               },
               {
