@@ -736,6 +736,37 @@ function emptyPlanSetup() {
   return { currentTotal: '', currentRw: '', currentMath: '', target, targetRw, targetMath: target ? String(Number(target) - Number(targetRw)) : '', weakTopics: [], date: goal.date || '', minutes: 60 };
 }
 
+let planStepIndex = 0;
+
+function renderPlanStep(index, focus = false) {
+  const steps = [...document.querySelectorAll('[data-plan-step]')];
+  planStepIndex = Math.max(0, Math.min(index, steps.length - 1));
+  steps.forEach((step, position) => { step.hidden = position !== planStepIndex; });
+  $('plan-step-count').textContent = `Question ${planStepIndex + 1} of ${steps.length}`;
+  $('plan-setup').querySelector('[role="progressbar"]').setAttribute('aria-valuenow', String(planStepIndex + 1));
+  $('plan-progress-fill').style.width = `${(planStepIndex + 1) / steps.length * 100}%`;
+  $('plan-step-back').hidden = planStepIndex === 0;
+  $('plan-step-next').hidden = planStepIndex === steps.length - 1;
+  $('create-study-plan').hidden = planStepIndex !== steps.length - 1;
+  $('plan-step-error').hidden = true;
+  if (focus) steps[planStepIndex].querySelector('h2').focus();
+}
+
+function validatePlanStep(index) {
+  const values = planSetupFromForm();
+  const required = [values.currentTotal, values.currentRw, values.currentMath, values.target, values.targetRw, values.targetMath, null, values.date, values.minutes];
+  if (index !== 6 && !required[index]) return 'Choose an answer to continue.';
+  if (index === 2 && Number(values.currentRw) + Number(values.currentMath) !== Number(values.currentTotal)) return 'Your section scores must add up to your total score.';
+  if (index === 3 && Number(values.target) <= Number(values.currentTotal)) return 'Choose a target above your current score.';
+  if (index === 5 && Number(values.targetRw) + Number(values.targetMath) !== Number(values.target)) return 'Your section targets must add up to your target score.';
+  return '';
+}
+
+function showPlanStepError(message) {
+  $('plan-step-error').textContent = message;
+  $('plan-step-error').hidden = false;
+}
+
 function onboardingOptionList(items, label) {
   return `<option value="">${label}</option>${items.map((value) => `<option value="${value}">${value}</option>`).join('')}`;
 }
@@ -990,7 +1021,7 @@ function renderStudyPlan() {
     $('plan-target').innerHTML = optionList(scores, 'Choose target');
     $('plan-target-rw').innerHTML = optionList(sectionScores, 'Choose target');
     $('plan-target-math').innerHTML = optionList(sectionScores, 'Choose target');
-    $('plan-date').innerHTML = `<option value="">Choose test date</option>${SAT_DATES.map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
+    $('plan-date').innerHTML = `<option value="">Choose test date</option>${SAT_DATES.filter((date) => date >= localDateKey(new Date())).map((date) => `<option value="${date}">${dateText(date)}</option>`).join('')}`;
     $('plan-current-total').value = draft.currentTotal;
     $('plan-current-rw').value = draft.currentRw;
     $('plan-current-math').value = draft.currentMath;
@@ -1000,6 +1031,7 @@ function renderStudyPlan() {
     $('plan-date').value = draft.date;
     $('plan-minutes').value = String(draft.minutes);
     $('plan-weaknesses').innerHTML = ['rw', 'math'].map((set) => `<section class="plan-weakness-set"><h3>${questionSetName(set)}</h3>${(SAT_TOPIC_GROUPS[set] || []).map((group) => `<div class="plan-weakness-group"><label><input type="checkbox" data-plan-weak="${escapeHtml(group.title)}"><strong>${escapeHtml(group.title)}</strong></label><div>${group.topics.map((topic) => `<label><input type="checkbox" data-plan-weak="${escapeHtml(`${group.title}::${topic}`)}">${escapeHtml(topic)}</label>`).join('')}</div></div>`).join('')}</section>`).join('');
+    renderPlanStep(0);
     return;
   }
   const today = localDateKey(new Date());
@@ -1042,9 +1074,17 @@ function syncTargetSections(changed) {
 
 function syncCurrentTotal(changed) {
   if (changed === 'plan-current-rw' || changed === 'plan-current-math') {
-    const rw = Number($('plan-current-rw').value);
-    const math = Number($('plan-current-math').value);
-    if (rw && math) $('plan-current-total').value = String(rw + math);
+    const total = Number($('plan-current-total').value);
+    const score = Number($(changed).value);
+    const complement = total - score;
+    if (score >= 200 && score <= 800 && complement >= 200 && complement <= 800) {
+      $(changed === 'plan-current-rw' ? 'plan-current-math' : 'plan-current-rw').value = String(complement);
+    } else {
+      const rw = balancedSectionScore(total);
+      $('plan-current-rw').value = String(rw);
+      $('plan-current-math').value = String(total - rw);
+      showPlanStepError('That section score cannot add up to your total. Choose another score.');
+    }
   } else {
     const total = Number($('plan-current-total').value);
     if (!total) return;
@@ -3152,12 +3192,18 @@ function bindEvents() {
     resetSpeakingMock();
     openPage('speaking-ai');
   });
+  $('plan-step-next').addEventListener('click', () => {
+    const error = validatePlanStep(planStepIndex);
+    if (error) { showPlanStepError(error); return; }
+    renderPlanStep(planStepIndex + 1, true);
+  });
+  $('plan-step-back').addEventListener('click', () => renderPlanStep(planStepIndex - 1, true));
   $('create-study-plan').addEventListener('click', () => {
     const setup = planSetupFromForm();
-    if (!setup.currentTotal || !setup.currentRw || !setup.currentMath || !setup.target || !setup.targetRw || !setup.targetMath || !setup.date) { showToast('Complete your current scores, target scores, and SAT date.'); return; }
-    if (Number(setup.currentRw) + Number(setup.currentMath) !== Number(setup.currentTotal)) { showToast('Your current Reading & Writing and Math scores must equal your current total.'); return; }
-    if (Number(setup.targetRw) + Number(setup.targetMath) !== Number(setup.target)) { showToast('Your target Reading & Writing and Math scores must equal your target total.'); return; }
-    if (Number(setup.target) <= Number(setup.currentTotal)) { showToast('Your target score should be above your current score.'); return; }
+    for (let index = 0; index < 9; index += 1) {
+      const error = validatePlanStep(index);
+      if (error) { renderPlanStep(index, true); showPlanStepError(error); return; }
+    }
     state.profile.goals.sat = { target: setup.target, date: setup.date };
     if (state.profile.exam === 'sat') { state.profile.target = setup.target; state.profile.date = setup.date; }
     generateStudyPlan(setup, false);
