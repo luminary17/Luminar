@@ -115,6 +115,7 @@
     const exam = examRaw === 'ielts' ? 'ielts-academic' : examRaw;
     return {
       schemaVersion: number(raw.schemaVersion, VERSION),
+      contentRevision: number(raw.contentRevision, 1),
       id: questionId(raw, `mock-${Date.now()}`),
       exam,
       order: Math.max(0, number(raw.order, 0)),

@@ -158,6 +158,25 @@
 .full-exam-engine[data-exam="ielts-academic"] .full-exam-choice { border: 1px solid var(--line); border-radius: 8px; }
 .full-exam-engine[data-exam="ielts-academic"] .full-exam-choice.is-selected { background: var(--accent-soft); }
 .full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { background: #f6f8fa; }
+.full-exam-highlight { border-radius: 2px; padding: 1px 2px; background: #ffe07a; color: #222; }
+.full-exam-note-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 12px; }
+.full-exam-note-tools button, .full-exam-note-tools a { border: 1px solid #b6c0ca; border-radius: 5px; padding: 7px 10px; background: #fff; color: #26374d; font: 600 12px Arial, sans-serif; text-decoration: none; cursor: pointer; }
+.full-exam-note-tools button:hover, .full-exam-note-tools a:hover { border-color: var(--accent); color: var(--accent); }
+.full-exam-note-label { display: grid; gap: 7px; color: #34435a; font: 600 13px Arial, sans-serif; }
+.full-exam-note-label textarea { width: 100%; min-height: 72px; resize: vertical; border: 1px solid #bec8d2; border-radius: 5px; padding: 10px; background: #fff; color: #242a31; font: 400 14px Arial, sans-serif; }
+.full-exam-note-label textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.full-exam-note-status { min-height: 16px; margin: 5px 0 0; color: #657485; font-size: 12px; }
+.full-exam-break { text-align: center; }
+.full-exam-break > strong { display: block; margin: 28px 0; color: #16273c; font: 700 clamp(50px, 9vw, 80px) Arial, sans-serif; font-variant-numeric: tabular-nums; }
+.full-exam-score { display: grid; justify-items: center; margin: 20px auto; border: 1px solid var(--line); border-radius: 8px; padding: 22px; background: var(--accent-soft); }
+.full-exam-score span { color: var(--text-soft); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.full-exam-score strong { color: var(--text); font-size: clamp(42px, 7vw, 68px); line-height: 1; }
+.full-exam-score small { color: var(--text-soft); font-size: 12px; }
+.full-exam-saved-notes { margin: 20px 0; border: 1px solid var(--line); border-radius: 7px; padding: 14px 18px; text-align: left; }
+.full-exam-saved-notes summary { cursor: pointer; font-weight: 700; }
+.full-exam-saved-notes article { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.full-exam-saved-notes strong { font-size: 13px; }
+.full-exam-saved-notes p { margin: 6px 0 0; white-space: pre-wrap; }
 
 @media (max-width: 760px) {
   .full-exam-topbar, .full-exam-context, .full-exam-footer { padding-inline: 14px; }

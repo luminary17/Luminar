@@ -124,8 +124,10 @@
     const remote = remoteResult.status === 'fulfilled' ? remoteResult.value : {};
     Object.entries(remote || {}).forEach(([firebaseId, raw]) => {
       const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
-      if (validation.valid && validation.mock.published) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
-      else if (validation.mock?.published === false) merged.delete(validation.mock.id);
+      const existing = validation.mock?.id ? merged.get(validation.mock.id) : null;
+      const isCurrent = !existing || (validation.mock.contentRevision || 1) >= (existing.contentRevision || 1);
+      if (validation.valid && validation.mock.published && isCurrent) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
+      else if (validation.mock?.published === false && isCurrent) merged.delete(validation.mock.id);
     });
     return [...merged.values()].sort((left, right) => (left.order || 999) - (right.order || 999) || left.title.localeCompare(right.title));
   }
