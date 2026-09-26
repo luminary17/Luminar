@@ -1,0 +1,45 @@
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --card2: #f8fafc;
+  --txt: #17263e;
+  --muted: #60718a;
+  --acc: #357fc4;
+  --acc2: #2467a8;
+  --border: #dfe5ec;
+  --danger: #b34040;
+}
+
+html { background: var(--bg); }
+body { font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+button, input, textarea, select { font: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
+.admin-header { height: 68px; box-shadow: none; }
+.logo { letter-spacing: -.035em; }
+.admin-wrap { max-width: 1040px; padding-top: 32px; }
+.admin-sec { border-radius: 16px; box-shadow: 0 3px 13px rgba(16, 28, 48, .035); }
+.admin-sec-head { min-height: 60px; }
+.admin-sec-head:hover { background: var(--card2); }
+.admin-sec-body { padding-inline: 24px; }
+.form-group label { color: var(--txt); font-weight: 700; }
+.form-group input, .form-group textarea, .form-group select { min-height: 42px; border-width: 1px; border-radius: 10px; background: var(--card); }
+.form-group input::placeholder, .form-group textarea::placeholder { color: #8492a4; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: 2px solid color-mix(in srgb, var(--acc) 20%, transparent); outline-offset: 1px; }
+.btn-primary, .btn-cancel, .btn-del, .btn-edit, .mock-tab { border-radius: 10px; transition: background-color .16s ease, border-color .16s ease, color .16s ease; }
+.btn-primary:hover { transform: none; }
+.btn-cancel { border: 1px solid var(--border); color: var(--txt); background: var(--card); }
+.btn-cancel:hover { border-color: var(--acc); color: var(--acc2); }
+.btn-del { background: var(--danger); }
+.btn-edit { background: #e9f2fb; color: var(--acc2); }
+.mock-tab { border-color: var(--border); color: var(--txt); }
+.mock-tab:hover:not(.active) { background: var(--card2); }
+.item-row, .word-row, .mock-draft-item { border-color: var(--border); box-shadow: none; }
+.success-msg { background: #e7f4ec; color: #236441; }
+#as-full-mocks .full-mock-message { color: var(--muted); }
+#as-full-mocks .full-mock-toggle { color: var(--txt); }
+#as-full-mocks button:focus-visible { outline-color: var(--acc); }
+@media (max-width: 640px) {
+  .admin-wrap { padding: 18px 12px 80px; }
+  .admin-sec-body { padding-inline: 16px; }
+  .admin-sec-head { padding-inline: 16px; }
+}

@@ -14,25 +14,12 @@ const THEMES = {
 
 const DEFAULT_STATE = {
   profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'navy', planPreferences: { currentScore: '', currentRw: '', currentMath: '', minutes: 60, weakTopics: [] } },
-  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [], mockResults: [] },
+  progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [], mockResults: [], satLessons: {} },
   studyPlan: { setup: null, generatedAt: 0, tasks: [] }
 };
 
 const SAT_DATES = ['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03'];
-const SAT_TOPIC_GROUPS = {
-  rw: [
-    { title: 'Information and Ideas', topics: ['Central Ideas and Details', 'Inferences', 'Command of Evidence'] },
-    { title: 'Craft and Structure', topics: ['Words in Context', 'Text Structure and Purpose', 'Cross-Text Connections'] },
-    { title: 'Expression of Ideas', topics: ['Rhetorical Synthesis', 'Transitions'] },
-    { title: 'Standard English Conventions', topics: ['Boundaries', 'Form, Structure, and Sense'] }
-  ],
-  math: [
-    { title: 'Algebra', topics: ['Linear equations in one variable', 'Linear functions', 'Linear equations in two variables', 'Systems of two linear equations in two variables', 'Linear inequalities in one or two variables'] },
-    { title: 'Advanced Math', topics: ['Nonlinear functions', 'Nonlinear equations in one variable and systems of equations in two variables', 'Equivalent expressions'] },
-    { title: 'Problem-Solving and Data Analysis', topics: ['Ratios, rates, proportional relationships, and units', 'Percentages', 'One-variable data: Distributions and measures of center and spread', 'Two-variable data: Models and scatterplots', 'Probability and conditional probability', 'Inference from sample statistics and margin of error', 'Evaluating statistical claims: Observational studies and experiments'] },
-    { title: 'Geometry and Trigonometry', topics: ['Area and volume', 'Lines, angles, and triangles', 'Right triangles and trigonometry', 'Circles'] }
-  ]
-};
+const SAT_TOPIC_GROUPS = window.SatCurriculum.groups;
 const SAT_CATEGORIES = Object.fromEntries(Object.entries(SAT_TOPIC_GROUPS).map(([set, groups]) => [set, groups.map((group) => group.title)]));
 const LUMINARY_QUOTES = [
   'Make today small enough to start and meaningful enough to finish.',
@@ -187,6 +174,8 @@ const HACK_SECTIONS = [
 
 let state = structuredClone(DEFAULT_STATE);
 let currentPage = 'home';
+let satRoute = null;
+let practiceReturnRoute = '/sat';
 let activeHomeQuoteIndex = -1;
 let currentSkill = '';
 let currentSet = 'math';
@@ -297,7 +286,8 @@ function mergeState(next) {
       marked: { ...DEFAULT_STATE.progress.marked, ...(progress.marked || {}) },
       eliminated: { ...DEFAULT_STATE.progress.eliminated, ...(progress.eliminated || {}) },
       questionHistory: Array.isArray(progress.questionHistory) ? progress.questionHistory.slice(-600) : [],
-      mockResults: Array.isArray(progress.mockResults) ? progress.mockResults.slice(-30) : []
+      mockResults: Array.isArray(progress.mockResults) ? progress.mockResults.slice(-30) : [],
+      satLessons: progress.satLessons && typeof progress.satLessons === 'object' ? { ...progress.satLessons } : {}
     },
     studyPlan: {
       ...DEFAULT_STATE.studyPlan,
@@ -346,6 +336,7 @@ function stateStorageKey(accountId = activeAccountId) {
 function applyTheme(themeId) {
   const id = THEMES[themeId] ? themeId : 'navy';
   state.profile.theme = id;
+  document.documentElement.dataset.theme = id;
   const palette = THEMES[id];
   Object.entries(palette).forEach(([key, value]) => {
     if (key !== 'name') document.documentElement.style.setProperty(`--${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`, value);
@@ -372,7 +363,7 @@ function setMobileDrawer(open) {
   document.body.classList.toggle('is-drawer-open', open);
 }
 
-function setExam(exam, returnHome = true) {
+function setExam(exam, returnLanding = true) {
   state.profile.exam = exam === 'ielts' ? 'ielts' : 'sat';
   const goal = activeGoal();
   state.profile.target = goal.target;
@@ -393,16 +384,19 @@ function setExam(exam, returnHome = true) {
   renderIeltsSkillHub();
   renderPodcasts();
   renderStudyPlan();
-  if (returnHome) openPage('home');
+  if (returnLanding) navigate(state.profile.exam === 'sat' ? '/sat' : '/ielts-practice');
 }
 
 function renderHomeQuote(chooseNew = false) {
-  if (chooseNew || activeHomeQuoteIndex < 0) {
-    let nextIndex = Math.floor(Math.random() * DAILY_QUOTES.length);
-    if (DAILY_QUOTES.length > 1 && nextIndex === activeHomeQuoteIndex) nextIndex = (nextIndex + 1) % DAILY_QUOTES.length;
+  const pool = state.profile.exam === 'sat'
+    ? DAILY_QUOTES.filter((quote) => !/band score|fluency|examiner|listen|speak/i.test(quote))
+    : DAILY_QUOTES;
+  if (chooseNew || activeHomeQuoteIndex < 0 || activeHomeQuoteIndex >= pool.length) {
+    let nextIndex = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && nextIndex === activeHomeQuoteIndex) nextIndex = (nextIndex + 1) % pool.length;
     activeHomeQuoteIndex = nextIndex;
   }
-  $('daily-quote').textContent = DAILY_QUOTES[activeHomeQuoteIndex];
+  $('daily-quote').textContent = pool[activeHomeQuoteIndex];
   $('daily-quote-day').textContent = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
 }
 
@@ -523,16 +517,32 @@ function suggestionTopic(value) {
 
 function renderHomeGuidance() {
   const results = state.progress.mockResults || [];
-  const latest = [...results].reverse().find((result) => result.exam === state.profile.exam);
+  if (state.profile.exam === 'sat') {
+    $('home-guidance-kicker').textContent = 'SAT practice';
+    $('home-guidance-title').textContent = 'Build confidence one question at a time.';
+    $('home-guidance-description').textContent = 'Choose Reading & Writing or Math in the Question Bank, then review each explanation.';
+    $('home-guidance-metrics').innerHTML = '';
+    $('home-guidance-actions').innerHTML = '<button class="button button-primary" data-sat-route="/sat" type="button">Explore SAT</button><button class="button button-quiet" data-page="questions" type="button">Question Bank</button>';
+    return;
+  }
+  const latest = [...results].reverse().find((result) => result.exam === 'ielts');
   const pending = latest && !latest.analyzedAt ? latest : null;
   const metrics = $('home-guidance-metrics');
   const actions = $('home-guidance-actions');
   metrics.innerHTML = '';
   actions.innerHTML = '';
+  const savedExam = window.FullExamEngine?.savedSummary();
+  if (savedExam) {
+    $('home-guidance-kicker').textContent = 'Continue your IELTS practice';
+    $('home-guidance-title').textContent = savedExam.title;
+    $('home-guidance-description').textContent = `Your ${savedExam.section} section is paused. Continue where you left off.`;
+    actions.innerHTML = '<button class="button button-primary" data-resume-full-mock type="button">Resume practice</button>';
+    return;
+  }
 
   if (pending) {
     $('home-guidance-kicker').textContent = 'Your last score';
-    $('home-guidance-title').textContent = state.profile.exam === 'sat' ? `Estimated ${mockScoreLabel(pending)}` : `${mockScoreLabel(pending)} correct`;
+    $('home-guidance-title').textContent = `${mockScoreLabel(pending)} correct`;
     $('home-guidance-description').textContent = pending.analyzing
       ? 'Luminary is turning this result into a focused study plan.'
       : `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
@@ -685,19 +695,13 @@ function renderHome() {
   } else $('goal-countdown').textContent = 'Set your date';
   const daily = dailyQuestionStore[state.profile.exam];
   if (daily.status === 'idle') loadDailyQuestion(state.profile.exam);
+  $('daily-heading').hidden = !daily.question;
+  $('daily-card').hidden = !daily.question;
   $('daily-title').textContent = isIelts ? 'Daily IELTS question' : 'Daily SAT question';
-  if (daily.status === 'loading') {
-    $('daily-copy').textContent = 'Loading today\'s separate question...';
-    $('daily-action').disabled = true;
-    $('daily-action').textContent = 'Loading';
-  } else if (daily.question) {
+  if (daily.question) {
     $('daily-copy').textContent = 'Available for today only.';
     $('daily-action').disabled = false;
     $('daily-action').textContent = 'Start daily question';
-  } else {
-    $('daily-copy').textContent = 'No daily question has been published for today.';
-    $('daily-action').disabled = true;
-    $('daily-action').textContent = 'Not available';
   }
   $('stat-focus').textContent = isIelts ? 'IELTS' : 'SAT';
   $('stat-sessions').textContent = state.progress.sessions || 0;
@@ -1294,16 +1298,35 @@ function resourceCards(items, target, category, emptyCopy = 'Loading your Lumina
   $(target).innerHTML = items.length ? items.map((item) => `<button class="resource-card" type="button" data-open-material="${escapeHtml(category)}" data-material-id="${escapeHtml(item.id)}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.copy)}</small></button>`).join('') : `<p class="empty-state">${escapeHtml(emptyCopy)}</p>`;
 }
 
+function renderIeltsPractice() {
+  let fullResults = [];
+  try {
+    const savedResults = JSON.parse(localStorage.getItem('luminary-full-exam-results-v1') || '[]');
+    fullResults = Array.isArray(savedResults) ? savedResults : [];
+  }
+  catch { fullResults = []; }
+  const skills = [
+    { name: 'Reading', icon: '📚', copy: 'Improve comprehension with academic passages.' },
+    { name: 'Writing', icon: '✍️', copy: 'Build stronger essays and Task 1 responses.' },
+    { name: 'Listening', icon: '🎧', copy: 'Train your ear with focused audio practice.' },
+    { name: 'Speaking', icon: '🎙️', copy: 'Complete a guided interview and receive AI feedback.' }
+  ];
+  $('ielts-practice-grid').innerHTML = skills.map(({ name, icon, copy }) => {
+    const completed = name === 'Speaking' ? null : new Set(fullResults.filter((result) => result.exam === 'ielts-academic' && result.sections?.some((section) => section.id === name.toLowerCase() && (section.total > 0 || section.writingTasks?.length > 0))).map((result) => result.mockId)).size;
+    return `<button class="ielts-practice-card" type="button" data-ielts-practice-skill="${name}" aria-label="Practise IELTS ${name}"><span class="ielts-practice-card-top"><span class="ielts-practice-icon" aria-hidden="true">${icon}</span><span class="ielts-practice-ring" style="--ring-progress:${completed === null ? 100 : Math.min(completed, 10) * 10}%" aria-hidden="true"><strong>${completed === null ? 'AI' : completed}</strong><small>${completed === null ? 'partner' : 'mocks'}</small></span></span><strong class="ielts-practice-name">${name}</strong><span class="ielts-practice-description">${copy}</span><span class="ielts-practice-cta">Practice now <span aria-hidden="true">→</span></span></button>`;
+  }).join('');
+}
+
 function renderIeltsSkillHub() {
   const skill = currentSkill || 'Listening';
   $('ielts-skill-kicker').textContent = 'IELTS';
   $('ielts-skill-title').textContent = skill;
   $('ielts-skill-copy').textContent = IELTS_SKILL_DETAILS[skill] || 'Choose how you want to practise.';
   const mockCopy = skill === 'Speaking'
-    ? 'A complete three-part interview with Luminary AI.'
+    ? 'A guided three-part interview with feedback on your recorded answers.'
     : `Timed ${skill.toLowerCase()} practice in the IELTS format.`;
   $('ielts-path-grid').innerHTML = [
-    { id: 'mocks', label: skill === 'Speaking' ? 'With Luminary AI' : 'Exam practice', title: 'Mocks', copy: mockCopy },
+    { id: 'mocks', label: skill === 'Speaking' ? 'Guided interview' : 'Exam practice', title: 'Mocks', copy: mockCopy },
     { id: 'vocab', label: 'Word power', title: 'Vocabulary', copy: `Review vocabulary selected for IELTS ${skill.toLowerCase()}.` },
     { id: 'podcasts', label: 'Listen & learn', title: 'Podcasts', copy: `Audio episodes chosen to support IELTS ${skill.toLowerCase()}.` }
   ].map((item) => `<button class="ielts-path-card" type="button" data-ielts-path="${item.id}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.copy)}</p><b>Open →</b></button>`).join('');
@@ -1509,18 +1532,30 @@ function remoteQuestion(id, item, prefix = 'firebase') {
   const options = item.options || item.answers || {};
   const answers = Array.isArray(options) ? options : ['A', 'B', 'C', 'D'].map((key) => options[key]);
   const rawCorrect = item.correct ?? item.answer;
-  const correct = typeof rawCorrect === 'number' ? rawCorrect : Math.max(0, 'ABCD'.indexOf(String(rawCorrect || '').toUpperCase()));
+  const correct = typeof rawCorrect === 'number' ? rawCorrect : 'ABCD'.indexOf(String(rawCorrect || '').toUpperCase());
   const domain=item.tag || item.domain || item.topic || 'Practice';const declared=String(item.set||item.section||'').toLowerCase();
   const set=prefix.startsWith('ielts')?(declared||'reading'):declared.includes('math')?'math':declared.includes('read')||declared==='rw'?'rw':/algebra|math|geometry|data|problem solving/i.test(domain)?'math':'rw';
   const providedPassage = item.passage || item.reference || item.text || item.stimulus || '';
   const rawQuestion = item.q || '';
   const split = providedPassage ? { passage: providedPassage, prompt: item.question || item.prompt || rawQuestion } : splitQuestionText(rawQuestion);
   const difficulty = assignedQuestionDifficulty(item.difficulty || item.level || item.difficultyLevel || item.difficulty_level || item.metadata?.difficulty, `${prefix}-${id}`);
-  return { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(difficulty), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || 'Choose the best answer.'), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
+  const question = { id: `${prefix}-${id}`, domain, skill: compactDisplayText(item.skill || item.subtopic || item.subSkill || ''), difficulty: compactDisplayText(difficulty), set, prompt: compactDisplayText(split.prompt || item.question || item.prompt || ''), passage: compactDisplayText(split.passage), answers: answers.map((answer) => compactDisplayText(answer)), correct, image: item.image || item.imageUrl || item.picture || '', explanation: compactDisplayText(item.explain || item.explanation || '') };
+  if (examFromQuestion(question) === 'sat') {
+    const quality = window.SatQuestionQuality;
+    question.prompt = quality.clean(question.prompt);
+    question.passage = quality.clean(question.passage);
+    question.answers = question.answers.map(quality.clean);
+    question.explanation = quality.clean(question.explanation);
+    question.skill ||= quality.inferSkill(question);
+    question.qualityIssues = quality.issues(question);
+  }
+  return question;
 }
 
+function examFromQuestion(question) { return question.id.startsWith('sat-') ? 'sat' : 'ielts'; }
+
 function validRemoteQuestion(question) {
-  return question.prompt && question.answers.length === 4 && question.answers.every(Boolean) && question.correct >= 0 && question.correct < 4;
+  return question.prompt && question.answers.length === 4 && question.answers.every(Boolean) && question.correct >= 0 && question.correct < 4 && !question.qualityIssues?.length;
 }
 
 async function loadRemoteQuestionBank(exam = state.profile.exam) {
@@ -1539,7 +1574,14 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
     } catch {
       const cachedItems = await readQuestionCache(exam);
       if (cachedItems?.length) {
-        store.items = cachedItems.map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
+        store.items = cachedItems.map((question) => {
+          const restored = { ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) };
+          if (exam === 'sat') {
+            restored.skill ||= window.SatQuestionQuality.inferSkill(restored);
+            restored.qualityIssues = window.SatQuestionQuality.issues(restored);
+          }
+          return restored;
+        }).filter(validRemoteQuestion);
         store.status = 'ready';
         return store.items;
       }
@@ -1555,7 +1597,13 @@ async function loadRemoteQuestionBank(exam = state.profile.exam) {
 
 async function loadQuestionTopics(exam, topics) {
   const cache = questionTopicCache[exam];
-  const databaseTopics = exam === 'sat' ? [...new Set(topics.map((topic) => topic.split('::')[0]))] : topics;
+  if (exam === 'sat') {
+    if (!remotePractice.questions.sat.items.length) await loadRemoteQuestionBank('sat');
+    const available = remotePractice.questions.sat.items;
+    const selected = new Set(topics);
+    return available.filter((question) => selected.has(question.domain) || selected.has(`${question.domain}::${question.skill}`));
+  }
+  const databaseTopics = topics;
   const missingTopics = databaseTopics.filter((topic) => !cache[topic]);
   if (!missingTopics.length) return databaseTopics.flatMap((topic) => cache[topic]);
   await Promise.all(missingTopics.map(async (topic) => {
@@ -1570,20 +1618,18 @@ async function loadQuestionTopics(exam, topics) {
     }
   }));
   const loaded = databaseTopics.flatMap((topic) => cache[topic] || []);
-  if (exam !== 'sat') return loaded;
-  const selectedSkills = new Set(topics.map((topic) => topic.split('::')[1]).filter(Boolean));
-  return loaded.filter((question) => !question.skill || selectedSkills.has(question.skill));
+  return loaded;
 }
 
-function currentMockKey(){return state.profile.exam==='ielts'?(currentSkill?`ielts/${currentSkill.toLowerCase()}`:'ielts/all'):'sat/all';}
+function currentMockKey(){return currentSkill?`ielts/${currentSkill.toLowerCase()}`:'ielts/all';}
 async function loadRemoteMocks(){
+  if(state.profile.exam!=='ielts')return;
   const key=currentMockKey();if(remotePractice.mocks[key]?.status==='loading'||remotePractice.mocks[key]?.status==='ready')return;
   remotePractice.mocks[key]={status:'loading',items:[]};renderMocks();
-  const examKey=state.profile.exam==='ielts'?'ielts-academic':'sat';
+  const examKey='ielts-academic';
   remotePractice.fullMocks[examKey]={status:'loading',items:[]};
   try { let groups;
-    if(key==='sat/all')groups=await Promise.all(['reading','math'].map(async skill=>[skill,await fetchMaterialData(`mocks/sat/${skill}`)]));
-    else if(key==='ielts/all')groups=[];
+    if(key==='ielts/all')groups=[];
     else {const skill=key.split('/')[1];groups=[[skill,await fetchMaterialData(`mocks/ielts/${skill}`)]];}
     remotePractice.mocks[key]={status:'ready',items:groups.flatMap(([skill,data])=>Object.entries(data||{}).map(([id,item])=>({id,skill,...item})))};
   } catch {remotePractice.mocks[key]={status:'error',items:[]};}
@@ -1600,22 +1646,21 @@ function startRemoteQuestions(sourceId, questions, set='math', mockMeta=null){
 }
 
 function renderMocks() {
-  const ielts = state.profile.exam === 'ielts';
+  if(state.profile.exam!=='ielts')return;
   const skill = currentSkill || 'Listening';
-  $('mocks-kicker').textContent = ielts ? 'IELTS practice' : 'SAT practice';
-  $('mocks-title').textContent = ielts ? (currentSkill ? `${skill} Mocks` : 'IELTS Mocks') : 'SAT Mocks';
+  $('mocks-kicker').textContent = 'IELTS practice';
+  $('mocks-title').textContent = currentSkill ? `${skill} Mocks` : 'IELTS Mocks';
   const store=remotePractice.mocks[currentMockKey()];
-  const fullStore=remotePractice.fullMocks[ielts?'ielts-academic':'sat'];
+  const fullStore=remotePractice.fullMocks['ielts-academic'];
   if(!store){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';loadRemoteMocks();return;}
   if(store.status==='loading'||fullStore?.status==='loading'){$('mock-list').innerHTML='<article class="empty-state"><strong>Loading mocks...</strong></article>';return;}
   const fullItems=fullStore?.items||[];
-  const skillItems=ielts&&!currentSkill?[]:store.items;
-  if(!skillItems.length&&!fullItems.length){$('mock-list').innerHTML=`<article class="empty-state"><strong>${store.status==='error'&&fullStore?.status==='error'?'Mocks could not be loaded.':'No mocks have been added yet.'}</strong></article>`;return;}
+  const skillItems=!currentSkill?[]:store.items;
+  if(!skillItems.length&&!fullItems.length){$('mock-list').innerHTML=store.status==='error'&&fullStore?.status==='error'?'<article class="empty-state"><strong>IELTS mocks could not be loaded.</strong><p>Check your connection and try again.</p><button class="button button-primary" data-retry-mocks type="button">Try again</button></article>':'<article class="empty-state"><strong>No IELTS mocks are available yet.</strong><p>New practice exams will appear here when published.</p></article>';return;}
   const fullCards=fullItems.map((mock,index)=>{
-    const questionCount=mock.sections.reduce((total,section)=>total+section.modules.reduce((moduleTotal,module)=>moduleTotal+window.FullExamSchema.allQuestions(module).length,0),0);
     const moduleCount=mock.sections.reduce((total,section)=>total+section.modules.length,0);
-    const audioPending=ielts&&mock.sections.some(section=>section.id==='listening'&&section.modules.some(module=>module.parts.some(part=>!part.audioUrl)));
-    return `<article class="mock-card"><div><span class="full-mock-card-badge">${ielts?'IELTS Academic':'Digital SAT'}</span><strong>${escapeHtml(mock.title||`Practice ${index+1}`)}</strong><small>${escapeHtml(mock.description||'Complete timed practice')}</small></div><div class="mock-spec"><b>${ielts?'L · R · W':`${questionCount} questions`}</b><small>${audioPending?'Listening audio pending':`${moduleCount} timed modules · autosaved`}</small></div><button class="button button-primary" data-start-full-mock="${escapeHtml(mock.id)}" type="button">Start practice</button></article>`;
+    const audioPending=mock.sections.some(section=>section.id==='listening'&&section.modules.some(module=>module.parts.some(part=>!part.audioUrl)));
+    return `<article class="mock-card"><div><span class="full-mock-card-badge">IELTS Academic</span><strong>${escapeHtml(mock.title||`Practice ${index+1}`)}</strong><small>${escapeHtml(mock.description||'Complete timed practice')}</small></div><div class="mock-spec"><b>L · R · W</b><small>${audioPending?'Listening audio pending':`${moduleCount} timed modules · autosaved`}</small></div><button class="button button-primary" data-start-full-mock="${escapeHtml(mock.id)}" type="button">Start practice</button></article>`;
   }).join('');
   const skillCards=skillItems.map((mock,index)=>`<article>${safeImageSource(mock.image)?`<img class="mock-cover" src="${escapeHtml(safeImageSource(mock.image))}" alt="">`:''}<div><span>${escapeHtml(mock.skill)} practice</span><strong>${escapeHtml(mock.title||`Mock ${index+1}`)}</strong><small>${escapeHtml(mock.desc||'Timed practice')}</small></div>${Array.isArray(mock.questions)&&mock.questions.length?`<button class="button button-primary" data-start-mock="${escapeHtml(currentMockKey())}" data-mock-id="${escapeHtml(mock.id)}" type="button">Start test</button>`:`<a class="button button-primary" href="${escapeHtml(mock.url||'#')}" target="_blank" rel="noopener">Open</a>`}</article>`).join('');
   $('mock-list').innerHTML=fullCards+skillCards;
@@ -1729,6 +1774,8 @@ function saveActivePractice() {
   try {
     sessionStorage.setItem(ACTIVE_PRACTICE_KEY, JSON.stringify({
       questions: practiceQuestions,
+      exam: state.profile.exam,
+      returnRoute: practiceReturnRoute,
       set: currentSet,
       question: currentQuestion,
       mode: practiceMode,
@@ -1756,7 +1803,8 @@ function clearActivePractice() {
 function restoreActivePractice() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(ACTIVE_PRACTICE_KEY) || 'null');
-    if (!saved?.questions?.length) return;
+    if (!saved?.questions?.length || saved.exam !== state.profile.exam) return false;
+    practiceReturnRoute = saved.returnRoute || (state.profile.exam === 'sat' ? '/sat/questions' : '/ielts-practice');
     practiceQuestions = saved.questions.map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
     currentSet = saved.set || 'math';
     currentQuestion = Math.max(0, Math.min(Number(saved.question) || 0, practiceQuestions.length - 1));
@@ -1772,7 +1820,7 @@ function restoreActivePractice() {
     timerSeconds = Math.max(0, Number(saved.timerSeconds) || 0);
     timerRunning = saved.timerRunning !== false;
     timerHidden = Boolean(saved.timerHidden);
-    openPage('questions');
+    openPage('questions', true);
     $('test-experience').classList.remove('is-hidden');
     $('test-experience').classList.toggle('is-mock-mode', practiceMode === 'mock');
     clearInterval(timerHandle);
@@ -1783,8 +1831,10 @@ function restoreActivePractice() {
       renderTimer();
     }, 1000);
     renderQuestion();
+    return true;
   } catch {
     clearActivePractice();
+    return false;
   }
 }
 
@@ -1812,15 +1862,30 @@ function renderQuestionBank() {
   const library = $('question-library');
   library.classList.toggle('question-topic-list', questionBankView === 'topics');
   const exam=state.profile.exam,store=remotePractice.questions[exam];
+  const satTopics = exam === 'sat' && questionBankView === 'topics';
+  $('questions-page').classList.toggle('sat-identity-math', satTopics && currentSet === 'math');
+  $('questions-page').classList.toggle('sat-identity-rw', satTopics && currentSet === 'rw');
+  $('question-bank-breadcrumbs').hidden = exam !== 'sat';
+  if (exam === 'sat') renderSatBreadcrumbs('question-bank-breadcrumbs', [{ label: 'Home', path: '/home' }, { label: 'SAT', path: '/sat' }, ...(satTopics ? [{ label: window.SatCurriculum.sectionTitle(currentSet), path: `/sat/${currentSet}` }, { label: 'Question Bank' }] : [{ label: 'Question Bank' }])]);
+  $('question-bank-kicker').textContent = exam === 'sat' ? `SAT${satTopics ? ` / ${window.SatCurriculum.sectionTitle(currentSet)}` : ''}` : 'IELTS practice';
+  $('question-bank-title').textContent = satTopics ? `SAT ${window.SatCurriculum.sectionTitle(currentSet)} Question Bank` : exam === 'sat' ? 'SAT Question Bank' : 'Question Bank';
   if(store.status === 'idle' && currentPage === 'questions') loadRemoteQuestionBank(exam);
+  if(store.status === 'error' && !store.items.length) {
+    library.innerHTML = '<div class="empty-state"><strong>Question Bank is unavailable right now.</strong><p>Check your connection and try again. Your saved progress is still here.</p><button class="button button-primary" data-retry-question-bank type="button">Try again</button></div>';
+    return;
+  }
+  if(store.status === 'loading' && !store.items.length) {
+    library.innerHTML = '<div class="empty-state" role="status"><strong>Loading questions…</strong><p>Preparing your practice sections.</p></div>';
+    return;
+  }
   const sections=exam==='sat'?['rw','math']:['listening','reading','writing','speaking'];
   const questionsForSet=(set)=>store.items.filter(question=>question.set===set);
 
   if (questionBankView === 'sections') {
     $('question-bank-copy').textContent = exam==='sat'?'Choose a section. If you miss a question, Luminary will explain the reasoning immediately.':'Choose an IELTS section and turn every mistake into a clear next step.';
     const sectionDetails = {
-      rw: ['R&W', 'Reading & Writing', 'Evidence, structure, expression and English conventions.'],
-      math: ['∑', 'Math', 'Algebra, advanced math, data analysis and geometry.'],
+      rw: ['R&W', 'SAT Reading & Writing', 'Evidence, structure, expression and English conventions.'],
+      math: ['∑', 'SAT Math', 'Algebra, advanced math, data analysis and geometry.'],
       listening: ['L', 'Listening', 'Comprehension, detail and academic listening.'],
       reading: ['R', 'Reading', 'Accuracy, speed and evidence across text types.'],
       writing: ['W', 'Writing', 'Task response, structure and language control.'],
@@ -1840,24 +1905,31 @@ function renderQuestionBank() {
   const questions = questionsForSet(currentSet);
   const availableTopics = new Set(questions.map((question) => question.domain));
   const topics = exam === 'sat' ? preferred : [...preferred.filter((topic) => availableTopics.has(topic)), ...[...availableTopics].filter((topic) => !preferred.includes(topic))];
-  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose one or more topics.`;
+  $('question-bank-copy').textContent = `${questionSetName(currentSet)}: choose a topic or a skill with matched questions. Each set contains up to 10 questions.`;
   const topicList = exam === 'sat'
-    ? (SAT_TOPIC_GROUPS[currentSet] || []).map((group) => `<section class="topic-group"><h2>${escapeHtml(group.title)}</h2>${group.topics.map((topic) => {
-      const key = `${group.title}::${topic}`;
-      const selected = selectedQuestionTopics.includes(key);
-      return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(key)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
-    }).join('')}</section>`).join('')
+    ? (SAT_TOPIC_GROUPS[currentSet] || []).map((group) => {
+      const groupQuestions = questions.filter((question) => question.domain === group.title);
+      const skills = group.topics.map((topic) => ({ topic, count: groupQuestions.filter((question) => question.skill === topic).length })).filter((item) => item.count >= 3);
+      return `<section class="topic-group"><button class="topic-choice ${selectedQuestionTopics.includes(group.title) ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(group.title)}" type="button" aria-pressed="${selectedQuestionTopics.includes(group.title)}"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(group.title)} · ${groupQuestions.length}</strong><small>${escapeHtml(group.description)}</small></span></button>${skills.length ? `<div class="topic-skill-list"><span>Matched skills</span>${skills.map(({ topic, count }) => { const key = `${group.title}::${topic}`; return `<button type="button" data-toggle-topic="${escapeHtml(key)}" aria-pressed="${selectedQuestionTopics.includes(key)}" class="topic-skill ${selectedQuestionTopics.includes(key) ? 'is-selected' : ''}">${escapeHtml(topic)} <small>${count}</small></button>`; }).join('')}</div>` : ''}</section>`;
+    }).join('')
     : topics.map((topic) => {
       const selected = selectedQuestionTopics.includes(topic);
       return `<button class="topic-choice ${selected ? 'is-selected' : ''}" data-toggle-topic="${escapeHtml(topic)}" type="button"><span class="topic-circle" aria-hidden="true"></span><span><strong>${escapeHtml(topic)}</strong></span></button>`;
     }).join('');
-  library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection ${exam === 'sat' ? 'is-grouped' : ''}">${topicList}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length > 0 && !questionSetLoading ? '' : 'disabled'}>${questionSetLoading ? 'Loading questions...' : 'Start selected questions'}</button></div>`;
+  library.innerHTML = `<button class="library-back" data-question-bank-back type="button">Back to sections</button><div class="topic-selection ${exam === 'sat' ? 'is-grouped' : ''}">${topicList}</div><div class="topic-actions"><button class="button button-primary" data-start-selected-topics type="button" ${selectedQuestionTopics.length > 0 && !questionSetLoading ? '' : 'disabled'}>${questionSetLoading ? 'Loading questions...' : 'Start practice · up to 10 questions'}</button></div>`;
+}
+
+function focusedQuestionSet(questions, limit = 10) {
+  const recentIds = new Set((state.progress.questionHistory || []).slice(-120).map((entry) => entry.id));
+  return [...questions.filter((question) => !recentIds.has(question.id)), ...questions.filter((question) => recentIds.has(question.id))].slice(0, limit);
 }
 
 function toggleQuestionTopic(topic) {
   if (selectedQuestionTopics.includes(topic)) {
     selectedQuestionTopics = selectedQuestionTopics.filter((item) => item !== topic);
   } else {
+    const domain = topic.split('::')[0];
+    selectedQuestionTopics = selectedQuestionTopics.filter((item) => item !== domain && !(topic === domain && item.startsWith(`${domain}::`)));
     selectedQuestionTopics = [...selectedQuestionTopics, topic];
   }
   renderQuestionBank();
@@ -1869,7 +1941,7 @@ async function startSelectedTopics() {
   renderQuestionBank();
   try {
     const questions = await loadQuestionTopics(state.profile.exam, selectedQuestionTopics);
-    if (questions.length) startPractice(currentSet, 0, questions);
+    if (questions.length) startPractice(currentSet, 0, focusedQuestionSet(questions));
     else showToast('No questions are available for these topics yet.');
   } catch {
     showToast('Questions could not be loaded right now.');
@@ -2016,6 +2088,7 @@ async function requestMistakeAnalysis(question, choice) {
 
 function renderQuestion() {
   const question = practiceQuestions[currentQuestion];
+  $('open-desmos').hidden = !(state.profile.exam === 'sat' && currentSet === 'math');
   const isMock = practiceMode === 'mock';
   const answer = checkedAnswers[question.id];
   const selectedAnswer = answer ?? draftAnswers[question.id];
@@ -2030,13 +2103,15 @@ function renderQuestion() {
   const section = questionSetName(currentSet);
   $('question-counter').textContent = `Question ${currentQuestion + 1} of ${practiceQuestions.length}`;
   $('mock-question-number').textContent = String(currentQuestion + 1);
-  $('test-module').textContent = `${section} / Module 1`;
+  $('test-module').textContent = state.profile.exam === 'sat' ? `SAT ${section}` : `${section} practice`;
   $('test-domain').textContent = question.domain;
+  $('test-experience').classList.toggle('sat-identity-math', state.profile.exam === 'sat' && currentSet === 'math');
+  $('test-experience').classList.toggle('sat-identity-rw', state.profile.exam === 'sat' && currentSet === 'rw');
   const completed = practiceMode === 'mock' ? Object.keys(draftAnswers).length : Object.keys(checkedAnswers).length;
   $('test-progress-fill').style.width = `${Math.min(100, Math.round((completed / Math.max(1, practiceQuestions.length)) * 100))}%`;
   $('test-xp').textContent = `${practiceXp} XP`;
   $('test-streak').textContent = practiceStreak ? `${practiceStreak} correct in a row` : 'Start your streak';
-  $('question-domain-label').textContent = question.domain;
+  $('question-domain-label').textContent = state.profile.exam === 'sat' ? `SAT ${section} · ${question.skill || question.domain}` : question.domain;
   $('question-prompt').textContent = compactDisplayText(question.prompt);
   const passage = compactDisplayText(question.passage);
   const evidence = inlineAnalysis ? mistakeEvidenceSnippet(question, inlineAnalysis) : '';
@@ -2075,7 +2150,8 @@ function renderQuestion() {
   renderQuestionNavigator();
 }
 
-function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '', mockMeta = null) {
+function startPractice(set = 'math', questionIndex = 0, questions = null, mode = 'bank', planTaskId = '', mockMeta = null, returnRoute = '') {
+  practiceReturnRoute = returnRoute || (currentRoute().includes('/practice/') ? (state.profile.exam === 'sat' ? '/sat/questions' : '/ielts-practice') : currentRoute());
   currentSet = set;
   practiceQuestions = (questions || []).map((question) => ({ ...question, difficulty: assignedQuestionDifficulty(question.difficulty, question.id) }));
   currentQuestion = Math.max(0, Math.min(questionIndex, practiceQuestions.length - 1));
@@ -2090,7 +2166,8 @@ function startPractice(set = 'math', questionIndex = 0, questions = null, mode =
   activeMockMeta = mode === 'mock' ? mockMeta : null;
   questionOpenedAt = Date.now();
   explanationOpen = false;
-  openPage('questions');
+  openPage('questions', true);
+  history.pushState(null, '', `#/${state.profile.exam === 'sat' ? 'sat' : 'ielts'}/practice/${set}`);
   $('test-experience').classList.remove('is-hidden');
   $('test-experience').classList.toggle('is-mock-mode', practiceMode === 'mock');
   $('question-navigator').classList.add('is-hidden');
@@ -2100,12 +2177,19 @@ function startPractice(set = 'math', questionIndex = 0, questions = null, mode =
 }
 
 function leavePractice() {
+  window.LuminaryDesmos?.close(true);
   $('test-experience').classList.add('is-hidden');
   $('question-navigator').classList.add('is-hidden');
   stopTimer();
   clearActivePractice();
   activePlanTaskId = '';
   activeMockMeta = null;
+}
+
+function exitPractice() {
+  const destination = practiceReturnRoute;
+  leavePractice();
+  navigate(destination, true);
 }
 
 function answerQuestion(index) {
@@ -2235,7 +2319,7 @@ function moveQuestion(delta) {
     renderHome();
     renderStudyPlan();
     showToast(practiceMode === 'mock' ? 'Mock complete. Your responses were saved.' : practiceMode === 'plan' ? 'Plan task complete. Your next task is ready.' : 'Practice set complete. Progress saved.');
-    leavePractice();
+    exitPractice();
     return;
   }
   if (next < 0) return;
@@ -2281,7 +2365,157 @@ function jumpToQuestion(index) {
   saveActivePractice();
 }
 
-function openPage(page) {
+function satDomainPath(section, domain) { return `/sat/${section}/${window.SatCurriculum.slug(domain.title)}`; }
+function satLessonPath(section, domain, topic) { return `${satDomainPath(section, domain)}/${window.SatCurriculum.slug(topic)}`; }
+function satLessonDone(topic) { return Boolean(state.progress.satLessons[window.SatCurriculum.slug(topic)]); }
+function satDoneCount(topics) { return topics.filter(satLessonDone).length; }
+
+function renderSatBreadcrumbs(target, items) {
+  $(target).innerHTML = items.map((item, index) => item.path
+    ? `<button type="button" data-sat-route="${escapeHtml(item.path)}">${escapeHtml(item.label)}</button><span aria-hidden="true">/</span>`
+    : `<span aria-current="page">${escapeHtml(item.label)}</span>`).join('');
+}
+
+function renderSatOverview() {
+  renderSatBreadcrumbs('sat-overview-breadcrumbs', [{ label: 'Home', path: '/home' }, { label: 'SAT Overview' }]);
+  $('sat-overview-grid').innerHTML = ['math', 'rw'].map((section) => {
+    const groups = SAT_TOPIC_GROUPS[section];
+    const title = window.SatCurriculum.sectionTitle(section);
+    const topics = groups.flatMap((group) => group.topics);
+    const done = satDoneCount(topics);
+    const summary = section === 'math' ? 'Learn equations, data, geometry, and the tools to solve them.' : 'Read with evidence and write with clarity and control.';
+    return `<article class="sat-section-card sat-identity-${section}"><div class="sat-section-card-head"><span class="sat-section-symbol" aria-hidden="true">${section === 'math' ? '∑' : '¶'}</span><span>SAT ${escapeHtml(title)}</span></div><h2>${escapeHtml(title)}</h2><p>${escapeHtml(summary)}</p><ul>${groups.map((group) => `<li>${escapeHtml(group.title)}</li>`).join('')}</ul><footer><span>${done ? `${done} of ${topics.length} lessons complete` : `${topics.length} short lessons`}</span><button class="button button-primary" data-sat-route="/sat/${section}" type="button">Explore ${escapeHtml(title)}</button></footer></article>`;
+  }).join('');
+}
+
+function renderSatSection() {
+  const section = satRoute.section;
+  const title = window.SatCurriculum.sectionTitle(section);
+  const groups = SAT_TOPIC_GROUPS[section];
+  const topics = groups.flatMap((group) => group.topics);
+  const done = satDoneCount(topics);
+  renderSatBreadcrumbs('sat-section-breadcrumbs', [{ label: 'Home', path: '/home' }, { label: 'SAT', path: '/sat' }, { label: title }]);
+  $('sat-section-page').className = `page sat-page is-active sat-identity-${section}`;
+  $('sat-section-kicker').textContent = `SAT / ${title}`;
+  $('sat-section-title').textContent = title;
+  $('sat-section-description').textContent = section === 'math' ? 'Start with a concept, work through a short example, then practise with SAT Math questions.' : 'Learn how passages and sentences work, then apply each skill to SAT Reading & Writing questions.';
+  $('sat-section-summary').innerHTML = `<strong>${done ? `${done} of ${topics.length} lessons complete` : `${topics.length} short lessons across ${groups.length} topics`}</strong><span>${done ? 'Keep building from your last completed skill.' : 'New to a topic? Open it and start with the first lesson.'}</span><button class="button button-quiet" type="button" data-sat-qbank="${section}">Browse ${escapeHtml(title)} questions</button>`;
+  $('sat-domain-list').innerHTML = groups.map((group, index) => {
+    const groupDone = satDoneCount(group.topics);
+    return `<article class="sat-domain-row"><div class="sat-domain-number">${String(index + 1).padStart(2, '0')}</div><div><h2>${escapeHtml(group.title)}</h2><p>${escapeHtml(group.description)}</p><small>${groupDone ? `${groupDone} of ${group.topics.length} lessons complete` : `${group.topics.length} short lessons`}</small></div><button class="button button-quiet" data-sat-route="${satDomainPath(section, group)}" type="button">Explore topic</button></article>`;
+  }).join('');
+}
+
+function renderSatDomain() {
+  const { section, domain } = satRoute;
+  const sectionTitle = window.SatCurriculum.sectionTitle(section);
+  const done = satDoneCount(domain.topics);
+  const nextTopic = domain.topics.find((topic) => !satLessonDone(topic)) || domain.topics[0];
+  renderSatBreadcrumbs('sat-domain-breadcrumbs', [{ label: 'Home', path: '/home' }, { label: 'SAT', path: '/sat' }, { label: sectionTitle, path: `/sat/${section}` }, { label: domain.title }]);
+  $('sat-domain-page').className = `page sat-page is-active sat-identity-${section}`;
+  $('sat-domain-kicker').textContent = `SAT / ${sectionTitle}`;
+  $('sat-domain-title').textContent = domain.title;
+  $('sat-domain-description').textContent = domain.description;
+  $('sat-domain-progress').textContent = done ? `${done} of ${domain.topics.length} complete` : `${domain.topics.length} short lessons`;
+  $('sat-domain-actions').innerHTML = `<div><strong>Learn ${escapeHtml(domain.title)}</strong><p>Start with the concept, follow a worked example, then check your understanding.</p><button class="button button-primary" data-sat-route="${satLessonPath(section, domain, nextTopic)}" type="button">${done ? 'Continue learning' : 'Start learning'}</button></div><div><strong>Practice ${escapeHtml(domain.title)}</strong><p>Already comfortable? Work through a focused set from the SAT Question Bank.</p><button class="button button-quiet" data-sat-practice="${section}" data-sat-domain="${escapeHtml(window.SatCurriculum.slug(domain.title))}" type="button">Practice questions</button></div>`;
+  $('sat-skill-list').innerHTML = domain.topics.map((topic, index) => `<button class="sat-skill-row" data-sat-route="${satLessonPath(section, domain, topic)}" type="button"><span class="sat-skill-index">${String(index + 1).padStart(2, '0')}</span><span><strong>${escapeHtml(topic)}</strong><small>${satLessonDone(topic) ? 'Lesson complete' : 'Concept · example · quick check'}</small></span><b>${satLessonDone(topic) ? '✓' : 'Learn →'}</b></button>`).join('');
+}
+
+function renderSatLesson() {
+  const { section, domain, lesson } = satRoute;
+  const sectionTitle = window.SatCurriculum.sectionTitle(section);
+  const [idea, example, why, check, answer] = lesson.content;
+  const index = domain.topics.indexOf(lesson.title);
+  renderSatBreadcrumbs('sat-lesson-breadcrumbs', [{ label: 'Home', path: '/home' }, { label: 'SAT', path: '/sat' }, { label: sectionTitle, path: `/sat/${section}` }, { label: domain.title, path: satDomainPath(section, domain) }, { label: lesson.title }]);
+  $('sat-lesson-page').className = `page sat-page is-active sat-identity-${section}`;
+  $('sat-lesson-kicker').textContent = `SAT ${sectionTitle} / ${domain.title}`;
+  $('sat-lesson-title').textContent = lesson.title;
+  $('sat-lesson-description').textContent = `Lesson ${index + 1} of ${domain.topics.length} · ${satLessonDone(lesson.title) ? 'Completed' : 'About 4 minutes'}`;
+  $('sat-lesson-content').innerHTML = `<section><span class="sat-lesson-step">01 · The idea</span><h2>Understand the concept</h2><p>${escapeHtml(idea)}</p></section><section><span class="sat-lesson-step">02 · Worked example</span><h2>See it in action</h2><p>${escapeHtml(example)}</p></section><section><span class="sat-lesson-step">03 · On the SAT</span><h2>Why this matters</h2><p>${escapeHtml(why)}</p></section><section class="sat-quick-check"><span class="sat-lesson-step">04 · Quick check</span><h2>Try it yourself</h2><p>${escapeHtml(check)}</p><button class="button button-quiet" data-sat-reveal type="button">Show explanation</button><p class="sat-quick-answer" id="sat-quick-answer" hidden>${escapeHtml(answer)}</p></section>`;
+  $('sat-lesson-aside').innerHTML = `<strong>${escapeHtml(domain.title)}</strong><span>${index + 1} of ${domain.topics.length} lessons</span><p>Ready for a real question? We’ll look for one matched to this skill, then use its parent topic if none is available.</p><button class="button button-quiet" data-sat-practice="${section}" data-sat-domain="${escapeHtml(window.SatCurriculum.slug(domain.title))}" data-sat-skill="${escapeHtml(window.SatCurriculum.slug(lesson.title))}" type="button">Try a related question</button><button class="button button-primary" data-sat-complete type="button">${satLessonDone(lesson.title) ? 'Continue' : 'Mark complete & continue'}</button><button class="sat-text-link" data-sat-route="${satDomainPath(section, domain)}" type="button">Back to ${escapeHtml(domain.title)}</button>`;
+}
+
+async function startSatTopicPractice(section, domainSlug, skillSlug = '') {
+  const domain = window.SatCurriculum.group(section, domainSlug);
+  if (!domain) return navigate(`/sat/${section}`);
+  const skill = skillSlug ? domain.topics.find((topic) => window.SatCurriculum.slug(topic) === skillSlug) : '';
+  if (skillSlug && !skill) return navigate(satDomainPath(section, domain));
+  const returnRoute = skill ? satLessonPath(section, domain, skill) : satDomainPath(section, domain);
+  showToast('Preparing a focused SAT question set…');
+  try {
+    let questions = skill ? await loadQuestionTopics('sat', [`${domain.title}::${skill}`]) : [];
+    if (!questions.length) questions = await loadQuestionTopics('sat', [domain.title]);
+    if (!questions.length) { showToast('No questions are available for this skill yet.'); return; }
+    startPractice(section, 0, focusedQuestionSet(questions, skill ? 1 : 10), 'bank', '', null, returnRoute);
+  } catch { showToast('Questions could not be loaded right now.'); }
+}
+
+const LEGACY_ROUTES = new Set(['home', 'settings', 'learn', 'vocab', 'vocab-study', 'vocab-review', 'problems', 'material', 'plan', 'ielts-practice', 'ielts-skill', 'podcasts', 'mocks', 'speaking-ai']);
+
+function currentRoute() {
+  try { return decodeURI(location.hash.slice(1) || '/home'); }
+  catch { return '/home'; }
+}
+
+function navigate(path, replace = false) {
+  const route = path.startsWith('/') ? path : `/${path}`;
+  if (currentRoute() !== route || !location.hash) history[replace ? 'replaceState' : 'pushState'](null, '', `#${route}`);
+  applyRoute(route);
+}
+
+function applyRoute(path) {
+  const parts = path.split('/').filter(Boolean);
+  if (parts[0] === 'sat') {
+    if (state.profile.exam !== 'sat') setExam('sat', false);
+    if (parts[1] === 'practice') {
+      if (parts.length !== 3 || !['math', 'rw'].includes(parts[2])) return navigate('/sat/questions', true);
+      if (!restoreActivePractice()) return navigate('/sat/questions', true);
+      return;
+    }
+    if (parts[1] === 'questions') {
+      if (parts.length > 3 || (parts[2] && !['math', 'rw'].includes(parts[2]))) return navigate('/sat/questions', true);
+      if (!$('test-experience').classList.contains('is-hidden')) leavePractice();
+      currentSet = ['math', 'rw'].includes(parts[2]) ? parts[2] : 'math';
+      questionBankView = parts[2] ? 'topics' : 'sections';
+      selectedQuestionTopics = [];
+      openPage('questions', true);
+      return;
+    }
+    if (!parts[1]) { satRoute = { page: 'overview' }; openPage('sat-overview', true); renderSatOverview(); return; }
+    if (!['math', 'rw'].includes(parts[1])) return navigate('/home', true);
+    const section = parts[1];
+    if (!parts[2]) { satRoute = { page: 'section', section }; openPage('sat-section', true); renderSatSection(); return; }
+    const domain = window.SatCurriculum.group(section, parts[2]);
+    if (!domain) return navigate(`/sat/${section}`, true);
+    if (!parts[3]) { satRoute = { page: 'domain', section, domain }; openPage('sat-domain', true); renderSatDomain(); return; }
+    const lesson = window.SatCurriculum.lesson(section, parts[2], parts[3]);
+    if (!lesson) return navigate(`/sat/${section}/${parts[2]}`, true);
+    if (parts.length > 4) return navigate(satLessonPath(section, domain, lesson.title), true);
+    satRoute = { page: 'lesson', section, domain, lesson };
+    openPage('sat-lesson', true);
+    renderSatLesson();
+    return;
+  }
+  if (parts[0] === 'ielts' && parts[1] === 'practice') {
+    if (state.profile.exam !== 'ielts') setExam('ielts', false);
+    if (!restoreActivePractice()) return navigate('/ielts-practice', true);
+    return;
+  }
+  const page = parts.length === 1 && LEGACY_ROUTES.has(parts[0]) ? parts[0] : 'home';
+  if (page === 'home' && path !== '/home') return navigate('/home', true);
+  if (page.startsWith('ielts-') || ['mocks', 'speaking-ai', 'podcasts'].includes(page)) {
+    if (state.profile.exam !== 'ielts') setExam('ielts', false);
+  }
+  if (page === 'mocks' && state.profile.exam !== 'ielts') return navigate('/ielts-practice', true);
+  openPage(page, true);
+}
+
+function openPage(page, fromRoute = false) {
+  if (page === 'mocks' && state.profile.exam !== 'ielts') page = 'questions';
+  if (!fromRoute) {
+    const route = page === 'questions' && state.profile.exam === 'sat' ? (questionBankView === 'topics' ? `/sat/questions/${currentSet}` : '/sat/questions') : `/${page}`;
+    if (currentRoute() !== route) history.pushState(null, '', `#${route}`);
+  }
   if (page !== 'speaking-ai') endVoiceSession();
   if (page === 'home') renderHomeQuote(true);
   currentPage = page;
@@ -2291,12 +2525,14 @@ function openPage(page) {
   document.querySelectorAll('.nav-link').forEach((link) => {
     const directMatch = link.dataset.page === page && (!link.dataset.skill || link.dataset.skill === currentSkill);
     const skillMatch = isIeltsSkillChild && link.dataset.page === 'ielts-skill' && link.dataset.skill === currentSkill;
-    link.classList.toggle('is-active', directMatch || skillMatch);
+    const satMatch = state.profile.exam === 'sat' && Boolean(link.dataset.satRoute) && (page === 'sat-overview' ? link.dataset.satRoute === '/sat' : ['sat-section', 'sat-domain', 'sat-lesson'].includes(page) && link.dataset.satRoute === `/sat/${satRoute?.section}`);
+    link.classList.toggle('is-active', directMatch || skillMatch || satMatch);
   });
   if (page !== 'questions') leavePractice();
   if (page === 'questions') renderQuestionBank();
   if (page === 'settings') renderSettings();
   if (page === 'plan') renderStudyPlan();
+  if (page === 'ielts-practice') renderIeltsPractice();
   if (page === 'ielts-skill') renderIeltsSkillHub();
   if (page === 'podcasts') renderPodcasts();
   if (page === 'speaking-ai') {
@@ -2327,9 +2563,9 @@ function renderVoiceStage() {
       : `Part ${question.part} · Question ${partPosition} of ${questionsInPart.length}`;
   }
   if ($('voice-begin')) {
-    const voiceSupported = Boolean(voiceLab.recognition && navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
+    const voiceSupported = Boolean(voiceLab.recognition && navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.speechSynthesis);
     $('voice-begin').disabled = !voiceSupported;
-    $('voice-begin').textContent = voiceSupported ? 'Begin speaking mock' : 'Use Chrome or Edge';
+    $('voice-begin').textContent = voiceSupported ? 'Begin speaking mock' : 'Voice practice unavailable';
   }
 }
 
@@ -2413,15 +2649,10 @@ function speakBrowserVoice(text) {
       /Microsoft David/i,
       /Daniel/i
     ];
-    const maleVoice = preferredVoiceNames
+    const selectedVoice = preferredVoiceNames
       .map((pattern) => voices.find((voice) => pattern.test(voice.name) && /^en[-_]/i.test(voice.lang)))
-      .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || null;
-    if (!maleVoice) {
-      showToast('Install an English male system voice to use Mr. Monday’s voice.');
-      resolve();
-      return;
-    }
-    utterance.voice = maleVoice;
+      .find(Boolean) || voices.find((voice) => /^en[-_]/i.test(voice.lang) && /male|david|guy|mark|daniel/i.test(voice.name)) || voices.find((voice) => /^en[-_]/i.test(voice.lang)) || null;
+    if (selectedVoice) utterance.voice = selectedVoice;
     voiceLab.utterance = utterance;
     voiceLab.speaking = true;
     renderVoiceState();
@@ -2701,8 +2932,8 @@ function startVoiceLab() {
 }
 
 async function beginSpeakingMock() {
-  if (!voiceLab.recognition || !navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-    showToast('Use Chrome or Edge to start a speaking mock.');
+  if (!voiceLab.recognition || !navigator.mediaDevices?.getUserMedia || !window.MediaRecorder || !window.speechSynthesis) {
+    showToast('Use Chrome or Edge with microphone and speech support to start.');
     return;
   }
   endVoiceSession();
@@ -2999,17 +3230,18 @@ function applyAuthenticatedUser(user) {
 function bindEvents() {
   document.addEventListener('luminaryFullExamHome', () => { currentSkill = ''; setMobileDrawer(false); openPage('home'); renderHome(); });
   document.addEventListener('luminaryFullExamComplete',(event)=>{
-    const result=event.detail;if(!result||!Array.isArray(result.sections))return;
+    const result=event.detail;if(!result||result.exam!=='ielts-academic'||!Array.isArray(result.sections))return;
     const correct=result.sections.reduce((sum,section)=>sum+(Number(section.correct)||0),0);
     const total=result.sections.reduce((sum,section)=>sum+(Number(section.total)||0),0);
     const completedAt=Number(result.completedAt)||Date.now();
-    const record={id:`full-mock-result-${completedAt}`,sourceId:String(result.mockId||''),title:String(result.title||'Full mock'),skill:'Full exam',exam:result.exam==='ielts-academic'?'ielts':'sat',correct,total,accuracy:total?Math.round(correct/total*100):0,estimatedScore:0,completedAt,analyzedAt:0,analysis:null,answers:result.sections.map(section=>({id:section.id,set:section.id,correct:section.correct,total:section.total,band:section.band}))};
+    const record={id:`full-mock-result-${completedAt}`,sourceId:String(result.mockId||''),title:String(result.title||'IELTS practice test'),skill:'Full exam',exam:'ielts',correct,total,accuracy:total?Math.round(correct/total*100):0,estimatedScore:0,completedAt,analyzedAt:0,analysis:null,answers:result.sections.map(section=>({id:section.id,set:section.id,correct:section.correct,total:section.total,band:section.band}))};
     const results=state.progress.mockResults||(state.progress.mockResults=[]);results.push(record);if(results.length>30)results.splice(0,results.length-30);
     const now=new Date(),yesterdayDate=new Date(now);yesterdayDate.setDate(now.getDate()-1);const today=localDateKey(now),yesterday=localDateKey(yesterdayDate);
     state.progress.sessions+=1;state.progress.streak=state.progress.lastSessionDate===today?Math.max(1,state.progress.streak):state.progress.lastSessionDate===yesterday?state.progress.streak+1:1;state.progress.lastSessionDate=today;
     persist();renderHome();
   });
   window.addEventListener('luminary:auth-state', (event) => applyAuthenticatedUser(event.detail));
+  window.addEventListener('luminary:full-exam-exit', renderHome);
   window.addEventListener('luminary:auth-error', (event) => showToast(event.detail));
   document.addEventListener('click', (event) => {
     if (!$('global-theme-control').contains(event.target)) {
@@ -3026,8 +3258,11 @@ function bindEvents() {
     }
     const analyzeMock = event.target.closest('[data-analyze-mock]');
     if (analyzeMock) { analyzeMockResult(analyzeMock.dataset.analyzeMock); return; }
+    if (event.target.closest('[data-retry-question-bank]')) { remotePractice.questions[state.profile.exam].status = 'idle'; renderQuestionBank(); return; }
+    if (event.target.closest('[data-retry-mocks]')) { delete remotePractice.mocks[currentMockKey()]; delete remotePractice.fullMocks['ielts-academic']; renderMocks(); return; }
+    if (event.target.closest('[data-resume-full-mock]')) { window.FullExamEngine.restore(); return; }
     const openMocks = event.target.closest('[data-open-mocks]');
-    if (openMocks) { if (state.profile.exam === 'ielts') currentSkill = ''; openPage('mocks'); renderMocks(); return; }
+    if (openMocks) { currentSkill = ''; openPage('mocks'); renderMocks(); return; }
     const training = event.target.closest('[data-train-topic]');
     if (training) { startRecommendedTraining(training.dataset.trainTopic, training.dataset.trainSet); return; }
     const reviewTopic = event.target.closest('[data-review-topic]');
@@ -3043,11 +3278,28 @@ function bindEvents() {
     }
     const exam = event.target.closest('button[data-exam]');
     if (exam) { setExam(exam.dataset.exam); setMobileDrawer(false); persist(); return; }
+    const satLink = event.target.closest('[data-sat-route]');
+    if (satLink) { navigate(satLink.dataset.satRoute); setMobileDrawer(false); return; }
+    const satQBank = event.target.closest('[data-sat-qbank]');
+    if (satQBank) { navigate(`/sat/questions/${satQBank.dataset.satQbank}`); return; }
+    const satPractice = event.target.closest('[data-sat-practice]');
+    if (satPractice) { startSatTopicPractice(satPractice.dataset.satPractice, satPractice.dataset.satDomain, satPractice.dataset.satSkill || ''); return; }
+    if (event.target.closest('[data-sat-reveal]')) { $('sat-quick-answer').hidden = false; return; }
+    if (event.target.closest('[data-sat-complete]') && satRoute?.page === 'lesson') {
+      state.progress.satLessons[window.SatCurriculum.slug(satRoute.lesson.title)] = true;
+      persist();
+      const index = satRoute.domain.topics.indexOf(satRoute.lesson.title);
+      const next = satRoute.domain.topics[index + 1];
+      navigate(next ? satLessonPath(satRoute.section, satRoute.domain, next) : satDomainPath(satRoute.section, satRoute.domain));
+      return;
+    }
     const ieltsPath = event.target.closest('[data-ielts-path]');
     if (ieltsPath) { openIeltsPath(ieltsPath.dataset.ieltsPath); return; }
+    const practiceSkill = event.target.closest('[data-ielts-practice-skill]');
+    if (practiceSkill) { currentSkill = practiceSkill.dataset.ieltsPracticeSkill; openPage('ielts-skill'); return; }
     const page = event.target.closest('[data-page]');
-    if (page) { currentSkill = page.dataset.skill || ''; openPage(page.dataset.page); setMobileDrawer(false); renderLearn(); renderVocab(); renderProblems(); renderMocks(); return; }
-    const theme = event.target.closest('[data-theme]');
+    if (page) { currentSkill = page.dataset.skill || ''; if (page.dataset.page === 'questions') { questionBankView = 'sections'; selectedQuestionTopics = []; } openPage(page.dataset.page); setMobileDrawer(false); renderLearn(); renderVocab(); renderProblems(); renderMocks(); return; }
+    const theme = event.target.closest('#theme-grid [data-theme]');
     if (theme) {
       applyTheme(theme.dataset.theme);
       $('theme-popover').hidden = true;
@@ -3058,7 +3310,7 @@ function bindEvents() {
     }
     const fullMock = event.target.closest('[data-start-full-mock]');
     if(fullMock){
-      const store=remotePractice.fullMocks[state.profile.exam==='ielts'?'ielts-academic':'sat'];
+      const store=remotePractice.fullMocks['ielts-academic'];
       const item=store?.items.find(entry=>entry.id===fullMock.dataset.startFullMock);
       if(item){try{window.FullExamEngine.start(item);}catch(error){showToast(error.message||'This full mock is invalid.');}}
       return;
@@ -3082,13 +3334,13 @@ function bindEvents() {
     const jump = event.target.closest('[data-jump-question]');
     if (jump) { jumpToQuestion(Number(jump.dataset.jumpQuestion)); return; }
     const section = event.target.closest('[data-select-set]');
-    if (section) { currentSet = section.dataset.selectSet; selectedQuestionTopics = []; questionBankView = 'topics'; renderQuestionBank(); return; }
+    if (section) { currentSet = section.dataset.selectSet; selectedQuestionTopics = []; questionBankView = 'topics'; if (state.profile.exam === 'sat') navigate(`/sat/questions/${currentSet}`); else renderQuestionBank(); return; }
     const topic = event.target.closest('[data-toggle-topic]');
     if (topic) { toggleQuestionTopic(topic.dataset.toggleTopic); return; }
     const startSelected = event.target.closest('[data-start-selected-topics]');
     if (startSelected) { startSelectedTopics(); return; }
     const questionBankBack = event.target.closest('[data-question-bank-back]');
-    if (questionBankBack) { questionBankView = 'sections'; selectedQuestionTopics = []; renderQuestionBank(); return; }
+    if (questionBankBack) { questionBankView = 'sections'; selectedQuestionTopics = []; if (state.profile.exam === 'sat') navigate('/sat/questions'); else renderQuestionBank(); return; }
     const answer = event.target.closest('[data-answer]');
     if (answer) { answerQuestion(Number(answer.dataset.answer)); return; }
     const eliminate = event.target.closest('[data-eliminate]');
@@ -3107,7 +3359,7 @@ function bindEvents() {
     if (key === 'arrowleft') moveQuestion(-1);
     if (key === 'arrowright') moveQuestion(1);
   });
-  $('leave-practice').addEventListener('click', leavePractice);
+  $('leave-practice').addEventListener('click', exitPractice);
   $('previous-question').addEventListener('click', () => moveQuestion(-1));
   $('next-question').addEventListener('click', () => moveQuestion(1));
   $('mark-question').addEventListener('click', toggleMark);
@@ -3204,6 +3456,11 @@ function bindEvents() {
     renderVocabularyStudy();
   });
   $('voice-begin').addEventListener('click', beginSpeakingMock);
+  $('open-desmos').addEventListener('click', () => window.LuminaryDesmos.open());
+  $('close-desmos').addEventListener('click', () => window.LuminaryDesmos.close());
+  $('desmos-dialog').addEventListener('click', (event) => {
+    if (event.target.id === 'desmos-dialog') window.LuminaryDesmos.close();
+  });
   $('voice-toggle').addEventListener('click', requestVoiceExit);
   $('voice-prep-skip').addEventListener('click', finishSpeakingPreparation);
   $('voice-again').addEventListener('click', resetSpeakingMock);
@@ -3219,6 +3476,8 @@ function bindEvents() {
     if (document.visibilityState === 'hidden' && currentPage === 'speaking-ai') endVoiceSession();
   });
   window.addEventListener('pagehide', endVoiceSession);
+  window.addEventListener('popstate', () => applyRoute(currentRoute()));
+  window.addEventListener('hashchange', () => applyRoute(currentRoute()));
 }
 
 async function init() {
@@ -3231,13 +3490,9 @@ async function init() {
   bindEvents();
   initVoiceLab();
   loadRemoteMaterials('rules');
-  if (window.matchMedia('(max-width: 620px)').matches) {
-    clearActivePractice();
-    openPage('home');
-  } else restoreActivePractice();
+  navigate(currentRoute(), true);
   applyAuthenticatedUser(window.luminaryAuthUser);
   startOnboarding();
-  window.FullExamEngine?.restore();
 }
 
 init();

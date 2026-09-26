@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://apis.google.com https://*.firebasedatabase.app; script-src-elem 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://*.firebasedatabase.app; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebasedatabase.app https://firebasestorage.googleapis.com https://www.gstatic.com wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src https://*.firebasedatabase.app; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
 <title>Luminary — Admin Panel</title>
-<script src="../full-exam-schema.js?v=2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="../full-exam-schema.js?v=3"></script>
+<script src="../sat-question-quality.js?v=3"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a1628;--card:#0f2035;--card2:#162840;--txt:#dde8f4;--muted:#7a94b0;--acc:#4a9eda;--acc2:#3a8bc9;--border:rgba(255,255,255,.08);}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -93,6 +94,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .mock-draft-item strong,.mock-draft-item small{display:block;}
 .mock-draft-item strong{font-size:12px;}
 .mock-draft-item small{margin-top:3px;color:var(--muted);font-size:10px;}
+#as-full-mocks .full-mock-toggle{width:100%;border:0;background:none;color:var(--txt);font:inherit;font-size:16px;font-weight:800;text-align:left;}
+#as-full-mocks :focus-visible{outline:3px solid var(--acc);outline-offset:3px;}
+#as-full-mocks button:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+#as-full-mocks .item-row{flex-wrap:wrap;}
+#as-full-mocks .item-row-title,#as-full-mocks .item-row-sub{overflow-wrap:anywhere;}
+.full-mock-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.full-mock-actions>button{width:auto;flex:1 1 140px;margin:0;}
+.full-mock-message{margin:10px 0 14px;font-size:12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;}
 
 /* UNDO TOAST */
 .undo-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:11px 18px;border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
@@ -168,6 +177,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
   .mock-builder-grid{grid-template-columns:1fr;}
 }
 </style>
+<link rel="stylesheet" href="../admin-system.css?v=1">
 <link rel="stylesheet" href="../trademark-notice.css?v=1">
 </head>
 <body>
@@ -181,25 +191,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 <div class="admin-wrap">
   <div id="success-area"></div>
 
-  <!-- MOCK TESTS -->
+  <!-- IELTS SKILL MOCKS -->
   <div class="admin-sec collapsed" id="as-mock-tests">
     <div class="admin-sec-head" onclick="toggleSec('as-mock-tests')">
-      <h3>🧪 Mock Tests</h3><span class="admin-sec-arrow">▼</span>
+      <h3>IELTS skill mocks</h3><span class="admin-sec-arrow">▼</span>
     </div>
     <div class="admin-sec-body">
       <!-- Category tabs -->
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;" id="mock-tabs">
-        <button class="mock-tab active" onclick="switchMockTab('sat/reading',this)">SAT Reading</button>
-        <button class="mock-tab" onclick="switchMockTab('sat/math',this)">SAT Math</button>
-        <button class="mock-tab" onclick="switchMockTab('ielts/speaking',this)">IELTS Speaking</button>
+        <button class="mock-tab active" onclick="switchMockTab('ielts/speaking',this)">IELTS Speaking</button>
         <button class="mock-tab" onclick="switchMockTab('ielts/writing',this)">IELTS Writing</button>
         <button class="mock-tab" onclick="switchMockTab('ielts/reading',this)">IELTS Reading</button>
         <button class="mock-tab" onclick="switchMockTab('ielts/listening',this)">IELTS Listening</button>
       </div>
-      <input type="hidden" id="mock-current-path" value="sat/reading">
+      <input type="hidden" id="mock-current-path" value="ielts/speaking">
       <!-- Add form -->
       <div style="background:var(--bg);padding:16px;border-radius:13px;margin-bottom:14px;">
-        <div class="form-group"><label>Title</label><input id="mock-title" placeholder="e.g. SAT Reading Test 1"></div>
+        <div class="form-group"><label>Title</label><input id="mock-title" placeholder="e.g. IELTS Reading Practice 1"></div>
         <div class="form-group"><label>External URL <span style="font-weight:400;color:#bbb;">(optional when questions are added below)</span></label><input id="mock-url" placeholder="https://..."></div>
         <div class="form-group"><label>Description <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="mock-desc" placeholder="e.g. 52 questions, 65 min"></div>
         <div class="form-group"><label>Picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'mock')"><img id="mock-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
@@ -208,7 +216,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
           <div class="mock-builder-grid">
             <div class="form-group"><label>Domain</label><select id="mock-domain" onchange="updateMockQuestionTaxonomy()"></select></div>
             <div class="form-group"><label>Skill / topic</label><select id="mock-skill"></select></div>
-            <div class="form-group mock-builder-wide" id="mock-subject-wrap"><label>Passage subject</label><select id="mock-subject"><option>Literature</option><option>History</option><option>Social Studies</option><option>Humanities</option><option>Science</option></select></div>
             <div class="form-group mock-builder-wide"><label>Passage or reference <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="mock-passage" placeholder="Text, table description, or reference shown with the question"></textarea></div>
             <div class="form-group mock-builder-wide"><label>Question</label><textarea id="mock-question" placeholder="Write the question"></textarea></div>
             <div class="form-group"><label>Option A</label><input id="mock-a"></div><div class="form-group"><label>Option B</label><input id="mock-b"></div>
@@ -228,22 +235,26 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
   </div>
 
-  <!-- FULL MOCK EXAMS -->
-  <div class="admin-sec collapsed" id="as-full-mocks">
-    <div class="admin-sec-head" onclick="toggleSec('as-full-mocks')">
-      <h3>🧭 Full SAT / IELTS Exams</h3><span class="admin-sec-arrow">▼</span>
-    </div>
-    <div class="admin-sec-body">
-      <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Add a complete Practice or select Edit below to change an existing one. Saving the same ID updates the published Practice. IELTS Listening audio can remain empty until recordings are ready.</p>
-      <div class="form-group"><label>Exam</label><select id="full-mock-exam" onchange="loadFullMocksAdmin()"><option value="sat">Digital SAT</option><option value="ielts-academic">IELTS Academic</option></select></div>
-      <div class="form-group"><label>Full mock JSON</label><textarea id="full-mock-json" style="min-height:240px;font-family:monospace;font-size:12px;" placeholder='Paste one complete exam object here'></textarea></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="btn-cancel" type="button" onclick="previewFullMock()" style="margin:0;border-color:var(--acc);color:var(--acc);">Validate JSON</button>
+  <!-- IELTS FULL MOCK EXAMS -->
+  <div class="admin-sec collapsed" id="as-full-mocks" lang="en">
+    <h3><button class="admin-sec-head full-mock-toggle" id="full-mock-toggle" type="button" onclick="toggleSec('as-full-mocks')" aria-expanded="false" aria-controls="full-mock-body">
+      <span>IELTS Academic exams</span><span class="admin-sec-arrow" aria-hidden="true">▼</span>
+    </button></h3>
+    <div class="admin-sec-body" id="full-mock-body" hidden>
+      <p id="full-mock-help" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Add a complete Practice or select Edit below. Saving replaces the selected admin record, or creates an override for a built-in Practice. Set published to false to save a draft. IELTS Listening audio can remain empty until recordings are ready.</p>
+      <input id="full-mock-exam" type="hidden" value="ielts-academic">
+      <div class="form-group"><label for="full-mock-json">Full mock JSON</label><textarea id="full-mock-json" aria-describedby="full-mock-help full-mock-status" aria-errormessage="full-mock-status" spellcheck="false" oninput="invalidateFullMockDraft()" style="min-height:240px;font-family:monospace;font-size:12px;" placeholder='Paste one complete exam object here'></textarea></div>
+      <div class="full-mock-actions">
+        <button class="btn-cancel" id="full-mock-validate" type="button" onclick="previewFullMock()" style="border-color:var(--acc);color:var(--acc);">Validate JSON</button>
         <button class="btn-primary" id="full-mock-import" type="button" onclick="importFullMock()" disabled>Save Practice</button>
+        <button class="btn-cancel" type="button" onclick="startNewFullMock()" style="border-color:var(--acc);color:var(--acc);">New Practice</button>
       </div>
-      <div id="full-mock-status" style="margin:10px 0 14px;font-size:12px;color:var(--muted);white-space:pre-wrap;"></div>
-      <p style="font-size:12px;margin-bottom:14px;"><a href="../docs/full-mock-format.md" target="_blank" style="color:var(--acc);font-weight:800;">Open format guide</a></p>
-      <div id="full-mock-list"></div>
+      <div id="full-mock-status" class="full-mock-message" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="full-mock-operation-status" class="full-mock-message" role="status" aria-live="polite" aria-atomic="true"></div>
+      <p style="font-size:12px;margin-bottom:14px;"><a href="../docs/full-mock-format.md" target="_blank" rel="noopener" style="color:var(--acc);font-weight:800;">Open format guide (new tab)</a></p>
+      <button class="btn-edit" type="button" onclick="loadFullMocksAdmin()">Reload catalog</button>
+      <div id="full-mock-catalog-status" class="full-mock-message" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="full-mock-list" aria-label="Full mock catalog" role="region" aria-busy="false"></div>
     </div>
   </div>
 
@@ -278,10 +289,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
           <div class="form-group" id="qb-subject-wrap"><label>Passage subject</label><select id="qb-subject"><option>Literature</option><option>History / Social Studies</option><option>Humanities</option><option>Science</option></select></div>
         </div>
         <div class="form-group"><label>Explanation <span style="font-weight:400;color:#bbb;">(optional)</span></label><textarea id="qb-explain" placeholder="Why this answer is correct..."></textarea></div>
+        <div class="form-group"><label>Question image URL <span style="font-weight:400;color:#bbb;">(optional)</span></label><input id="qb-image-url" type="url" placeholder="https://..." autocomplete="off"></div>
         <div class="form-group"><label>Question picture <span style="font-weight:400;color:#bbb;">(optional)</span></label><input type="file" accept="image/*" onchange="loadRecordImage(this,'qbank')"><img id="qbank-image-preview" style="display:none;max-width:180px;max-height:120px;object-fit:contain;border-radius:9px;margin-top:8px;"></div>
-        <button class="btn-primary" onclick="addQBankQuestion()">➕ Add Question</button>
+        <p id="qb-edit-status" role="status" style="font-size:12px;color:var(--text-soft);margin:0 0 8px;"></p>
+        <button class="btn-primary" id="qb-save-button" onclick="addQBankQuestion()">➕ Add Question</button>
+        <button id="qb-cancel-button" type="button" onclick="cancelQBankEdit()" style="display:none;min-height:38px;margin-left:8px;">Cancel edit</button>
       </div>
       <div id="qbank-json-import"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin:12px 0;font-size:13px;"><input id="qb-only-issues" type="checkbox" onchange="renderQBankAdmin()"> Show questions needing review</label>
       <div id="qb-list"></div>
     </div>
   </div>
@@ -511,22 +526,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
     </div>
   </div>
 
-  <!-- SAT PRACTICE TESTS -->
-  <div class="admin-sec collapsed" id="as-practice">
-    <div class="admin-sec-head" onclick="toggleSec('as-practice')">
-      <h3>📝 SAT Practice Tests</h3><span class="admin-sec-arrow">▼</span>
-    </div>
-    <div class="admin-sec-body">
-      <div style="background:var(--bg);padding:16px;border-radius:13px;">
-        <div class="form-group"><label>Test Name</label><input id="pt-title" placeholder="e.g. Official SAT Practice Test 1"></div>
-        <div class="form-group"><label>URL</label><input id="pt-url" placeholder="https://..."></div>
-        <div class="form-group"><label>Description</label><input id="pt-desc" placeholder="e.g. 98 questions, full length"></div>
-        <button class="btn-primary" onclick="addPracticeTest()">Add Test</button>
-      </div>
-      <div id="pt-list" style="margin-top:12px;"></div>
-    </div>
-  </div>
-
   <!-- QUIZZES ADMIN -->
   <div class="admin-sec collapsed" id="as-quizzes">
     <div class="admin-sec-head" onclick="toggleSec('as-quizzes')">
@@ -652,6 +651,10 @@ function toggleSec(id){
   const el=document.getElementById(id);
   const wasCollapsed=el.classList.contains('collapsed');
   el.classList.toggle('collapsed');
+  if(id==='as-full-mocks'){
+    document.getElementById('full-mock-toggle').setAttribute('aria-expanded',String(wasCollapsed));
+    document.getElementById('full-mock-body').hidden=!wasCollapsed;
+  }
   // Lazy-load photo data only when the Hacks section is first expanded
   if(wasCollapsed && id==='as-hacks-photos' && !el.dataset.photosLoaded){
     el.dataset.photosLoaded='1';
@@ -694,8 +697,8 @@ const SAT_DOMAIN_TOPICS={
   },
   math:{
     'Algebra':['Linear equations in one variable','Linear functions','Linear equations in two variables','Systems of two linear equations in two variables','Linear inequalities in one or two variables'],
-    'Advanced Math':['Nonlinear functions','Nonlinear equations in one variable','Systems of equations in two variables','Equivalent expressions'],
-    'Problem-Solving and Data Analysis':['Ratios, rates, proportional relationships, and units','Percentages','One-variable data','Two-variable data','Probability and conditional probability','Inference from sample statistics and margin of error','Evaluating statistical claims'],
+    'Advanced Math':['Nonlinear functions','Nonlinear equations in one variable and systems of equations in two variables','Equivalent expressions'],
+    'Problem-Solving and Data Analysis':['Ratios, rates, proportional relationships, and units','Percentages','One-variable data: Distributions and measures of center and spread','Two-variable data: Models and scatterplots','Probability and conditional probability','Inference from sample statistics and margin of error','Evaluating statistical claims: Observational studies and experiments'],
     'Geometry and Trigonometry':['Area and volume','Lines, angles, and triangles','Right triangles and trigonometry','Circles']
   }
 };
@@ -709,7 +712,7 @@ function updateQBankCategories(){
   const section=sectionSelect.value,previousTheme=themeSelect.value;
   if(exam==='sat'){
     themeSelect.innerHTML=SAT_QBANK_CATEGORIES[section].map(theme=>`<option value="${theme}">${theme}</option>`).join('');if(SAT_QBANK_CATEGORIES[section].includes(previousTheme))themeSelect.value=previousTheme;
-    const skills=SAT_DOMAIN_TOPICS[section][themeSelect.value]||[],previousSkill=skillSelect?.value||'';if(skillSelect){skillSelect.innerHTML=skills.map(skill=>`<option value="${skill}">${skill}</option>`).join('');if(skills.includes(previousSkill))skillSelect.value=previousSkill;}
+    const skills=SAT_DOMAIN_TOPICS[section][themeSelect.value]||[],previousSkill=skillSelect?.value||'';if(skillSelect){skillSelect.innerHTML='<option value="">Not classified</option>'+skills.map(skill=>`<option value="${skill}">${skill}</option>`).join('');if(skills.includes(previousSkill))skillSelect.value=previousSkill;}
   }
   document.getElementById('qb-sat-theme-wrap').style.display=exam==='sat'?'':'none';document.getElementById('qb-ielts-theme-wrap').style.display=exam==='ielts'?'':'none';
   document.getElementById('qb-sat-details').style.display=exam==='sat'?'grid':'none';document.getElementById('qb-subject-wrap').style.display=exam==='sat'&&section==='rw'?'':'none';
@@ -746,7 +749,7 @@ function normalizeMaterialRecord(kind,item,index){
     if(item.image||item.imageUrl||item.picture)record.image=String(item.image||item.imageUrl||item.picture);
     if(item.questions){
       if(!Array.isArray(item.questions))throw new Error(`Item ${index+1}: questions must be an array`);
-      const path=document.getElementById('mock-current-path')?.value||'sat/reading',section=mockSectionForPath(path),domain=path.startsWith('sat/')?SAT_QBANK_CATEGORIES[section][0]:section.charAt(0).toUpperCase()+section.slice(1),skill=path.startsWith('sat/')?SAT_DOMAIN_TOPICS[section][domain][0]:'General practice';
+      const path=document.getElementById('mock-current-path')?.value||'ielts/reading',section=mockSectionForPath(path),domain=section.charAt(0).toUpperCase()+section.slice(1),skill='General practice';
       record.questions=item.questions.map((q,i)=>normalizeMaterialRecord('qbank',{set:section,tag:domain,skill,...q},i));
     }
     return record;
@@ -824,7 +827,6 @@ async function loadAdminAll(){
   await loadAdminWords('ielts');
   await loadContentFolders('rules');
   await loadContentItems('rules');
-  await loadPracticeTests();
   await loadQuizzes();
   const ps=await get(ref(db,'podcasts'));
   const pods=ps.val()?Object.keys(ps.val()).map(k=>({id:k,...ps.val()[k]})):[];
@@ -1390,31 +1392,6 @@ async function delContentItem(type,id){
 }
 
 // =============================================
-//  PRACTICE TESTS
-// =============================================
-async function addPracticeTest(){
-  const t=document.getElementById('pt-title').value.trim();
-  const u=document.getElementById('pt-url').value.trim();
-  const d=document.getElementById('pt-desc').value.trim();
-  if(!t||!u){alert('Title and URL required');return;}
-  const{db,ref,push,set}=window.fb;
-  await set(push(ref(db,'practice-tests')),{title:t,url:u,desc:d});
-  ['pt-title','pt-url','pt-desc'].forEach(id=>document.getElementById(id).value='');
-  showSuccess('Added!');await loadPracticeTests();
-}
-async function loadPracticeTests(){
-  const{db,ref,get}=window.fb;
-  const snap=await get(ref(db,'practice-tests'));
-  const tests=snap.val()?Object.keys(snap.val()).map(k=>({id:k,...snap.val()[k]})):[];
-  const el=document.getElementById('pt-list');
-  if(el)el.innerHTML=tests.map(t=>`<div class="item-row"><div class="item-row-info"><div class="item-row-title">${t.title}</div><div class="item-row-sub">${t.desc||t.url}</div></div><button class="btn-del" onclick="delPracticeTest('${t.id}')">🗑️</button></div>`).join('')||'<p style="color:#aaa;text-align:center;padding:12px;font-size:13px;">No tests yet</p>';
-}
-async function delPracticeTest(id){
-  await window.fb.remove(window.fb.ref(window.fb.db,`practice-tests/${id}`));
-  showSuccess('Deleted!');await loadPracticeTests();
-}
-
-// =============================================
 //  QUIZZES
 // =============================================
 async function saveQuiz(){
@@ -1838,23 +1815,74 @@ async function runImport(type){
 // =============================================
 //  QUESTION BANK
 // =============================================
+let qBankItems=[];
+let qBankEditing=null;
+function qBankEscape(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+function qBankIssues(item){
+  if(item.exam!=='sat'||!window.SatQuestionQuality)return[];
+  const options=item.options||{};
+  const correct=typeof item.correct==='number'?item.correct:'ABCD'.indexOf(String(item.correct||'').toUpperCase());
+  return window.SatQuestionQuality.issues({prompt:item.q||'',passage:item.passage||'',answers:['A','B','C','D'].map(letter=>options[letter]||''),correct,image:item.image||item.imageUrl||item.picture||''});
+}
+function renderQBankAdmin(){
+  const el=document.getElementById('qb-list');
+  const flagged=qBankItems.filter(item=>qBankIssues(item).length);
+  const items=document.getElementById('qb-only-issues')?.checked?flagged:qBankItems;
+  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:16px;font-size:13px;">No matching questions</p>';return;}
+  el.innerHTML=`<p style="font-size:12px;color:#666;margin:8px 0 14px;">${qBankItems.length} questions · ${flagged.length} need review before practice</p>`+items.map(q=>{
+    const issues=qBankIssues(q);
+    return `<div class="item-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <span style="font-size:10px;font-weight:800;background:#e8f0fe;color:#1d4ed8;padding:2px 8px;border-radius:10px;text-transform:uppercase;">${qBankEscape(q.exam)} · ${qBankEscape(q.set||'general')}${q.tag?` · ${qBankEscape(q.tag)}`:''}${q.skill?` · ${qBankEscape(q.skill)}`:''}</span>
+          ${issues.length?`<span style="font-size:10px;font-weight:800;color:#a52a2a;margin-left:5px;">Needs review: ${qBankEscape(issues.join(', '))}</span>`:''}
+          <div class="item-row-title" style="margin-top:4px;">${qBankEscape(q.q||'No question text')}</div>
+          <div class="item-row-sub">✓ ${qBankEscape(q.correct)} · ${qBankEscape(q.options?.[q.correct]||'')}</div>
+        </div>
+        <div style="display:flex;gap:6px;"><button type="button" onclick="editQBankQuestion('${qBankEscape(q.exam)}','${qBankEscape(q.id)}')">Edit</button><button class="btn-del" type="button" onclick="deleteQBankQuestion('${qBankEscape(q.exam)}','${qBankEscape(q.id)}')" aria-label="Delete question">🗑️</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
 async function loadQBankAdmin(){
   const{db,ref,get}=window.fb2;
   const [satSnap,ieltsSnap]=await Promise.all([get(ref(db,'question-bank/sat')),get(ref(db,'question-bank/ielts'))]);
   const items=[...Object.entries(satSnap.val()||{}).map(([k,v])=>({id:k,exam:'sat',...v})),...Object.entries(ieltsSnap.val()||{}).map(([k,v])=>({id:k,exam:'ielts',...v}))];
-  const el=document.getElementById('qb-list');
-  if(!items.length){el.innerHTML='<p style="color:#aaa;text-align:center;padding:16px;font-size:13px;">No questions yet</p>';return;}
-  el.innerHTML=items.map(q=>`
-    <div class="item-row" style="flex-direction:column;align-items:stretch;gap:6px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-        <div style="flex:1;">
-          <span style="font-size:10px;font-weight:800;background:#e8f0fe;color:#1d4ed8;padding:2px 8px;border-radius:10px;text-transform:uppercase;">${q.exam} · ${q.set||'general'}${q.tag?` · ${q.tag}`:''}${q.skill?` · ${q.skill}`:''}</span>
-          <div class="item-row-title" style="margin-top:4px;">${q.q}</div>
-          <div class="item-row-sub">✓ ${q.correct} · ${q.options?.[q.correct]||''}</div>
-        </div>
-        <button class="btn-del" onclick="deleteQBankQuestion('${q.exam}','${q.id}')">🗑️</button>
-      </div>
-    </div>`).join('');
+  qBankItems=items;
+  renderQBankAdmin();
+}
+function editQBankQuestion(exam,id){
+  const item=qBankItems.find(row=>row.exam===exam&&row.id===id);if(!item)return;
+  qBankEditing={exam,id,item};
+  document.getElementById('qb-exam').value=exam;
+  document.getElementById('qb-exam').disabled=true;
+  updateQBankCategories();
+  document.getElementById('qb-section').value=item.set||item.section||'rw';
+  updateQBankCategories();
+  if(exam==='sat'){
+    document.getElementById('qb-tag').value=item.tag||'';
+    updateQBankCategories();
+    document.getElementById('qb-skill').value=item.skill||'';
+    if(item.subject)document.getElementById('qb-subject').value=item.subject;
+  }else document.getElementById('qb-ielts-theme').value=item.tag||'';
+  for(const [field,value] of Object.entries({'qb-passage':item.passage||'','qb-q':item.q||'','qb-a':item.options?.A||'','qb-b':item.options?.B||'','qb-c':item.options?.C||'','qb-d':item.options?.D||'','qb-correct':item.correct||'','qb-explain':item.explain||''}))document.getElementById(field).value=value;
+  document.getElementById('qb-image-url').value=/^https?:\/\//i.test(item.image||'')?item.image:'';
+  recordImages.qbank=null;
+  document.getElementById('qb-edit-status').textContent=`Editing ${exam.toUpperCase()} question ${id}${item.image&&!/^https?:\/\/|^data:image\//i.test(item.image)?' · image file is unavailable; upload a replacement':''}`;
+  document.getElementById('qb-save-button').textContent='Save Question';
+  document.getElementById('qb-cancel-button').style.display='inline-block';
+  document.getElementById('qb-q').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelQBankEdit(){
+  qBankEditing=null;recordImages.qbank=null;
+  document.getElementById('qb-exam').disabled=false;
+  for(const id of ['qb-passage','qb-q','qb-a','qb-b','qb-c','qb-d','qb-explain','qb-image-url','qb-ielts-theme'])document.getElementById(id).value='';
+  document.getElementById('qb-correct').value='';
+  document.getElementById('qb-skill').value='';
+  document.getElementById('qb-edit-status').textContent='';
+  document.getElementById('qb-save-button').textContent='➕ Add Question';
+  document.getElementById('qb-cancel-button').style.display='none';
+  const preview=document.getElementById('qbank-image-preview');preview.removeAttribute('src');preview.style.display='none';
 }
 async function addQBankQuestion(){
   const passage=document.getElementById('qb-passage').value.trim();
@@ -1870,20 +1898,25 @@ async function addQBankQuestion(){
   const skill=exam==='sat'?document.getElementById('qb-skill').value.trim():'';
   const subject=exam==='sat'&&section==='rw'?document.getElementById('qb-subject').value.trim():'';
   const explain=document.getElementById('qb-explain').value.trim();
+  const imageUrl=document.getElementById('qb-image-url').value.trim();
   if(!q||!a||!b||!c||!d||!correct||!tag){alert('Fill question, section, theme, all options and correct answer');return;}
+  if(new Set([a,b,c,d].map(value=>value.toLowerCase())).size!==4){alert('Answer options must be different.');return;}
+  if(imageUrl&&!/^https:\/\//i.test(imageUrl)){alert('Use an HTTPS image URL.');return;}
   const{db,ref,push,set}=window.fb2;
-  const payload={q,options:{A:a,B:b,C:c,D:d},correct,set:section};
+  const payload={...(qBankEditing?.item||{}),q,options:{A:a,B:b,C:c,D:d},correct,set:section};
+  delete payload.id;delete payload.exam;
   if(tag)payload.tag=tag;
-  if(skill)payload.skill=skill;
-  if(subject)payload.subject=subject;
-  if(passage)payload.passage=passage;
-  if(explain)payload.explain=explain;
+  if(skill)payload.skill=skill;else delete payload.skill;
+  if(subject)payload.subject=subject;else delete payload.subject;
+  if(passage)payload.passage=passage;else delete payload.passage;
+  if(explain)payload.explain=explain;else delete payload.explain;
   if(recordImages.qbank)payload.image=recordImages.qbank;
-  await set(push(ref(db,`question-bank/${exam}`)),payload);
-  ['qb-passage','qb-q','qb-a','qb-b','qb-c','qb-d','qb-explain','qb-ielts-theme'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('qb-correct').value='';
-  clearRecordImage('qbank');
-  showSuccess('Question added! ✅');
+  else if(imageUrl)payload.image=imageUrl;
+  else if(payload.image&&!/^data:image\//i.test(payload.image))delete payload.image;
+  const savingEdit=Boolean(qBankEditing),target=savingEdit?ref(db,`question-bank/${qBankEditing.exam}/${qBankEditing.id}`):push(ref(db,`question-bank/${exam}`));
+  await set(target,payload);
+  cancelQBankEdit();
+  showSuccess(savingEdit?'Question updated!':'Question added! ✅');
   loadQBankAdmin();
 }
 async function deleteQBankQuestion(exam,id){
@@ -1960,9 +1993,9 @@ function previewFullMock(){
     if(!result.valid)throw new Error(result.errors.join('\n'));
     const selected=document.getElementById('full-mock-exam').value;
     if(result.mock.exam!==selected)throw new Error(`The JSON exam is ${result.mock.exam}; the selected destination is ${selected}.`);
-    fullMockImportCache=result.mock;button.disabled=false;status.style.color='#4ade80';
+    fullMockImportCache=result.mock;button.disabled=false;status.style.color='#236441';
     status.textContent=`Valid: ${result.mock.title}\n${result.mock.sections.map(section=>`${section.title}: ${section.modules.length} module(s)`).join('\n')}${result.warnings.length?`\nNotes:\n${result.warnings.join('\n')}`:''}`;
-  }catch(error){fullMockImportCache=null;button.disabled=true;status.style.color='#f87171';status.textContent=error.message;}
+  }catch(error){fullMockImportCache=null;button.disabled=true;status.style.color='#b34040';status.textContent=error.message;}
 }
 async function importFullMock(){
   previewFullMock();
@@ -1971,15 +2004,15 @@ async function importFullMock(){
   button.disabled=true;status.textContent='Uploading full exam…';
   try{
     const{db,ref,set}=window.fb;await set(ref(db,`full-mocks/${mock.exam}/${mock.id}`),mock);
-    document.getElementById('full-mock-json').value='';fullMockImportCache=null;status.style.color='#4ade80';status.textContent=`Saved ${mock.title}.`;showSuccess('Practice saved and published!');loadFullMocksAdmin();
-  }catch(error){button.disabled=false;status.style.color='#f87171';status.textContent=`Import failed: ${error.message}`;}
+    document.getElementById('full-mock-json').value='';fullMockImportCache=null;status.style.color='#236441';status.textContent=`Saved ${mock.title}.`;showSuccess('Practice saved and published!');loadFullMocksAdmin();
+  }catch(error){button.disabled=false;status.style.color='#b34040';status.textContent=`Import failed: ${error.message}`;}
 }
 function renderFullMockCatalog(exam,list){
   const items=[...fullMockCatalog.values()].sort((a,b)=>(a.order||999)-(b.order||999)||a.title.localeCompare(b.title));
   list.innerHTML=items.length?items.map(item=>{const total=(item.sections||[]).reduce((sum,section)=>sum+section.modules.reduce((moduleSum,module)=>moduleSum+window.FullExamSchema.allQuestions(module).length,0),0);const override=item.source==='admin',reset=override&&bundledFullMockIds.has(item.id);return `<div class="item-row"><div class="item-row-info"><div class="item-row-title">${safeAdminText(item.title||item.id)}</div><div class="item-row-sub">${item._valid===false?'Invalid':'Valid'} · ${total} authored items · ${override?'Admin version':'Built-in Practice'}</div></div><div style="display:flex;gap:6px;"><button class="btn-edit" type="button" onclick="editFullMock('${safeAdminText(item.id)}')">Edit</button>${override?`<button class="btn-del" type="button" onclick="deleteFullMock('${exam}','${safeAdminText(item.id)}')">${reset?'Reset':'Delete'}</button>`:''}</div></div>`;}).join(''):'<p style="color:var(--muted);text-align:center;padding:12px;font-size:13px;">No Practices yet</p>';
 }
 async function loadFullMocksAdmin(){
-  const exam=document.getElementById('full-mock-exam')?.value||'sat',list=document.getElementById('full-mock-list');if(!list)return;
+  const exam='ielts-academic',list=document.getElementById('full-mock-list');if(!list)return;
   list.innerHTML='<p style="color:var(--muted);text-align:center;padding:12px;font-size:13px;">Loading Practices…</p>';
   try{
     const bundled=await loadBundledFullMocks(exam),merged=new Map();
@@ -1994,7 +2027,7 @@ async function loadFullMocksAdmin(){
         fullMockCatalog=merged;renderFullMockCatalog(exam,list);
       }catch(error){document.getElementById('full-mock-status').textContent=`Built-in Practices loaded. Admin overrides are unavailable: ${error.message}`;}
     }
-  }catch(error){list.innerHTML=`<p style="color:#f87171;font-size:12px;">Could not load full exams: ${safeAdminText(error.message)}</p>`;}
+  }catch(error){list.innerHTML=`<p style="color:#b34040;font-size:12px;">Could not load full exams: ${safeAdminText(error.message)}</p>`;}
 }
 function editFullMock(id){
   const item=fullMockCatalog.get(id);if(!item)return;
@@ -2015,17 +2048,11 @@ async function deleteFullMock(exam,id){
 const mockDrafts={};
 function safeAdminText(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function currentMockDraft(){const path=document.getElementById('mock-current-path').value;return mockDrafts[path]||(mockDrafts[path]=[]);}
-function mockSectionForPath(path){if(path==='sat/reading')return'rw';if(path==='sat/math')return'math';return path.split('/')[1]||'general';}
+function mockSectionForPath(path){return path.split('/')[1]||'general';}
 function updateMockQuestionTaxonomy(){
   const path=document.getElementById('mock-current-path').value,domainSelect=document.getElementById('mock-domain'),skillSelect=document.getElementById('mock-skill');if(!domainSelect||!skillSelect)return;
-  const section=mockSectionForPath(path),previousDomain=domainSelect.value,previousSkill=skillSelect.value;
-  if(path.startsWith('sat/')){
-    const domains=SAT_QBANK_CATEGORIES[section];domainSelect.innerHTML=domains.map(domain=>`<option value="${domain}">${domain}</option>`).join('');if(domains.includes(previousDomain))domainSelect.value=previousDomain;
-    const skills=SAT_DOMAIN_TOPICS[section][domainSelect.value]||[];skillSelect.innerHTML=skills.map(skill=>`<option value="${skill}">${skill}</option>`).join('');if(skills.includes(previousSkill))skillSelect.value=previousSkill;
-  }else{
-    const label=section.charAt(0).toUpperCase()+section.slice(1);domainSelect.innerHTML=`<option value="${label}">${label}</option>`;skillSelect.innerHTML='<option value="General practice">General practice</option>';
-  }
-  document.getElementById('mock-subject-wrap').style.display=path==='sat/reading'?'':'none';
+  const section=mockSectionForPath(path);
+  const label=section.charAt(0).toUpperCase()+section.slice(1);domainSelect.innerHTML=`<option value="${label}">${label}</option>`;skillSelect.innerHTML='<option value="General practice">General practice</option>';
 }
 function renderMockDraftQuestions(){
   const list=document.getElementById('mock-draft-list');if(!list)return;const questions=currentMockDraft();
@@ -2037,7 +2064,7 @@ function addMockDraftQuestion(){
   const values=['mock-a','mock-b','mock-c','mock-d'].map(id=>document.getElementById(id).value.trim());if(!q||values.some(value=>!value)||!correct){alert('Fill the question, all four options, and the correct answer.');return;}
   const question={q,options:{A:values[0],B:values[1],C:values[2],D:values[3]},correct,set:mockSectionForPath(path),tag:document.getElementById('mock-domain').value,skill:document.getElementById('mock-skill').value};
   const passage=document.getElementById('mock-passage').value.trim(),explain=document.getElementById('mock-explain').value.trim(),difficulty=document.getElementById('mock-difficulty').value;
-  if(passage)question.passage=passage;if(explain)question.explain=explain;if(difficulty)question.difficulty=difficulty;if(path==='sat/reading')question.subject=document.getElementById('mock-subject').value;
+  if(passage)question.passage=passage;if(explain)question.explain=explain;if(difficulty)question.difficulty=difficulty;
   currentMockDraft().push(question);['mock-passage','mock-question','mock-a','mock-b','mock-c','mock-d','mock-explain'].forEach(id=>document.getElementById(id).value='');document.getElementById('mock-correct').value='';document.getElementById('mock-difficulty').value='';renderMockDraftQuestions();
 }
 function switchMockTab(path, btn){
@@ -2099,6 +2126,15 @@ window.addEventListener('fbReady',()=>{
   loadFullMocksAdmin();
 });
 if(window.fb){initMaterialJsonImporters();updateMockQuestionTaxonomy();renderMockDraftQuestions();loadAdminAll();loadMockTests();loadQBankAdmin();loadDailyQuestionAdmin();loadFullMocksAdmin();}
+document.querySelectorAll('.admin-sec-head[onclick]').forEach((header) => {
+  header.setAttribute('role', 'button');
+  header.tabIndex = 0;
+  header.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    header.click();
+  });
+});
 </script>
 
 <!-- FIREBASE SDK -->

@@ -3,6 +3,9 @@
 
   const DB_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
   const STORAGE_KEY = 'luminary-full-exam-session-v1';
+  let pendingMock = null;
+  let returnToReview = false;
+  let previousFocus = null;
   const state = {
     mock: null,
     screen: 'closed',
@@ -13,7 +16,6 @@
     responses: {},
     marked: {},
     completedModules: [],
-    routes: {},
     secondsRemaining: 0,
     deadline: 0,
     timerHidden: false,
@@ -26,6 +28,38 @@
 
   const $ = (id) => document.getElementById(id);
   const escapeHtml = (value) => String(value == null ? '' : value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+  const BUILTIN_HEADING_OPTIONS = {
+    'ielts-practice-01': ['The importance of information collected before construction', 'A technology adapted from another industry', 'Why acceptance involves more than money', 'Mechanical difficulties beneath the surface', 'An energy source with a fixed daily output', 'Examining environmental risk in detail'],
+    'ielts-practice-02': ['Why storage is not enough', 'The value of local knowledge', 'A single solution for a changing climate', 'An insurance policy with practical limits', 'The cost of modern harvesting'],
+    'ielts-practice-04': ['The social distribution of shade', 'Why planting is only the beginning', 'The limits of natural drainage', 'Choosing trees for a changing city', 'Residents as professional arborists'],
+    'ielts-practice-05': ['Why one recycled percentage is misleading', 'Standards and professional caution', 'The first stage of recovery', 'Tests that determine reliability', 'A solution that removes the need for new buildings'],
+    'ielts-practice-06': ['How anxiety can sustain delay', 'Time-management interventions', 'Why planning alone always works', 'Active and passive procrastination', 'Managing difficult emotions', 'Delay as self-protection'],
+    'ielts-practice-07': ['Learning only while awake', 'The limits of sleep research', 'Brief bursts of brain activity', 'Why memories need consolidation', 'Different stages of sleep', 'Implications for study', 'Replaying experiences during sleep'],
+    'ielts-practice-08': ['Why research must exclude volunteers', 'The history of amateur contributions', 'Checking the quality of volunteer data', 'Benefits for learning and engagement', 'What citizen science involves', 'Projects across scientific disciplines'],
+    'ielts-practice-09': ['Brain systems behind automatic behaviour', 'Why the twenty-one-day rule is unreliable', 'How much behaviour is habitual', 'The role of genetic inheritance', 'Habits in professional sport', 'Why rewards alone are insufficient', 'Changing habits by changing context', 'The cue-routine-reward loop'],
+    'ielts-practice-10': ['The limits of placebo effects', 'Introducing the placebo effect', 'Evidence from brain imaging', 'How treatment appearance shapes expectations', 'Why placebos replace all medicines', 'Placebos that work without deception']
+  };
+  const romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
+  function headingOptions(part, question) {
+    if (currentSection()?.id !== 'reading') return [];
+    if (!/^([ivx]+)$/i.test(String(question.acceptedAnswers?.[0] || ''))) return [];
+    const authored = Array.isArray(part.headings) ? part.headings : null;
+    return authored || BUILTIN_HEADING_OPTIONS[state.mock?.id] || [];
+  }
+  function renderReference(value) {
+    const source = String(value || '').trim();
+    const blocks = source.split(/\n\s*\n/).filter(Boolean);
+    return blocks.map((block) => {
+      const lines = block.split('\n');
+      if (lines.length >= 2 && lines[0].trim().startsWith('|') && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[1])) {
+        const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => escapeHtml(cell.trim()));
+        const header = cells(lines[0]).map((cell) => `<th scope="col">${cell}</th>`).join('');
+        const rows = lines.slice(2).map((line) => `<tr>${cells(line).map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('');
+        return `<div class="full-exam-table-scroll"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div>`;
+      }
+      return `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`;
+    }).join('');
+  }
   const safeUrl = (value, audio = false) => {
     const source = String(value || '').trim();
     if (/^https?:\/\//i.test(source)) return source;
@@ -44,26 +78,35 @@
   function currentResponse(question = currentQuestion()) { return question ? state.responses[responseKey(question)] : undefined; }
   function sectionDeliveredItems(section) {
     if (section.id === 'writing') return section.modules.flatMap((module) => global.FullExamSchema.allQuestions(module)).length;
-    if (state.mock?.exam !== 'sat' || state.mock?.deliveryMode === 'linear') return section.modules.reduce((total, module) => total + global.FullExamSchema.modulePoints(module), 0);
-    const routing = section.modules.find((module) => module.stage === 'routing');
-    const branches = section.modules.filter((module) => ['lower', 'higher'].includes(module.stage));
-    return global.FullExamSchema.modulePoints(routing) + Math.max(0, ...branches.map((module) => global.FullExamSchema.modulePoints(module)));
+    return section.modules.reduce((total, module) => total + global.FullExamSchema.modulePoints(module), 0);
   }
   function sectionDeliveredMinutes(section) {
-    if (state.mock?.exam !== 'sat' || state.mock?.deliveryMode === 'linear') return section.modules.reduce((total, module) => total + module.durationMinutes, 0);
-    const routing = section.modules.find((module) => module.stage === 'routing');
-    const branches = section.modules.filter((module) => ['lower', 'higher'].includes(module.stage));
-    return Number(routing?.durationMinutes || 0) + Math.max(0, ...branches.map((module) => module.durationMinutes));
+    return section.modules.reduce((total, module) => total + module.durationMinutes, 0);
   }
 
   async function fetchJson(path) {
-    const response = await fetch(`${DB_URL}/${path}.json`);
+    const response = await fetch(`${DB_URL}/${path}.json`, { signal: AbortSignal.timeout(6000) });
     if (!response.ok) throw new Error('Mocks could not be loaded.');
     return response.json();
   }
 
+  function savedSession() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+      return saved?.mock ? saved : null;
+    } catch {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+  }
+  function savedSummary() {
+    const saved = savedSession();
+    return saved?.mock?.exam === 'ielts-academic' ? { title: saved.mock.title, section: saved.mock.sections?.[saved.sectionIndex]?.title || 'IELTS Academic' } : null;
+  }
+
   async function list(exam) {
-    const path = exam === 'ielts' || exam === 'ielts-academic' ? 'ielts-academic' : 'sat';
+    if (exam !== 'ielts' && exam !== 'ielts-academic') return [];
+    const path = 'ielts-academic';
     const [bundledResult, remoteResult] = await Promise.allSettled([
       fetch(`data/full-mocks/${path}.json?v=1`, { cache: 'no-store' }).then((response) => {
         if (!response.ok) throw new Error('Bundled mocks could not be loaded.');
@@ -82,7 +125,7 @@
     Object.entries(remote || {}).forEach(([firebaseId, raw]) => {
       const validation = global.FullExamSchema.validate(raw, { strictCounts: true });
       if (validation.valid && validation.mock.published) merged.set(validation.mock.id, { source: 'admin', firebaseId, ...validation.mock });
-      else if (validation.mock?.id) merged.delete(validation.mock.id);
+      else if (validation.mock?.published === false) merged.delete(validation.mock.id);
     });
     return [...merged.values()].sort((left, right) => (left.order || 999) - (right.order || 999) || left.title.localeCompare(right.title));
   }
@@ -92,6 +135,7 @@
     document.body.insertAdjacentHTML('beforeend', `
       <section class="full-exam-engine" id="full-exam-engine" hidden aria-label="Full mock exam">
         <header class="full-exam-topbar">
+          <div class="full-exam-heading" id="full-exam-heading">Practice</div>
           <button class="full-exam-link" id="full-exam-exit" type="button" aria-label="Return to home">Home</button>
           <div class="full-exam-clock" id="full-exam-clock"><strong id="full-exam-timer">00:00</strong><button id="full-exam-hide-timer" type="button">Hide</button></div>
         </header>
@@ -99,7 +143,7 @@
         <div class="full-exam-audio-dock" id="full-exam-audio-dock" hidden></div>
         <main class="full-exam-stage" id="full-exam-stage"></main>
         <footer class="full-exam-footer" id="full-exam-footer"></footer>
-        <section class="full-exam-modal" id="full-exam-modal" hidden><div class="full-exam-dialog" id="full-exam-dialog"></div></section>
+        <section class="full-exam-modal" id="full-exam-modal" hidden role="dialog" aria-modal="true" aria-labelledby="full-dialog-title"><div class="full-exam-dialog" id="full-exam-dialog" tabindex="-1"></div></section>
       </section>`);
     $('full-exam-exit').addEventListener('click', requestExit);
     $('full-exam-hide-timer').addEventListener('click', () => { state.timerHidden = !state.timerHidden; renderTimer(); persistSession(); });
@@ -108,12 +152,62 @@
     $('full-exam-stage').addEventListener('input', handleStageInput);
     $('full-exam-footer').addEventListener('click', handleFooterClick);
     $('full-exam-modal').addEventListener('click', handleModalClick);
+    $('full-exam-engine').addEventListener('keydown', handleKeyboard);
+    window.addEventListener('pagehide', () => { if (!$('full-exam-engine').hidden) persistSession(); });
+  }
+
+  function setWorkspaceInert(inert) {
+    [...document.body.children].forEach((element) => {
+      if (element.id === 'full-exam-engine') return;
+      if (inert) {
+        if (!element.dataset.fullExamAriaHidden) element.dataset.fullExamAriaHidden = element.getAttribute('aria-hidden') || 'none';
+        element.inert = true;
+        element.setAttribute('aria-hidden', 'true');
+      } else if (element.dataset.fullExamAriaHidden) {
+        element.inert = false;
+        const original = element.dataset.fullExamAriaHidden;
+        if (original === 'none') element.removeAttribute('aria-hidden');
+        else element.setAttribute('aria-hidden', original);
+        delete element.dataset.fullExamAriaHidden;
+      }
+    });
+  }
+
+  function openDialog(markup, review = false) {
+    const modal = $('full-exam-modal');
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    modal.classList.toggle('is-review-page', review);
+    modal.hidden = false;
+    $('full-exam-dialog').innerHTML = markup;
+    requestAnimationFrame(() => $('full-exam-dialog').focus());
+  }
+
+  function handleKeyboard(event) {
+    const modal = $('full-exam-modal');
+    if (modal.hidden || event.key !== 'Tab') return;
+    const controls = [...$('full-exam-dialog').querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    if (!controls.length) { event.preventDefault(); $('full-exam-dialog').focus(); return; }
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   }
 
   function start(rawMock, options = {}) {
+    if (rawMock?.exam !== 'ielts-academic') throw new Error('Only IELTS Academic mocks are available.');
     ensureShell();
     const validation = global.FullExamSchema.validate(rawMock, { strictCounts: options.allowIncomplete !== true });
     if (!validation.valid) throw new Error(validation.errors.join('\n'));
+    const saved = savedSession();
+    if (saved?.mock.id === validation.mock.id && restore()) return;
+    if (saved && !options.replaceSaved) {
+      pendingMock = validation.mock;
+      $('full-exam-engine').hidden = false;
+      setWorkspaceInert(true);
+      document.body.classList.add('is-full-exam-open');
+      openDialog(`<header><h2 id="full-dialog-title">Start a different practice?</h2></header><p>Your saved ${escapeHtml(saved.mock.title)} will be replaced. Resume it to keep working, or start this practice with fresh answers.</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-resume-saved type="button">Resume saved practice</button><button class="button button-primary" data-full-replace-saved type="button">Start new practice</button></div>`);
+      return;
+    }
     resetState(validation.mock);
     showIntro();
   }
@@ -129,7 +223,6 @@
     state.responses = {};
     state.marked = {};
     state.completedModules = [];
-    state.routes = {};
     state.secondsRemaining = 0;
     state.deadline = 0;
     state.timerHidden = false;
@@ -137,24 +230,26 @@
     state.audioStarted = {};
     state.audioCompleted = {};
     state.result = null;
+    state.paused = false;
+    closeModal();
     $('full-exam-engine').hidden = false;
+    setWorkspaceInert(true);
     document.body.classList.add('is-full-exam-open');
   }
 
   function showIntro() {
     $('full-exam-engine').dataset.exam = state.mock.exam;
     state.screen = 'intro';
-    const sat = state.mock.exam === 'sat';
     $('full-exam-context').innerHTML = '';
     hideAudioDock();
-    $('full-exam-stage').innerHTML = `<article class="full-exam-intro"><p class="kicker">${sat ? 'Digital SAT' : 'IELTS Academic'}</p><h1>${escapeHtml(state.mock.title)}</h1><p>${escapeHtml(state.mock.description || (sat ? 'A complete timed SAT simulation.' : 'A complete Listening, Reading and Writing simulation.'))}</p><div class="full-exam-overview">${state.mock.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span><strong>${sectionDeliveredItems(section)} ${section.id === 'writing' ? 'tasks' : 'questions'}</strong><small>${sectionDeliveredMinutes(section)} minutes</small></article>`).join('')}</div><aside><strong>Before you begin</strong><p>Your progress is saved on this device. Once a timed module is submitted, you cannot return to it.${!sat && state.mock.sections.some((section) => section.id === 'listening' && section.modules.some((module) => module.parts.some((part) => !part.audioUrl))) ? ' Listening audio is pending and can be added later in Admin.' : ''}</p></aside><button class="button button-primary" data-full-begin type="button">Start exam</button></article>`;
+    const audioPending = state.mock.sections.some((section) => section.id === 'listening' && section.modules.some((module) => module.parts.some((part) => !part.audioUrl)));
+    $('full-exam-stage').innerHTML = `<article class="full-exam-intro"><p class="kicker">IELTS Academic</p><h1>${escapeHtml(state.mock.title)}</h1><p>${escapeHtml(state.mock.description || 'A complete timed practice.')}</p><div class="full-exam-overview">${state.mock.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span><strong>${sectionDeliveredItems(section)} ${section.id === 'writing' ? 'tasks' : 'questions'}</strong><small>${sectionDeliveredMinutes(section)} minutes${audioPending && section.id === 'listening' ? ' · audio pending' : ''}</small></article>`).join('')}</div><aside><strong>Before you begin</strong><p>Answers are saved in this browser tab. Home pauses your practice; choose Resume practice to continue. Submitted modules cannot be reopened.${audioPending ? ' Listening recordings are not ready. This practice starts with Reading and Writing.' : ''}</p></aside><div class="full-exam-start-actions"><button class="button button-primary" ${audioPending ? 'data-full-begin-reading' : 'data-full-begin'} type="button">${audioPending ? 'Practise Reading &amp; Writing' : 'Start practice'}</button></div></article>`;
     $('full-exam-footer').innerHTML = '';
     renderTimer();
     persistSession();
   }
 
   function firstModuleForSection(section) {
-    if (state.mock.exam === 'sat') return section.modules.find((module) => module.stage === 'routing') || section.modules[0];
     return section.modules[0];
   }
 
@@ -210,6 +305,8 @@
 
   function renderTimer() {
     if (!$('full-exam-timer')) return;
+    $('full-exam-clock').hidden = ['intro', 'results', 'closed'].includes(state.screen);
+    $('full-exam-heading').textContent = currentSection() && state.moduleId ? `Section ${state.sectionIndex + 1}: ${currentSection().title}` : state.mock?.title || 'Practice';
     const minutes = String(Math.floor(state.secondsRemaining / 60)).padStart(2, '0');
     const seconds = String(state.secondsRemaining % 60).padStart(2, '0');
     $('full-exam-timer').textContent = state.timerHidden ? 'Hidden' : `${minutes}:${seconds}`;
@@ -228,14 +325,16 @@
     const marked = Boolean(state.marked[responseKey(question)]);
     const answeredCount = questions.filter((item) => hasResponse(item)).length;
     $('full-exam-context').innerHTML = `<div><span>${escapeHtml(currentSection().title)}</span><strong>${escapeHtml(module.title)}</strong></div><div class="full-exam-progress"><i style="width:${Math.round(answeredCount / Math.max(1, questions.length) * 100)}%"></i></div><span>${answeredCount}/${questions.length} answered</span>`;
-    const sharedPassage = question.passage || part.passage;
+    const writing = question.type === 'writing';
+    const sharedPassage = writing ? (question.passage || question.prompt) : currentSection().id === 'listening' ? String(question.passage || part.passage || '').split(/\n\s*####\s+Questions/i)[0] : (question.passage || part.passage);
+    const referenceTitle = writing ? `Task ${state.questionIndex + 1} prompt` : part.title;
     const sharedImage = safeUrl(question.image || part.image);
     const audio = safeUrl(part.audioUrl, true);
     const partChanged = state.partIndex !== currentParts().findIndex((candidate) => candidate.id === part.id);
     state.partIndex = currentParts().findIndex((candidate) => candidate.id === part.id);
     $('full-exam-stage').innerHTML = `<div class="full-exam-question-shell ${sharedPassage || sharedImage ? 'has-reference' : ''}">
-      ${(sharedPassage || sharedImage) ? `<aside class="full-exam-reference">${part.title ? `<p class="kicker">${escapeHtml(part.title)}</p>` : ''}${sharedImage ? `<img src="${escapeHtml(sharedImage)}" alt="Question reference">` : ''}${sharedPassage ? `<div class="full-exam-passage">${escapeHtml(sharedPassage).replace(/\n/g, '<br>')}</div>` : ''}</aside>` : ''}
-      <article class="full-exam-question"><header><span>${state.questionIndex + 1}</span><button class="full-exam-mark ${marked ? 'is-marked' : ''}" data-full-mark type="button">${marked ? 'Marked for review' : 'Mark for review'}</button></header>${part.instructions || question.instructions ? `<p class="full-exam-instructions">${escapeHtml(question.instructions || part.instructions)}</p>` : ''}<h2>${escapeHtml(question.prompt)}</h2>${renderResponseControl(question, response)}</article>
+      ${(sharedPassage || sharedImage) ? `<aside class="full-exam-reference">${referenceTitle ? `<p class="kicker">${escapeHtml(referenceTitle)}</p>` : ''}${sharedImage ? `<img src="${escapeHtml(sharedImage)}" alt="Question reference">` : ''}${sharedPassage ? `<div class="full-exam-passage">${renderReference(sharedPassage)}</div>` : ''}</aside>` : ''}
+      <article class="full-exam-question"><header><span>${state.questionIndex + 1}</span><button class="full-exam-mark ${marked ? 'is-marked' : ''}" data-full-mark type="button">${marked ? 'Marked for review' : 'Mark for review'}</button></header>${part.instructions || question.instructions ? `<p class="full-exam-instructions">${escapeHtml(question.instructions || part.instructions)}</p>` : ''}<h2>${writing ? `Writing Task ${state.questionIndex + 1}` : escapeHtml(question.prompt)}</h2>${renderResponseControl(question, response, part)}</article>
     </div>`;
     renderPartAudio(part, audio);
     $('full-exam-footer').innerHTML = `<button class="full-exam-counter" data-full-review type="button">Question ${state.questionIndex + 1} of ${questions.length}</button><div><button class="button button-quiet" data-full-previous type="button" ${state.questionIndex === 0 ? 'disabled' : ''}>Previous</button><button class="button button-primary" data-full-next type="button">${state.questionIndex === questions.length - 1 ? 'Review module' : 'Next'}</button></div>`;
@@ -245,11 +344,11 @@
     if (partChanged) $('full-exam-stage').scrollTop = 0;
   }
 
-  function renderResponseControl(question, response) {
-    if (question.type === 'single_choice') return `<div class="full-exam-choices">${question.options.map((option, index) => `<button class="full-exam-choice ${response === index ? 'is-selected' : ''}" data-full-choice="${index}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('')}</div>`;
+  function renderResponseControl(question, response, part) {
+    if (question.type === 'single_choice') return `<div class="full-exam-choices">${question.options.map((option, index) => `<button class="full-exam-choice ${response === index ? 'is-selected' : ''}" aria-pressed="${response === index}" data-full-choice="${index}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('')}</div>`;
     if (question.type === 'multiple_choice') {
       const selected = Array.isArray(response) ? response : [];
-      return `<div class="full-exam-choices">${question.options.map((option, index) => `<button class="full-exam-choice ${selected.includes(index) ? 'is-selected' : ''}" data-full-multiple="${index}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('')}</div>`;
+      return `<div class="full-exam-choices">${question.options.map((option, index) => `<button class="full-exam-choice ${selected.includes(index) ? 'is-selected' : ''}" aria-pressed="${selected.includes(index)}" data-full-multiple="${index}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`).join('')}</div>`;
     }
     if (question.type === 'matching') {
       const values = response && typeof response === 'object' ? response : {};
@@ -257,8 +356,13 @@
     }
     if (question.type === 'writing') {
       const value = typeof response === 'string' ? response : '';
-      return `<label class="full-exam-writing"><textarea data-full-writing placeholder="Write your response here…">${escapeHtml(value)}</textarea><span><b data-full-word-count>${wordCount(value)}</b> words${question.minWords ? ` · minimum ${question.minWords}` : ''}</span></label>`;
+      return `<label class="full-exam-writing"><span>Your response</span><textarea data-full-writing placeholder="Write your response here…">${escapeHtml(value)}</textarea><span><b data-full-word-count>${wordCount(value)}</b> words${question.minWords ? ` · minimum ${question.minWords}` : ''}</span></label>`;
     }
+    const headings = headingOptions(part, question);
+    if (headings.length) return `<fieldset class="full-exam-text-choices"><legend>Choose the best heading</legend>${headings.map((heading, index) => `<button class="full-exam-choice ${String(response || '').toLowerCase() === romanNumerals[index] ? 'is-selected' : ''}" aria-pressed="${String(response || '').toLowerCase() === romanNumerals[index]}" data-full-text-choice="${romanNumerals[index]}" type="button"><span>${romanNumerals[index]}</span>${escapeHtml(heading)}</button>`).join('')}</fieldset>`;
+    const expected = String(question.acceptedAnswers?.[0] || '').toUpperCase();
+    const statementOptions = ['TRUE', 'FALSE', 'NOT GIVEN'].includes(expected) ? ['TRUE', 'FALSE', 'NOT GIVEN'] : ['YES', 'NO', 'NOT GIVEN'].includes(expected) ? ['YES', 'NO', 'NOT GIVEN'] : null;
+    if (statementOptions) return `<fieldset class="full-exam-text-choices"><legend>Choose ${statementOptions.join(', ')}</legend>${statementOptions.map((option) => `<button class="full-exam-choice ${String(response || '').toUpperCase() === option ? 'is-selected' : ''}" aria-pressed="${String(response || '').toUpperCase() === option}" data-full-text-choice="${option}" type="button">${option}</button>`).join('')}</fieldset>`;
     const value = typeof response === 'string' || typeof response === 'number' ? response : '';
     const hint = question.wordLimit ? `No more than ${question.wordLimit} words` : question.type === 'numeric' ? 'Enter your answer' : 'Type your answer';
     return `<label class="full-exam-text-answer"><span>${escapeHtml(hint)}</span><input data-full-text type="text" inputmode="${question.type === 'numeric' ? 'decimal' : 'text'}" value="${escapeHtml(value)}" autocomplete="off"></label>`;
@@ -272,10 +376,13 @@
   }
 
   function handleStageClick(event) {
+    if (event.target.closest('[data-full-begin-reading]')) { const index = state.mock.sections.findIndex((section) => section.id === 'reading'); showTransition(index, firstModuleForSection(state.mock.sections[index]).id); return; }
     if (event.target.closest('[data-full-begin]')) { showTransition(0, firstModuleForSection(state.mock.sections[0]).id); return; }
     if (event.target.closest('[data-full-start-module]')) { beginModule(); return; }
     const choice = event.target.closest('[data-full-choice]');
     if (choice) { setResponse(Number(choice.dataset.fullChoice)); return; }
+    const textChoice = event.target.closest('[data-full-text-choice]');
+    if (textChoice) { setResponse(textChoice.dataset.fullTextChoice); return; }
     const multiple = event.target.closest('[data-full-multiple]');
     if (multiple) {
       const question = currentQuestion();
@@ -325,6 +432,7 @@
     const bar = $('full-exam-context')?.querySelector('.full-exam-progress i');
     if (label) label.textContent = `${answered}/${questions.length} answered`;
     if (bar) bar.style.width = `${Math.round(answered / Math.max(1, questions.length) * 100)}%`;
+    $('full-exam-footer').querySelectorAll('[data-full-question]').forEach((button) => button.classList.toggle('is-answered', hasResponse(questions[Number(button.dataset.fullQuestion)])));
   }
 
   function hideAudioDock() {
@@ -399,12 +507,18 @@
   function showReview() {
     const questions = currentQuestions();
     const unanswered = questions.filter((question) => !hasResponse(question)).length;
-    $('full-exam-modal').classList.add('is-review-page');
-    $('full-exam-modal').hidden = false;
-    $('full-exam-dialog').innerHTML = `<div class="full-review-content"><h1>Check Your Work</h1><p>You can return to any question in this module to check your answers.</p><p>For this practice, click Next when you are ready to move on.</p><section class="full-review-card" aria-label="Module review"><header><h2>Section ${state.sectionIndex + 1}: ${escapeHtml(currentSection().title)} Questions</h2><div class="full-review-legend"><span><i class="review-unanswered"></i> Unanswered</span><span><i class="review-flag"></i> For Review</span></div></header><div class="full-exam-review-grid">${questions.map((question, index) => `<button data-full-jump="${index}" aria-label="Question ${index + 1}, ${hasResponse(question) ? 'answered' : 'unanswered'}${state.marked[responseKey(question)] ? ', marked for review' : ''}" class="${hasResponse(question) ? 'is-answered' : ''} ${state.marked[responseKey(question)] ? 'is-marked' : ''}" type="button">${index + 1}</button>`).join('')}</div><p class="full-review-status">${unanswered ? `${unanswered} unanswered` : 'All questions answered'} · ${escapeHtml(currentModule().title)}</p></section></div><footer class="full-review-footer"><strong>Luminary</strong><div><button data-full-close-modal type="button">Back</button><button data-full-submit-module type="button">Next</button></div></footer>`;
+    openDialog(`<div class="full-review-content"><h1 id="full-dialog-title">Check Your Work</h1><p>You can return to any question in this module to check your answers.</p><p>For this practice, click Next when you are ready to move on.</p><section class="full-review-card" aria-label="Module review"><header><h2>Section ${state.sectionIndex + 1}: ${escapeHtml(currentSection().title)} Questions</h2><div class="full-review-legend"><span><i class="review-unanswered"></i> Unanswered</span><span><i class="review-flag"></i> For Review</span></div></header><div class="full-exam-review-grid">${questions.map((question, index) => `<button data-full-jump="${index}" aria-label="Question ${index + 1}, ${hasResponse(question) ? 'answered' : 'unanswered'}${state.marked[responseKey(question)] ? ', marked for review' : ''}" class="${hasResponse(question) ? 'is-answered' : ''} ${state.marked[responseKey(question)] ? 'is-marked' : ''}" type="button">${index + 1}</button>`).join('')}</div><p class="full-review-status">${unanswered ? `${unanswered} unanswered` : 'All questions answered'} · ${escapeHtml(currentModule().title)}</p></section></div><footer class="full-review-footer"><strong>Luminary</strong><div><button data-full-close-modal type="button">Back</button><button data-full-submit-module type="button">Next</button></div></footer>`, true);
   }
 
   function handleModalClick(event) {
+    if (event.target.closest('[data-full-resume-saved]')) { pendingMock = null; restore(); return; }
+    if (event.target.closest('[data-full-replace-saved]')) {
+      const replacement = pendingMock;
+      pendingMock = null;
+      sessionStorage.removeItem(STORAGE_KEY);
+      if (replacement) { resetState(replacement); showIntro(); }
+      return;
+    }
     if (event.target.closest('[data-full-close-modal]')) closeModal();
     const jump = event.target.closest('[data-full-jump]');
     if (jump) { state.questionIndex = Number(jump.dataset.fullJump); closeModal(); renderQuestion(); }
@@ -413,12 +527,13 @@
     if (event.target.closest('[data-full-cancel-exit]')) closeModal();
   }
 
-  function closeModal() { $('full-exam-modal').hidden = true; $('full-exam-modal').classList.remove('is-review-page'); }
+  function closeModal() {
+    $('full-exam-modal').hidden = true;
+    $('full-exam-modal').classList.remove('is-review-page');
+  }
 
   function requestExit() {
-    $('full-exam-modal').classList.remove('is-review-page');
-    $('full-exam-modal').hidden = false;
-    $('full-exam-dialog').innerHTML = `<header><h2>Return to Home?</h2></header><p>Leave this test and return to the home page?</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-cancel-exit type="button">Keep working</button><button class="button button-primary" data-full-confirm-exit type="button">Go to Home</button></div>`;
+    openDialog(`<header><h2 id="full-dialog-title">Return to Home?</h2></header><p>Your current module will pause. You can resume this practice from Luminary.</p><div class="full-exam-dialog-actions"><button class="button button-quiet" data-full-cancel-exit type="button">Keep working</button><button class="button button-primary" data-full-confirm-exit type="button">Go to Home</button></div>`);
   }
 
   function questionScore(question, response) {
@@ -429,10 +544,9 @@
 
   function moduleScore(module) {
     const questions = global.FullExamSchema.allQuestions(module).filter((question) => question.type !== 'writing');
-    let correct = 0;
-    questions.forEach((question) => { correct += questionScore(question, state.responses[`${module.id}:${question.id}`]); });
+    const correct = questions.reduce((total, question) => total + questionScore(question, state.responses[`${module.id}:${question.id}`]), 0);
     const total = questions.reduce((sum, question) => sum + global.FullExamSchema.questionPoints(question), 0);
-    return { correct, total, ratio: total ? correct / total : 0 };
+    return { correct, total };
   }
 
   function normalizedText(value, caseSensitive) {
@@ -455,39 +569,6 @@
     const section = currentSection();
     const module = currentModule();
     state.completedModules.push(module.id);
-    if (state.mock.exam === 'sat') {
-      if (state.mock.deliveryMode === 'linear') {
-        const nextModule = section.modules[section.modules.findIndex((candidate) => candidate.id === module.id) + 1];
-        if (nextModule) {
-          showTransition(state.sectionIndex, nextModule.id, timedOut ? 'Time expired. Your answers were submitted.' : 'The next module is ready.');
-          return;
-        }
-        if (state.sectionIndex + 1 < state.mock.sections.length) {
-          const nextIndex = state.sectionIndex + 1;
-          const nextSection = state.mock.sections[nextIndex];
-          showTransition(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes ? `${section.breakMinutes}-minute break before the next section.` : 'The next section is ready.');
-          return;
-        }
-        finishExam();
-        return;
-      }
-      if (module.stage === 'routing') {
-        const score = moduleScore(module);
-        const route = score.ratio >= (section.route?.threshold ?? 0.6) ? 'higher' : 'lower';
-        state.routes[section.id] = route;
-        const next = section.modules.find((candidate) => candidate.id === (route === 'higher' ? section.route?.higherModuleId : section.route?.lowerModuleId)) || section.modules.find((candidate) => candidate.stage === route);
-        showTransition(state.sectionIndex, next.id, timedOut ? 'Time expired. Your answers were submitted.' : 'The next module is ready.');
-        return;
-      }
-      if (state.sectionIndex + 1 < state.mock.sections.length) {
-        const nextIndex = state.sectionIndex + 1;
-        const nextSection = state.mock.sections[nextIndex];
-        showTransition(nextIndex, firstModuleForSection(nextSection).id, section.breakMinutes ? `${section.breakMinutes}-minute break before the next section.` : 'The next section is ready.');
-        return;
-      }
-      finishExam();
-      return;
-    }
     const nextModule = section.modules[section.modules.findIndex((candidate) => candidate.id === module.id) + 1];
     if (nextModule) { showTransition(state.sectionIndex, nextModule.id, timedOut ? 'Time expired. Your answers were submitted.' : 'The next part is ready.'); return; }
     if (state.sectionIndex + 1 < state.mock.sections.length) {
@@ -518,14 +599,15 @@
     state.screen = 'results';
     const modules = completedModules();
     const sections = state.mock.sections.map((section) => {
-      const objectiveModules = modules.filter((entry) => entry.section.id === section.id).map((entry) => entry.module);
+      const audioPending = section.id === 'listening' && section.modules.some((module) => module.parts.some((part) => !part.audioUrl));
+      const objectiveModules = audioPending ? [] : modules.filter((entry) => entry.section.id === section.id).map((entry) => entry.module);
       const scores = objectiveModules.map(moduleScore);
       const correct = scores.reduce((sum, score) => sum + score.correct, 0);
       const total = scores.reduce((sum, score) => sum + score.total, 0);
       const writingTasks = objectiveModules.flatMap((module) => global.FullExamSchema.allQuestions(module)).filter((question) => question.type === 'writing');
-      return { id: section.id, title: section.title, correct, total, writingTasks, band: state.mock.exam === 'ielts-academic' && ['listening', 'reading'].includes(section.id) ? ieltsBand(correct, total, section.id) : null };
+      return { id: section.id, title: section.title, correct, total, writingTasks, audioPending, band: total && ['listening', 'reading'].includes(section.id) ? ieltsBand(correct, total, section.id) : null };
     });
-    state.result = { mockId: state.mock.id, title: state.mock.title, exam: state.mock.exam, completedAt: Date.now(), routes: state.routes, sections, responses: state.responses };
+    state.result = { mockId: state.mock.id, title: state.mock.title, exam: state.mock.exam, completedAt: Date.now(), sections, responses: state.responses };
     const history = JSON.parse(localStorage.getItem('luminary-full-exam-results-v1') || '[]');
     history.push(state.result);
     localStorage.setItem('luminary-full-exam-results-v1', JSON.stringify(history.slice(-30)));
@@ -536,8 +618,13 @@
 
   function renderResults() {
     $('full-exam-context').innerHTML = '';
-    const scoreNote = state.mock.exam === 'sat' ? `Official SAT scoring requires calibrated item parameters, so Luminary reports raw section performance${state.mock.deliveryMode === 'adaptive' ? ' and the adaptive route' : ''}.` : 'Listening and Reading bands are practice estimates. Writing requires examiner or rubric-based assessment.';
-    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Exam complete</p><h1>${escapeHtml(state.mock.title)}</h1><p>Your responses have been saved. ${scoreNote}</p><div class="full-exam-result-grid">${state.result.sections.map((section) => `<article><span>${escapeHtml(section.title)}</span>${section.total ? `<strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small>` : `<strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small>`}</article>`).join('')}</div>${state.mock.exam === 'sat' && Object.keys(state.routes).length ? `<p class="full-exam-route-result">Adaptive routes: ${Object.entries(state.routes).map(([section, route]) => `${section.toUpperCase()} ${route}`).join(' · ')}</p>` : ''}<button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
+    const cards = state.result.sections.map((section) => {
+      if (section.audioPending) return `<article><span>${escapeHtml(section.title)}</span><strong>Audio pending</strong><small>Not attempted or scored</small></article>`;
+      if (section.total) return `<article><span>${escapeHtml(section.title)}</span><strong>${section.correct}/${section.total}</strong><small>${Math.round(section.correct / section.total * 100)}% correct${section.band !== null ? ` · estimated band ${section.band}` : ''}</small></article>`;
+      if (section.writingTasks.length) return `<article><span>${escapeHtml(section.title)}</span><strong>${section.writingTasks.length} tasks</strong><small>${section.writingTasks.map((task) => `${wordCount(state.responses[Object.keys(state.responses).find((key) => key.endsWith(`:${task.id}`))] || '')} words`).join(' · ')}</small></article>`;
+      return `<article><span>${escapeHtml(section.title)}</span><strong>Not attempted</strong></article>`;
+    }).join('');
+    $('full-exam-stage').innerHTML = `<article class="full-exam-results"><p class="kicker">Practice complete</p><h1>${escapeHtml(state.mock.title)}</h1><p>Your responses have been saved. Reading bands are practice estimates; Writing requires examiner or rubric-based assessment.</p><div class="full-exam-result-grid">${cards}</div><button class="button button-primary" data-full-finish type="button">Return to Luminary</button></article>`;
     $('full-exam-footer').innerHTML = '';
     $('full-exam-stage').querySelector('[data-full-finish]').addEventListener('click', exit);
     renderTimer();
@@ -547,7 +634,7 @@
 
   function persistSession() {
     if (!state.mock || state.screen === 'results') return;
-    const snapshot = { mock: state.mock, screen: state.screen, sectionIndex: state.sectionIndex, moduleId: state.moduleId, partIndex: state.partIndex, questionIndex: state.questionIndex, responses: state.responses, marked: state.marked, completedModules: state.completedModules, routes: state.routes, secondsRemaining: state.secondsRemaining, deadline: state.deadline, timerHidden: state.timerHidden, audioProgress: state.audioProgress, audioStarted: state.audioStarted, audioCompleted: state.audioCompleted };
+    const snapshot = { mock: state.mock, screen: state.screen, sectionIndex: state.sectionIndex, moduleId: state.moduleId, partIndex: state.partIndex, questionIndex: state.questionIndex, responses: state.responses, marked: state.marked, completedModules: state.completedModules, secondsRemaining: state.secondsRemaining, deadline: state.deadline, timerHidden: state.timerHidden, audioProgress: state.audioProgress, audioStarted: state.audioStarted, audioCompleted: state.audioCompleted };
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot)); } catch { /* Large image data may exceed storage. */ }
   }
 
@@ -556,12 +643,19 @@
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
       if (!saved?.mock) return false;
+      if (saved.mock.exam !== 'ielts-academic') { sessionStorage.removeItem(STORAGE_KEY); return false; }
       const validation = global.FullExamSchema.validate(saved.mock, { strictCounts: true });
       if (!validation.valid) throw new Error('Invalid saved exam.');
       Object.assign(state, saved, { mock: validation.mock, timer: null });
       $('full-exam-engine').hidden = false;
+      setWorkspaceInert(true);
       document.body.classList.add('is-full-exam-open');
-      if (state.screen === 'question') { startTimer(); renderQuestion(); }
+      if (state.screen === 'question') {
+        if (!state.deadline) state.deadline = Date.now() + state.secondsRemaining * 1000;
+        updateRemainingTime();
+        if (state.secondsRemaining <= 0) finishModule(true);
+        else { startTimer(); renderQuestion(); }
+      }
       else if (state.screen === 'transition') showTransition(state.sectionIndex, state.moduleId);
       else showIntro();
       return true;
@@ -569,13 +663,21 @@
   }
 
   function exit() {
+    updateRemainingTime();
     clearInterval(state.timer);
+    state.timer = null;
+    state.deadline = 0;
+    if (state.screen !== 'results' && state.screen !== 'intro') persistSession();
     if (state.screen === 'results' || state.screen === 'intro') sessionStorage.removeItem(STORAGE_KEY);
     $('full-exam-engine').hidden = true;
+    setWorkspaceInert(false);
     document.body.classList.remove('is-full-exam-open');
     closeModal();
+    previousFocus?.focus?.();
+    previousFocus = null;
+    window.dispatchEvent(new Event('luminary:full-exam-exit'));
   }
 
-  global.FullExamEngine = { list, start, restore, validate: (mock, options) => global.FullExamSchema.validate(mock, options) };
+  global.FullExamEngine = { list, start, restore, savedSummary, validate: (mock, options) => global.FullExamSchema.validate(mock, options) };
   document.addEventListener('DOMContentLoaded', ensureShell);
 })(window);

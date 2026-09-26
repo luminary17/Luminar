@@ -48,7 +48,7 @@
 .full-exam-instructions { margin-bottom: 14px; color: var(--text-soft); font-size: 13px; font-weight: 700; }
 .full-exam-question h2 { margin-bottom: 24px; font-size: clamp(18px, 2.2vw, 24px); line-height: 1.45; }
 .full-exam-choices { display: grid; gap: 10px; }
-.full-exam-choice { display: grid; grid-template-columns: 32px 1fr; align-items: center; gap: 12px; min-height: 58px; border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.full-exam-choice { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 58px; border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; background: transparent; color: var(--text); font: inherit; text-align: left; overflow-wrap: anywhere; white-space: normal; cursor: pointer; }
 .full-exam-choice:hover { border-color: var(--accent); background: var(--accent-soft); }
 .full-exam-choice.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 4px 0 var(--accent); }
 .full-exam-choice > span { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 900; }
@@ -95,7 +95,6 @@
 .full-exam-review-grid button.is-answered { border-color: var(--accent); background: var(--accent-soft); }
 .full-exam-review-grid button.is-marked { box-shadow: inset 0 -4px var(--danger); }
 .full-exam-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-.full-exam-route-result { margin: 18px 0; font-weight: 800; }
 .full-mock-card-badge { display: inline-flex !important; width: fit-content; margin-bottom: 8px; padding: 4px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-hover) !important; }
 
 /* Exam surfaces deliberately use their own palette, independently of the app theme. */
@@ -127,15 +126,6 @@
 .full-exam-intro, .full-exam-results { margin: 32px auto; padding: 30px; border-radius: 8px; box-shadow: none; }
 .full-exam-intro h1, .full-exam-results h1 { font-size: 32px; }
 .full-exam-overview article, .full-exam-result-grid article, .full-exam-intro > aside { border-radius: 5px; }
-.full-exam-engine[data-exam="sat"] .full-exam-topbar { border-bottom: 0; }
-.full-exam-engine[data-exam="sat"] .full-exam-context { background: #fff; border-bottom: 2px dashed #8e949b; }
-.full-exam-engine[data-exam="sat"] .full-exam-reference { background: #fff; border-right: 2px solid #b6b8bb; }
-.full-exam-engine[data-exam="sat"] .full-exam-question > header { background: #f0f1f2; padding: 0 12px 0 0; border: 0; }
-.full-exam-engine[data-exam="sat"] .full-exam-question > header > span { border-radius: 0; background: #25292e; }
-.full-exam-engine[data-exam="sat"] .full-exam-footer { border-top: 2px dashed #8e949b; display: grid; grid-template-columns: 1fr auto 1fr; }
-.full-exam-engine[data-exam="sat"] .full-exam-counter { grid-column: 2; background: #25292e; color: white; padding: 9px 16px; border-radius: 5px; font-size: 14px; }
-.full-exam-engine[data-exam="sat"] .full-exam-footer > div { justify-self: end; }
-.full-exam-engine[data-exam="sat"] .full-exam-footer .button { border-radius: 20px; }
 .full-exam-engine[data-exam="ielts-academic"] { --accent: #066965; --accent-hover: #055653; --accent-soft: #e5f3f1; --surface-raised: #f3f5f5; }
 .full-exam-engine[data-exam="ielts-academic"] .full-exam-topbar { background: #f1f3f4; border-top: 4px solid #cf233d; }
 .full-exam-engine[data-exam="ielts-academic"] .full-exam-context { background: #e8eeee; }
@@ -151,17 +141,38 @@
 .full-exam-number-strip button { flex: 0 0 30px; height: 30px; border: 1px solid #a9b3b6; border-radius: 2px; background: #fff; color: #242b2d; cursor: pointer; }
 .full-exam-number-strip button.is-answered { background: #d8e9e6; }
 .full-exam-number-strip button[aria-current] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.full-exam-text-choices { display: grid; gap: 8px; min-width: 0; margin: 0; border: 0; padding: 0; }
+.full-exam-text-choices legend { margin-bottom: 10px; color: var(--text-soft); font-size: 13px; font-weight: 700; }
+.full-exam-text-choices .full-exam-choice { width: 100%; text-align: left; }
+.full-exam-passage p { margin: 0 0 1.2em; }
+.full-exam-passage p:last-child { margin-bottom: 0; }
+.full-exam-table-scroll { max-width: 100%; overflow-x: auto; margin: 18px 0; }
+.full-exam-passage table { width: 100%; min-width: 400px; border-collapse: collapse; font: 14px/1.5 Arial, Helvetica, sans-serif; }
+.full-exam-passage th, .full-exam-passage td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: left; }
+.full-exam-passage th { background: var(--surface-raised); font-weight: 700; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-topbar { border-top: 0; background: #f6f8fa; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-context { background: #f6f8fa; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-reference { border-right: 1px solid var(--line); }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-question > header > span { border-radius: 6px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-text-answer input, .full-exam-engine[data-exam="ielts-academic"] .full-exam-writing textarea, .full-exam-engine[data-exam="ielts-academic"] .full-exam-matching select { border-radius: 8px; padding: 12px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-choice { border: 1px solid var(--line); border-radius: 8px; }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-choice.is-selected { background: var(--accent-soft); }
+.full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { background: #f6f8fa; }
 
 @media (max-width: 760px) {
   .full-exam-topbar, .full-exam-context, .full-exam-footer { padding-inline: 14px; }
   .full-exam-reference, .full-exam-question { padding: 20px; }
-  .full-exam-engine[data-exam="sat"] .full-exam-footer { grid-template-columns: auto 1fr; }
-  .full-exam-engine[data-exam="sat"] .full-exam-counter { grid-column: 1; }
   .full-exam-footer .button { padding: 7px 10px; font-size: 12px; white-space: nowrap; }
-  .full-exam-engine[data-exam="sat"] .full-exam-counter { padding: 8px; font-size: 12px; white-space: nowrap; }
-  .full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { flex-wrap: nowrap; gap: 6px; }
+  .full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { flex-wrap: wrap; gap: 6px; }
   .full-exam-number-strip { min-width: 30px; }
-  .full-exam-engine[data-exam="sat"] .full-exam-reference, .full-exam-engine[data-exam="ielts-academic"] .full-exam-reference { border-right: 0; }
+  .full-exam-engine[data-exam="ielts-academic"] .full-exam-reference { border-right: 0; }
+}
+
+@media (max-width: 520px) {
+  .full-exam-engine[data-exam="ielts-academic"] .full-exam-footer { display: grid; grid-template-columns: 1fr auto; }
+  .full-exam-number-strip { grid-column: 1 / -1; grid-row: 1; width: 100%; min-width: 0; }
+  .full-exam-footer > div { min-width: 0; }
+  .full-exam-reference, .full-exam-question { padding: 16px; }
 }
 
 @media (max-width: 760px) {

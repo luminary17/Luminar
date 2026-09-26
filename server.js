@@ -7,7 +7,7 @@ const fs = require('node:fs/promises');
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8012);
 const STORE = path.join(ROOT, 'luminary-data.json');
-const DEFAULT_STATE = { profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee', planPreferences: { currentScore: '', currentRw: '', currentMath: '', minutes: 60, weakTopics: [] } }, progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [], mockResults: [] }, studyPlan: { setup: null, generatedAt: 0, tasks: [] } };
+const DEFAULT_STATE = { profile: { name: '', exam: 'sat', target: '', date: '', goals: { sat: { target: '', date: '' }, ielts: { target: '', date: '' } }, theme: 'coffee', planPreferences: { currentScore: '', currentRw: '', currentMath: '', minutes: 60, weakTopics: [] } }, progress: { sessions: 0, streak: 0, lastSessionDate: '', answers: {}, marked: {}, eliminated: {}, questionHistory: [], mockResults: [], satLessons: {} }, studyPlan: { setup: null, generatedAt: 0, tasks: [] } };
 const SAT_DATES = new Set(['2026-08-22', '2026-09-12', '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05', '2027-08-28', '2027-09-18', '2027-10-02', '2027-11-06', '2027-12-04', '2028-03-04', '2028-05-06', '2028-06-03']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.md': 'text/markdown; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 
@@ -88,7 +88,8 @@ function cleanState(input) {
       marked,
       eliminated,
       questionHistory,
-      mockResults
+      mockResults,
+      satLessons: Object.fromEntries(Object.entries(progress.satLessons && typeof progress.satLessons === 'object' ? progress.satLessons : {}).filter(([key, value]) => /^[a-z0-9-]{1,100}$/.test(key) && value === true).slice(0, 100))
     },
     studyPlan: {
       setup: studyPlan.setup && typeof studyPlan.setup === 'object' ? studyPlan.setup : null,

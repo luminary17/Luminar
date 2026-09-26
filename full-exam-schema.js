@@ -2,13 +2,8 @@
   'use strict';
 
   const VERSION = 1;
-  const SAT_SECTION_IDS = ['rw', 'math'];
   const IELTS_SECTION_IDS = ['listening', 'reading', 'writing'];
   const QUESTION_TYPES = new Set(['single_choice', 'multiple_choice', 'text', 'numeric', 'matching', 'writing']);
-  const SAT_DOMAINS = {
-    rw: ['information and ideas', 'craft and structure', 'expression of ideas', 'standard english conventions'],
-    math: ['algebra', 'advanced math', 'problem-solving and data analysis', 'geometry and trigonometry']
-  };
 
   function text(value) { return String(value == null ? '' : value).trim(); }
   function array(value) { return Array.isArray(value) ? value : []; }
@@ -82,6 +77,7 @@
       image: text(raw.image || raw.imageUrl),
       audioUrl: text(raw.audioUrl || raw.audio || raw.recording),
       transcript: text(raw.transcript || raw.script),
+      headings: array(raw.headings).map((heading) => text(heading)),
       questions
     };
   }
@@ -93,29 +89,22 @@
     return {
       id: questionId(raw, fallbackId),
       title: text(raw.title || raw.name || fallbackId),
-      stage: text(raw.stage || 'linear').toLowerCase(),
-      durationMinutes: Math.max(1, number(raw.durationMinutes || raw.minutes, sectionId === 'rw' ? 32 : sectionId === 'math' ? 35 : 60)),
+      durationMinutes: Math.max(1, number(raw.durationMinutes || raw.minutes, sectionId === 'listening' ? 40 : 60)),
       instructions: text(raw.instructions),
       parts: parts.length ? parts : [{ id: `${fallbackId}-part`, title: '', instructions: '', passage: '', image: '', audioUrl: '', transcript: '', questions: directQuestions }]
     };
   }
 
-  function normalizeSection(input, exam, index) {
+  function normalizeSection(input, index) {
     const raw = input && typeof input === 'object' ? input : {};
-    const defaultId = exam === 'sat' ? SAT_SECTION_IDS[index] : IELTS_SECTION_IDS[index];
+    const defaultId = IELTS_SECTION_IDS[index];
     const id = text(raw.id || raw.section || defaultId).toLowerCase();
     let modules = array(raw.modules).map((module, moduleIndex) => normalizeModule(module, id, `${id}-m${moduleIndex + 1}`));
     if (!modules.length) modules = [normalizeModule(raw, id, `${id}-main`)];
     return {
       id,
-      title: text(raw.title || raw.name || ({ rw: 'Reading and Writing', math: 'Math', listening: 'Listening', reading: 'Academic Reading', writing: 'Academic Writing' })[id] || id),
+      title: text(raw.title || raw.name || ({ listening: 'Listening', reading: 'Academic Reading', writing: 'Academic Writing' })[id] || id),
       instructions: text(raw.instructions),
-      breakMinutes: Math.max(0, number(raw.breakMinutes, id === 'rw' && exam === 'sat' ? 10 : 0)),
-      route: raw.route && typeof raw.route === 'object' ? {
-        threshold: Math.max(0, Math.min(1, number(raw.route.threshold, 0.6))),
-        lowerModuleId: text(raw.route.lowerModuleId || raw.route.lower),
-        higherModuleId: text(raw.route.higherModuleId || raw.route.higher)
-      } : null,
       modules
     };
   }
@@ -124,18 +113,15 @@
     const raw = input && typeof input === 'object' ? input : {};
     const examRaw = text(raw.exam || raw.type).toLowerCase();
     const exam = examRaw === 'ielts' ? 'ielts-academic' : examRaw;
-    const deliveryMode = exam === 'sat' && text(raw.deliveryMode || raw.delivery).toLowerCase() === 'linear' ? 'linear' : 'adaptive';
     return {
       schemaVersion: number(raw.schemaVersion, VERSION),
       id: questionId(raw, `mock-${Date.now()}`),
       exam,
-      deliveryMode,
       order: Math.max(0, number(raw.order, 0)),
       title: text(raw.title || raw.name),
       description: text(raw.description || raw.desc),
       published: raw.published !== false,
-      sections: array(raw.sections).map((section, index) => normalizeSection(section, exam, index)),
-      scoreTable: raw.scoreTable && typeof raw.scoreTable === 'object' ? raw.scoreTable : null,
+      sections: array(raw.sections).map((section, index) => normalizeSection(section, index)),
       createdAt: number(raw.createdAt, Date.now()),
       updatedAt: Date.now()
     };
@@ -158,9 +144,9 @@
     const errors = [];
     const warnings = [];
     if (mock.schemaVersion !== VERSION) fail(errors, 'schemaVersion', `must be ${VERSION}`);
-    if (!['sat', 'ielts-academic'].includes(mock.exam)) fail(errors, 'exam', 'must be "sat" or "ielts-academic"');
+    if (mock.exam !== 'ielts-academic') fail(errors, 'exam', 'must be "ielts-academic"');
     if (!mock.title) fail(errors, 'title', 'is required');
-    const requiredSections = mock.exam === 'sat' ? SAT_SECTION_IDS : IELTS_SECTION_IDS;
+    const requiredSections = IELTS_SECTION_IDS;
     const sectionIds = mock.sections.map((section) => section.id);
     requiredSections.forEach((id) => { if (!sectionIds.includes(id)) fail(errors, 'sections', `missing required section "${id}"`); });
     const seen = new Set();
@@ -170,18 +156,6 @@
       const sectionPath = `sections[${sectionIndex}]`;
       if (!requiredSections.includes(section.id)) fail(errors, `${sectionPath}.id`, `unexpected section "${section.id}"`);
       if (!section.modules.length) fail(errors, `${sectionPath}.modules`, 'must contain at least one module');
-      if (mock.exam === 'sat') {
-        const stages = section.modules.map((module) => module.stage);
-        if (mock.deliveryMode === 'linear') {
-          if (options.strictCounts && section.modules.length !== 2) fail(errors, `${sectionPath}.modules`, 'linear SAT practice must contain exactly two modules');
-        } else {
-          ['routing', 'lower', 'higher'].forEach((stage) => { if (!stages.includes(stage)) fail(errors, `${sectionPath}.modules`, `missing "${stage}" module`); });
-          if (!section.route) fail(errors, `${sectionPath}.route`, 'is required for adaptive SAT routing');
-          if (options.strictCounts && section.modules.length !== 3) fail(errors, `${sectionPath}.modules`, 'must contain exactly routing, lower, and higher modules');
-          if (section.route && !section.modules.some((module) => module.id === section.route.lowerModuleId || module.stage === 'lower')) fail(errors, `${sectionPath}.route.lowerModuleId`, 'does not identify a lower module');
-          if (section.route && !section.modules.some((module) => module.id === section.route.higherModuleId || module.stage === 'higher')) fail(errors, `${sectionPath}.route.higherModuleId`, 'does not identify a higher module');
-        }
-      }
       section.modules.forEach((module, moduleIndex) => {
         const modulePath = `${sectionPath}.modules[${moduleIndex}]`;
         if (!module.id) fail(errors, `${modulePath}.id`, 'is required');
@@ -190,17 +164,6 @@
         if (module.durationMinutes <= 0) fail(errors, `${modulePath}.durationMinutes`, 'must be positive');
         const questions = allQuestions(module);
         if (!questions.length) fail(errors, `${modulePath}.questions`, 'must contain questions');
-        const expected = mock.exam === 'sat' ? (section.id === 'rw' ? 27 : 22) : null;
-        if (options.strictCounts && expected && questions.length !== expected) fail(errors, `${modulePath}.questions`, `must contain exactly ${expected} questions`);
-        else if (expected && questions.length !== expected) warnings.push(`${modulePath}: contains ${questions.length}; official format uses ${expected}`);
-        if (mock.exam === 'sat') {
-          const officialMinutes = section.id === 'rw' ? 32 : 35;
-          if (options.strictCounts && module.durationMinutes !== officialMinutes) fail(errors, `${modulePath}.durationMinutes`, `must be ${officialMinutes}`);
-          const domains = new Set(questions.map((question) => question.domain.toLowerCase()));
-          SAT_DOMAINS[section.id].forEach((domain) => {
-            if (!domains.has(domain)) (options.strictCounts ? errors : warnings).push(`${modulePath}: missing SAT domain "${domain}"`);
-          });
-        }
         module.parts.forEach((part, partIndex) => {
           if (mock.exam === 'ielts-academic' && section.id === 'listening' && !part.audioUrl) warnings.push(`${modulePath}.parts[${partIndex}]: no audioUrl`);
           part.questions.forEach((question, questionIndex) => {
@@ -226,8 +189,6 @@
                 else if (!question.options.includes(text(question.matches[prompt.id]))) fail(errors, `${path}.matches.${prompt.id}`, 'must match one of the provided options');
               });
             }
-            if (mock.exam === 'sat' && section.id === 'rw' && question.type !== 'single_choice') fail(errors, `${path}.type`, 'SAT Reading and Writing uses single-choice questions');
-            if (mock.exam === 'sat' && section.id === 'math' && !['single_choice', 'numeric'].includes(question.type)) fail(errors, `${path}.type`, 'SAT Math uses single-choice or numeric responses');
             if (mock.exam === 'ielts-academic' && section.id !== 'writing' && question.type === 'writing') fail(errors, `${path}.type`, 'writing tasks belong in the Writing section');
           });
         });

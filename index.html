@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="main.css?v=58">
-  <link rel="stylesheet" href="full-exam-engine.css?v=4">
+  <link rel="stylesheet" href="main.css?v=65">
+  <link rel="stylesheet" href="full-exam-engine.css?v=6">
   <link rel="stylesheet" href="trademark-notice.css?v=1">
   <link rel="stylesheet" href="mascot.css?v=1">
 </head>
@@ -26,10 +26,10 @@
       </div>
       <nav class="nav-list">
         <button class="nav-link is-active" data-page="home" type="button">Home</button>
-        <div class="nav-section sat-only"><span>Learn</span><button class="nav-link" data-page="learn" type="button">Rules</button><button class="nav-link" data-page="vocab" type="button">Vocabulary</button><button class="nav-link" data-page="problems" type="button">Problems &amp; Solutions</button></div>
-        <div class="nav-section ielts-only"><button class="nav-link" data-page="ielts-skill" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="ielts-skill" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="ielts-skill" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="ielts-skill" data-skill="Speaking" type="button">Speaking</button></div>
-        <div class="nav-section sat-only"><span>Practice</span><button class="nav-link" data-page="plan" type="button">Study plan</button><button class="nav-link" data-page="questions" type="button">Question Bank</button></div>
-        <div class="nav-section sat-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">SAT Mocks</button></div>
+        <div class="nav-section sat-only"><span>SAT</span><button class="nav-link" data-sat-route="/sat" type="button">SAT Overview</button><button class="nav-link" data-sat-route="/sat/math" type="button">Math</button><button class="nav-link" data-sat-route="/sat/rw" type="button">Reading &amp; Writing</button></div>
+        <div class="nav-section ielts-only"><span>Practice</span><button class="nav-link" data-page="ielts-practice" type="button">All skills</button><button class="nav-link" data-page="ielts-skill" data-skill="Listening" type="button">Listening</button><button class="nav-link" data-page="ielts-skill" data-skill="Reading" type="button">Reading</button><button class="nav-link" data-page="ielts-skill" data-skill="Writing" type="button">Writing</button><button class="nav-link" data-page="ielts-skill" data-skill="Speaking" type="button">Speaking</button></div>
+        <div class="nav-section sat-only"><span>Practice</span><button class="nav-link" data-page="questions" type="button">Question Bank</button><button class="nav-link" data-page="plan" type="button">Study plan</button></div>
+        <div class="nav-section sat-only"><span>Library</span><button class="nav-link" data-page="learn" type="button">Rules</button><button class="nav-link" data-page="vocab" type="button">Vocabulary</button><button class="nav-link" data-page="problems" type="button">Problems &amp; Solutions</button></div>
         <div class="nav-section ielts-only"><span>Mocks</span><button class="nav-link" data-page="mocks" type="button">IELTS Mocks</button></div>
         <div class="nav-section"><span>Workspace</span><button class="nav-link" data-page="settings" type="button">Settings</button></div>
       </nav>
@@ -40,7 +40,7 @@
 
     <button class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" type="button" aria-label="Close navigation"></button>
     <main class="content">
-      <header class="mobile-header"><button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation"><span></span><span></span><span></span></button><button class="mobile-brand-mark" type="button" data-page="home" aria-label="Luminary home"><img src="assets/luminary-mark.png?v=3" alt="" aria-hidden="true"></button><div class="exam-toggle"><button class="exam-choice is-active" data-exam="sat" type="button">SAT</button><button class="exam-choice" data-exam="ielts" type="button">IELTS</button></div></header>
+      <header class="mobile-header"><button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation"><span></span><span></span><span></span></button><div class="exam-toggle" aria-label="Exam selection"><button class="exam-choice is-active" data-exam="sat" type="button">SAT</button><button class="exam-choice" data-exam="ielts" type="button">IELTS</button></div><button class="mobile-brand-mark" type="button" data-page="home" aria-label="Luminary home"><img src="assets/luminary-mark.png?v=3" alt="" aria-hidden="true"></button></header>
 
       <section class="page is-active" id="home-page">
         <section class="home-hero">
@@ -59,11 +59,37 @@
         <div class="section-heading"><div><p class="kicker">Adaptive focus</p><h2>Your next wins</h2></div><span></span></div>
         <p class="section-copy" id="recommendation-copy">We will adapt this area as you answer questions.</p>
         <section class="recommendation-grid" id="recommendation-grid"></section>
-        <div class="section-heading"><h2>Today</h2><span></span></div>
-        <article class="daily-card"><div><p class="kicker">Daily question</p><h2 id="daily-title">Daily question</h2><p id="daily-copy">A separate daily task will appear here when its own material is connected.</p></div><button class="button button-primary" id="daily-action" type="button" disabled>Not available yet</button></article>
-        <article class="home-speaking-card ielts-only" id="home-speaking-card"><div class="home-speaking-orb" aria-hidden="true"><img class="mascot-image " src="assets/mascot/speaking.png" alt="Luminary macaque study companion"></div><div><p class="kicker">Speaking with AI</p><h2>Practise a full IELTS interview.</h2><p>Luminary asks the questions, listens to every answer and keeps the session moving naturally.</p></div><button class="button button-primary" id="home-speaking-action" type="button">Start speaking</button></article>
+        <div class="section-heading" id="daily-heading" hidden><h2>Today</h2><span></span></div>
+        <article class="daily-card" id="daily-card" hidden><div><p class="kicker">Daily question</p><h2 id="daily-title">Daily question</h2><p id="daily-copy"></p></div><button class="button button-primary" id="daily-action" type="button">Start daily question</button></article>
+        <article class="home-speaking-card ielts-only" id="home-speaking-card"><div class="home-speaking-orb" aria-hidden="true"><img class="mascot-image " src="assets/mascot/speaking.png" alt="Luminary macaque study companion"></div><div><p class="kicker">Speaking practice</p><h2>Practise a full IELTS interview.</h2><p>Mr. Monday guides you through all three parts, records your answers and provides an estimated band with feedback.</p></div><button class="button button-primary" id="home-speaking-action" type="button">Start speaking</button></article>
         <div class="section-heading"><h2>Progress</h2><span></span></div>
         <section class="stats"><article><strong id="stat-focus">SAT</strong><span>Current focus</span></article><article><strong id="stat-sessions">0</strong><span>Sessions completed</span></article><article><strong id="stat-streak">0</strong><span>Day streak</span></article></section>
+      </section>
+
+      <section class="page sat-page" id="sat-overview-page" aria-labelledby="sat-overview-title">
+        <nav class="sat-breadcrumbs" id="sat-overview-breadcrumbs" aria-label="Breadcrumb"></nav>
+        <header class="sat-page-header"><p class="kicker">SAT preparation</p><h1 id="sat-overview-title">Choose your SAT section.</h1><p>Learn a skill from the beginning or go straight to practice. Math and Reading &amp; Writing each have their own clear path.</p></header>
+        <div class="sat-section-grid" id="sat-overview-grid"></div>
+      </section>
+
+      <section class="page sat-page" id="sat-section-page" aria-labelledby="sat-section-title">
+        <nav class="sat-breadcrumbs" id="sat-section-breadcrumbs" aria-label="Breadcrumb"></nav>
+        <header class="sat-page-header"><p class="kicker" id="sat-section-kicker">SAT</p><h1 id="sat-section-title">Math</h1><p id="sat-section-description"></p></header>
+        <div class="sat-section-summary" id="sat-section-summary"></div>
+        <div class="sat-domain-list" id="sat-domain-list"></div>
+      </section>
+
+      <section class="page sat-page" id="sat-domain-page" aria-labelledby="sat-domain-title">
+        <nav class="sat-breadcrumbs" id="sat-domain-breadcrumbs" aria-label="Breadcrumb"></nav>
+        <header class="sat-page-header"><p class="kicker" id="sat-domain-kicker">SAT Math</p><h1 id="sat-domain-title">Algebra</h1><p id="sat-domain-description"></p></header>
+        <div class="sat-domain-actions" id="sat-domain-actions"></div>
+        <section class="sat-skill-section" aria-labelledby="sat-skill-heading"><div class="sat-section-label"><h2 id="sat-skill-heading">Skills in this topic</h2><span id="sat-domain-progress"></span></div><div class="sat-skill-list" id="sat-skill-list"></div></section>
+      </section>
+
+      <section class="page sat-page" id="sat-lesson-page" aria-labelledby="sat-lesson-title">
+        <nav class="sat-breadcrumbs" id="sat-lesson-breadcrumbs" aria-label="Breadcrumb"></nav>
+        <header class="sat-page-header"><p class="kicker" id="sat-lesson-kicker">SAT Math · Algebra</p><h1 id="sat-lesson-title">Linear equations</h1><p id="sat-lesson-description"></p></header>
+        <div class="sat-lesson-layout"><main class="sat-lesson-content" id="sat-lesson-content"></main><aside class="sat-lesson-aside" id="sat-lesson-aside"></aside></div>
       </section>
 
       <section class="page" id="settings-page">
@@ -76,6 +102,17 @@
           <section class="settings-section"><div><p class="kicker">Appearance</p><h2>Color palette</h2><p>Your choice stays on this device.</p></div><div class="settings-theme"><strong id="settings-theme-name">Dark Blue</strong><div class="mini-theme-grid" id="settings-theme-grid"></div></div></section>
           <footer class="settings-footer"><p id="settings-status" aria-live="polite">Changes are saved when you press the button.</p><button class="button button-primary" id="settings-save" type="submit">Save changes</button></footer>
         </form>
+      </section>
+
+      <section class="page ielts-practice-page" id="ielts-practice-page">
+        <div class="ielts-practice-heading"><div><p class="kicker">IELTS workspace</p><h1>Practice</h1><p>Build confidence in every IELTS skill with focused practice.</p></div><span class="ielts-practice-heading-mark" aria-hidden="true">✦</span></div>
+        <div class="ielts-practice-board">
+          <div class="ielts-practice-grid" id="ielts-practice-grid"></div>
+          <article class="ielts-past-paper-card">
+            <div class="ielts-past-paper-copy"><span>Full exam practice</span><h2>Previous-style IELTS questions</h2><p>Work through complete original practice exams for Listening, Reading and Writing.</p><button class="ielts-past-paper-action" type="button" data-open-mocks>Explore mocks <span aria-hidden="true">→</span></button></div>
+            <img src="assets/mascot/reading.png" alt="Luminary study companion reading" loading="lazy">
+          </article>
+        </div>
       </section>
 
       <section class="page" id="ielts-skill-page">
@@ -113,7 +150,8 @@
       </section>
 
       <section class="page" id="questions-page">
-        <div class="practice-header question-bank-header"><div><p class="kicker">Focused practice</p><h1>Question Bank</h1><p id="question-bank-copy">Choose Reading &amp; Writing or Math.</p></div><aside class="question-ai-note" aria-label="Luminary mistake analysis"><span class="question-ai-orb" aria-hidden="true"><img class="mascot-image " src="assets/mascot/listening.png" alt="Luminary macaque study companion"></span><div><strong>Every mistake becomes a lesson.</strong><small>Luminary explains wrong answers immediately.</small></div></aside></div>
+        <nav class="sat-breadcrumbs sat-qbank-breadcrumbs" id="question-bank-breadcrumbs" aria-label="Breadcrumb" hidden></nav>
+        <div class="practice-header question-bank-header"><div><p class="kicker" id="question-bank-kicker">Focused practice</p><h1 id="question-bank-title">Question Bank</h1><p id="question-bank-copy">Choose Reading &amp; Writing or Math.</p></div><aside class="question-ai-note" aria-label="Luminary mistake analysis"><span class="question-ai-orb" aria-hidden="true"><img class="mascot-image " src="assets/mascot/listening.png" alt="Luminary macaque study companion"></span><div><strong>Every mistake becomes a lesson.</strong><small>Luminary explains wrong answers immediately.</small></div></aside></div>
         <div class="question-library" id="question-library"></div>
       </section>
 
@@ -187,7 +225,7 @@
         <section class="plan-unsupported" hidden><div class="page-intro"><p class="kicker">Study plan</p><h1>SAT plan</h1><p>Your personalised SAT plan is available when SAT is selected.</p></div><button class="button button-primary" data-exam="sat" type="button">Switch to SAT</button></section>
       </section>
 
-      <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">Practice</p><h1 id="mocks-title">SAT Mocks</h1><p>Practice under a timer when you are ready.</p></div><div class="mock-list" id="mock-list"><article class="empty-state"><strong>Loading mocks...</strong></article></div></section>
+      <section class="page" id="mocks-page"><div class="page-intro"><p class="kicker" id="mocks-kicker">IELTS practice</p><h1 id="mocks-title">IELTS Mocks</h1><p>Choose an IELTS Academic practice. Reading and Writing are available; Listening recordings are being prepared.</p></div><div class="mock-list" id="mock-list"><article class="empty-state"><strong>Loading IELTS mocks...</strong></article></div></section>
 
       <div class="trademark-notice" role="note" aria-label="Trademark notices" lang="en"><p>SAT® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this site.</p><p>IELTS is a trade mark of the British Council, IELTS Australia Pty Ltd and Cambridge English (part of Cambridge University Press &amp; Assessment). This site is not affiliated with or endorsed by these organisations.</p></div>
     </main>
@@ -216,6 +254,7 @@
       <div class="timer-cluster"><span class="test-timer" id="test-timer" aria-live="off">00:00</span><button class="tool-button" id="pause-timer" type="button" title="Stop timer" aria-label="Stop timer">Stop</button><button class="tool-button" id="hide-timer" type="button">Hide</button></div>
       <div class="test-tools">
         <span class="run-score" id="test-xp">0 XP</span>
+        <button class="tool-button" id="open-desmos" type="button" aria-haspopup="dialog" aria-controls="desmos-dialog" hidden>Desmos</button>
         <button class="tool-button mark-button" id="mark-question" type="button"><span class="mark-indicator" aria-hidden="true"></span>Mark for review</button>
       </div>
     </header>
@@ -225,16 +264,20 @@
     </div>
     <footer class="test-actions"><button class="question-counter" id="question-counter" type="button" aria-haspopup="dialog">Question 1 of 6</button><div><button class="button button-quiet" id="previous-question" type="button">Previous</button><button class="button button-primary" id="next-question" type="button">Next</button></div></footer>
     <section class="question-navigator is-hidden" id="question-navigator" role="dialog" aria-modal="true" aria-labelledby="navigator-title"><div class="navigator-card"><header><h2 id="navigator-title">Questions</h2><button class="tool-button" id="close-question-navigator" type="button">Close</button></header><div class="navigator-legend" aria-label="Difficulty colors"><span class="difficulty-hard">Hard</span><span class="difficulty-medium">Medium</span><span class="difficulty-easy">Easy</span></div><div class="navigator-grid" id="navigator-grid"></div></div></section>
+    <section class="desmos-dialog" id="desmos-dialog" role="dialog" aria-modal="true" aria-labelledby="desmos-title" hidden><div class="desmos-panel"><header><div><p class="kicker">SAT Math</p><h2 id="desmos-title">Desmos graphing calculator</h2></div><button class="tool-button" id="close-desmos" type="button" aria-label="Close calculator">Close</button></header><p class="desmos-status" id="desmos-status" role="status" hidden></p><div class="desmos-canvas" id="desmos-canvas"></div></div></section>
   </section>
   <section class="auth-view" id="auth-view" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
     <aside class="auth-poster"><button class="auth-brand" type="button" data-close-auth><span>L</span><strong>Luminary</strong></button><div class="poster-copy"><p>Study with direction</p><h2>Turn practice into progress.</h2><span>A focused workspace for ambitious students.</span></div></aside>
     <div class="auth-panel"><button class="auth-skip" id="auth-close" data-close-auth type="button">Skip for now</button><div class="auth-form-wrap"><img class="mascot-image auth-mascot" src="assets/mascot/welcome.png" alt="Luminary macaque study companion"><p class="kicker">Your workspace</p><h1 id="auth-title">Welcome back</h1><p id="auth-copy">Continue where you left off.</p><div class="auth-palette"><div><span>Color palette</span><strong id="auth-current-theme-name">Dark Blue</strong></div><div class="mini-theme-grid" id="auth-theme-grid"></div></div><form id="account-auth-form"><label>Email address<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required></label><button class="button button-primary auth-primary" id="account-auth-submit" type="submit">Log in</button></form><div class="auth-divider"><span>or continue with</span></div><button class="google-auth-button" id="google-auth-button" type="button"><svg aria-hidden="true" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.797 2.715v2.258h2.909c1.703-1.568 2.684-3.878 2.684-6.614Z"/><path fill="#34A853" d="M9 18c2.43 0 4.468-.806 5.956-2.181l-2.909-2.258c-.806.54-1.835.859-3.047.859-2.344 0-4.328-1.585-5.037-3.714H.956v2.332A8.998 8.998 0 0 0 9 18Z"/><path fill="#FBBC05" d="M3.963 10.706A5.41 5.41 0 0 1 3.682 9c0-.592.102-1.168.281-1.706V4.962H.956A8.996 8.996 0 0 0 0 9c0 1.452.347 2.827.956 4.038l3.007-2.332Z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.507.454 3.441 1.346l2.581-2.581C13.464.892 11.426 0 9 0A8.998 8.998 0 0 0 .956 4.962l3.007 2.332C4.672 5.165 6.656 3.58 9 3.58Z"/></svg>Continue with Google</button><button class="auth-test-button" id="auth-test-button" type="button">Open temporary test workspace</button><p class="auth-switch"><span id="auth-switch-copy">New to Luminary?</span><button id="auth-switch" type="button">Register</button></p><p class="auth-status" id="auth-status" aria-live="polite"></p><div class="trademark-notice" role="note" aria-label="Trademark notices" lang="en"><p>SAT® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this site.</p><p>IELTS is a trade mark of the British Council, IELTS Australia Pty Ltd and Cambridge English (part of Cambridge University Press &amp; Assessment). This site is not affiliated with or endorsed by these organisations.</p></div></div></div>
   </section>
   <div id="toast" class="toast" role="status"></div>
-  <script src="full-exam-schema.js?v=2"></script>
-  <script src="full-exam-engine.js?v=5"></script>
+  <script src="full-exam-schema.js?v=3"></script>
+  <script src="full-exam-engine.js?v=7"></script>
   <script src="ielts-speaking.js?v=2"></script>
-  <script src="app.js?v=78"></script>
+  <script src="sat-curriculum.js?v=1"></script>
+  <script src="sat-question-quality.js?v=3"></script>
+  <script src="desmos-calculator.js?v=1"></script>
+<script src="app.js?v=90"></script>
   <script src="mascot.js?v=2"></script>
   <script src="vendor/firebase-app-compat.js" onload="document.documentElement.dataset.firebaseCore='loaded'" onerror="document.documentElement.dataset.firebaseCore='failed'"></script>
   <script src="vendor/firebase-auth-compat.js" onload="document.documentElement.dataset.firebaseAuth='loaded'" onerror="document.documentElement.dataset.firebaseAuth='failed'"></script>
