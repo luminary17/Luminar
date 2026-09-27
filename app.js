@@ -529,7 +529,7 @@ function renderHomeGuidance() {
     $('home-guidance-actions').innerHTML = '<button class="button button-primary" data-sat-route="/sat" type="button">Explore SAT</button><button class="button button-quiet" data-page="questions" type="button">Question Bank</button>';
     return;
   }
-  const latest = [...results].reverse().find((result) => result.exam === 'ielts');
+  const latest = [...results].reverse().find((result) => result.exam === 'ielts' && result.skill !== 'Speaking' && result.total > 0);
   const pending = latest && !latest.analyzedAt ? latest : null;
   const metrics = $('home-guidance-metrics');
   const actions = $('home-guidance-actions');
@@ -556,7 +556,7 @@ function renderHomeGuidance() {
   }
 
   const mockWeaknesses = recentMockWeaknesses();
-  const hasCompletedMock = results.some((result) => result.exam === state.profile.exam);
+  const hasCompletedMock = results.some((result) => result.exam === state.profile.exam && result.skill !== 'Speaking' && result.total > 0);
   const selected = selectedWeakTopics().map(suggestionTopic).filter((item) => item.domain);
   const suggestions = mockWeaknesses.length ? mockWeaknesses : (!hasCompletedMock ? selected.slice(0, 3) : []);
   if (suggestions.length) {
@@ -695,8 +695,13 @@ function renderHome() {
   const latestResult = [...(state.progress.mockResults || [])].reverse().find((result) => result.exam === state.profile.exam);
   if (!latestResult) $('latest-mock-score').textContent = 'No mock yet';
   else if (isIelts) {
-    const bands = (latestResult.answers || []).filter((answer) => ['listening', 'reading'].includes(answer.id) && Number.isFinite(Number(answer.band)));
-    $('latest-mock-score').textContent = bands.length ? bands.map((answer) => `${answer.id === 'listening' ? 'L' : 'R'} ${Number(answer.band).toFixed(1)}`).join(' · ') : `${mockScoreLabel(latestResult)} correct`;
+    if (latestResult.skill === 'Speaking') {
+      const band = latestResult.answers?.find((answer) => answer.id === 'speaking')?.band;
+      $('latest-mock-score').textContent = band != null && Number.isFinite(Number(band)) ? `Speaking ${Number(band).toFixed(1)}` : 'Speaking completed';
+    } else {
+      const bands = (latestResult.answers || []).filter((answer) => ['listening', 'reading'].includes(answer.id) && answer.band != null && Number.isFinite(Number(answer.band)));
+      $('latest-mock-score').textContent = bands.length ? bands.map((answer) => `${answer.id === 'listening' ? 'L' : 'R'} ${Number(answer.band).toFixed(1)}`).join(' · ') : `${mockScoreLabel(latestResult)} correct`;
+    }
   } else $('latest-mock-score').textContent = latestResult.estimatedScore ? `Estimated ${latestResult.estimatedScore}` : `${mockScoreLabel(latestResult)} correct`;
   $('goal-date').textContent = date ? dateText(date) : 'Not selected';
   if (date) {
@@ -1362,8 +1367,12 @@ function renderIeltsPractice() {
     { name: 'Speaking', icon: '🎙️', copy: 'Complete a guided interview and receive AI feedback.' }
   ];
   $('ielts-practice-grid').innerHTML = skills.map(({ name, icon, copy }) => {
-    const completed = name === 'Speaking' ? null : new Set(fullResults.filter((result) => result.exam === 'ielts-academic' && result.sections?.some((section) => section.id === name.toLowerCase() && (section.total > 0 || section.writingTasks?.length > 0))).map((result) => result.mockId)).size;
-    return `<button class="ielts-practice-card" type="button" data-ielts-practice-skill="${name}" aria-label="Practise IELTS ${name}"><span class="ielts-practice-card-top"><span class="ielts-practice-icon" aria-hidden="true">${icon}</span><span class="ielts-practice-ring" style="--ring-progress:${completed === null ? 100 : Math.min(completed, 10) * 10}%" aria-hidden="true"><strong>${completed === null ? 'AI' : completed}</strong><small>${completed === null ? 'partner' : 'mocks'}</small></span></span><strong class="ielts-practice-name">${name}</strong><span class="ielts-practice-description">${copy}</span><span class="ielts-practice-cta">Practice now <span aria-hidden="true">→</span></span></button>`;
+    const completed = name === 'Speaking'
+      ? (state.progress.mockResults || []).filter((result) => result.exam === 'ielts' && result.skill === 'Speaking').length
+      : new Set(fullResults.filter((result) => result.exam === 'ielts-academic' && result.sections?.some((section) => section.id === name.toLowerCase() && (section.total > 0 || section.writingTasks?.length > 0))).map((result) => result.mockId)).size;
+    const progress = name === 'Speaking' ? (completed ? 100 : 0) : Math.min(completed, 10) * 10;
+    const unit = name === 'Speaking' ? completed === 1 ? 'session' : 'sessions' : completed === 1 ? 'mock' : 'mocks';
+    return `<button class="ielts-practice-card" type="button" data-ielts-practice-skill="${name}" aria-label="Practise IELTS ${name}"><span class="ielts-practice-card-top"><span class="ielts-practice-icon" aria-hidden="true">${icon}</span><span class="ielts-practice-ring" style="--ring-progress:${progress}%" aria-hidden="true"><strong>${completed}</strong><small>${unit}</small></span></span><strong class="ielts-practice-name">${name}</strong><span class="ielts-practice-description">${copy}</span><span class="ielts-practice-cta">Practice now <span aria-hidden="true">→</span></span></button>`;
   }).join('');
 }
 
@@ -1380,6 +1389,22 @@ function renderIeltsSkillHub() {
     { id: 'vocab', label: 'Word power', title: 'Vocabulary', copy: `Review vocabulary selected for IELTS ${skill.toLowerCase()}.` },
     { id: 'podcasts', label: 'Listen & learn', title: 'Podcasts', copy: `Audio episodes chosen to support IELTS ${skill.toLowerCase()}.` }
   ].map((item) => `<button class="ielts-path-card" type="button" data-ielts-path="${item.id}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.copy)}</p><b>Open →</b></button>`).join('');
+  const history = $('speaking-history');
+  const speakingResults = skill === 'Speaking' ? [...(state.progress.mockResults || [])].reverse().filter((result) => result.exam === 'ielts' && result.skill === 'Speaking').slice(0, 5) : [];
+  history.hidden = !speakingResults.length;
+  $('speaking-history-list').innerHTML = speakingResults.map((result) => {
+    const rawBand = result.answers?.find((answer) => answer.id === 'speaking')?.band;
+    const band = rawBand != null && Number.isFinite(Number(rawBand)) ? `Estimated band ${Number(rawBand).toFixed(1)}` : 'Assessment unavailable';
+    const timestamp = Number(result.completedAt);
+    const date = Number.isFinite(timestamp) && timestamp > 0 ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(timestamp)) : 'Previous session';
+    const summary = result.analysis?.summary;
+    const feedback = result.analysis?.criteria || {};
+    const criteria = ['fluency', 'vocabulary', 'grammar', 'pronunciation'].map((key) => {
+      const item = feedback[key];
+      return item ? `<li><strong>${key.charAt(0).toUpperCase() + key.slice(1)}${Number.isFinite(Number(item.band)) ? ` · ${Number(item.band).toFixed(1)}` : ''}</strong><span>${escapeHtml(item.feedback || '')}</span></li>` : '';
+    }).join('');
+    return `<article class="speaking-history-item"><div><strong>${escapeHtml(band)}</strong><span>${escapeHtml(date)} · ${Number(result.answers?.[0]?.questions) || 0} answers</span></div>${summary ? `<details><summary>View feedback</summary><p>${escapeHtml(summary)}</p>${criteria ? `<ul>${criteria}</ul>` : ''}</details>` : ''}</article>`;
+  }).join('');
 }
 
 function openIeltsPath(path) {
@@ -3139,17 +3164,62 @@ async function requestSpeakingAssessment(answers) {
   return result.assessment;
 }
 
+function saveSpeakingCompletion(answerCount) {
+  const completedAt = Date.now();
+  const record = {
+    id: `speaking-result-${completedAt}`,
+    sourceId: voiceLab.testId || '',
+    title: 'IELTS Speaking practice',
+    skill: 'Speaking',
+    exam: 'ielts',
+    correct: 0,
+    total: 0,
+    accuracy: 0,
+    estimatedScore: 0,
+    completedAt,
+    analyzedAt: 0,
+    analysis: null,
+    answers: [{ id: 'speaking', questions: answerCount, band: null }]
+  };
+  const results = state.progress.mockResults || (state.progress.mockResults = []);
+  results.push(record);
+  if (results.length > 30) results.splice(0, results.length - 30);
+  const now = new Date(), yesterdayDate = new Date(now);
+  yesterdayDate.setDate(now.getDate() - 1);
+  const today = localDateKey(now), yesterday = localDateKey(yesterdayDate);
+  state.progress.sessions += 1;
+  state.progress.streak = state.progress.lastSessionDate === today ? Math.max(1, state.progress.streak) : state.progress.lastSessionDate === yesterday ? state.progress.streak + 1 : 1;
+  state.progress.lastSessionDate = today;
+  persist();
+  renderHome();
+  renderIeltsPractice();
+  return record;
+}
+
 async function finishSpeakingMock() {
   const answerCount = voiceLab.answers.length;
   const completedAnswers = voiceLab.answers.slice();
   endVoiceSession();
   voiceLab.stage = 'complete';
-  $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts.`;
+  const record = saveSpeakingCompletion(answerCount);
+  $('voice-complete-copy').textContent = `You answered ${answerCount} questions across all three parts. Session saved on this device.`;
   renderVoiceStage();
   const requestId = ++voiceLab.assessmentRequestId;
   try {
     const assessment = await requestSpeakingAssessment(completedAnswers);
-    if (requestId === voiceLab.assessmentRequestId && voiceLab.stage === 'complete') renderVoiceAssessment(assessment);
+    if (requestId === voiceLab.assessmentRequestId && voiceLab.stage === 'complete') {
+      renderVoiceAssessment(assessment);
+      record.answers[0].band = Number(assessment.overall);
+      record.analyzedAt = Date.now();
+      record.analysis = {
+        summary: assessment.summary || '',
+        criteria: Object.fromEntries(['fluency', 'vocabulary', 'grammar', 'pronunciation'].map((key) => [key, { band: Number(assessment[key]), feedback: assessment.feedback?.[key] || '' }])),
+        strengths: assessment.strengths || [],
+        priorities: assessment.priorities || []
+      };
+      persist();
+      renderHome();
+    }
   } catch (error) {
     if (requestId !== voiceLab.assessmentRequestId || voiceLab.stage !== 'complete') return;
     $('voice-assessment-state').hidden = false;

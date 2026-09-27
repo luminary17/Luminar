@@ -1146,6 +1146,18 @@ body.is-auth-open { overflow: hidden; }
 .ielts-path-card strong { position: relative; z-index: 1; margin: auto 0 9px; font-size: clamp(25px, 3vw, 34px); line-height: 1.05; }
 .ielts-path-card p { position: relative; z-index: 1; max-width: 250px; margin: 0; color: var(--text-soft); font-size: 13px; }
 .ielts-path-card b { position: relative; z-index: 1; margin-top: 18px; color: var(--accent-hover); font-size: 12px; }
+.speaking-history { margin-top: 36px; }
+.speaking-history h2 { margin: 0 0 14px; color: var(--text); font-size: 20px; letter-spacing: -.025em; }
+.speaking-history-list { display: grid; gap: 10px; }
+.speaking-history-item { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; background: var(--surface); }
+.speaking-history-item > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.speaking-history-item strong { color: var(--text); }
+.speaking-history-item span, .speaking-history-item p { color: var(--text-soft); font-size: 13px; line-height: 1.55; }
+.speaking-history-item details { margin-top: 12px; }
+.speaking-history-item summary { width: fit-content; color: var(--accent-hover); font-size: 13px; font-weight: 700; cursor: pointer; }
+.speaking-history-item p { margin: 10px 0; }
+.speaking-history-item ul { display: grid; gap: 8px; margin: 0; padding-left: 18px; }
+.speaking-history-item li strong { display: block; font-size: 13px; }
 
 /* IELTS practice overview */
 .ielts-practice-page { color: var(--text); }
