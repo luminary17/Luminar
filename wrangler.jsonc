@@ -1,0 +1,11 @@
+{
+  "name": "lsatieltsai",
+  "account_id": "11168eaa941d942947cc0dbfe656ccae",
+  "main": "cloudflare-worker.js",
+  "compatibility_date": "2026-09-25",
+  "workers_dev": true,
+  "keep_vars": true,
+  "secrets": {
+    "required": ["GEMINI_API_KEY"]
+  }
+}

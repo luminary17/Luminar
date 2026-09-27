@@ -54,6 +54,24 @@ test('authentication assets and referenced scripts exist', () => {
   }
 });
 
+test('AI Worker exposes the routes used by the published app', async () => {
+  const source = fs.readFileSync(path.join(root, 'cloudflare-worker.js'));
+  const worker = (await import(`data:text/javascript;base64,${source.toString('base64')}`)).default;
+  const origin = 'https://luminary17.github.io';
+  const status = await worker.fetch(new Request('https://example.workers.dev/', { headers: { Origin: origin } }), {});
+  assert.equal(status.status, 200);
+  assert.equal((await status.json()).mockAnalysis, 'ready');
+  for (const route of ['/speaking/analyze', '/questions/analyze', '/mocks/analyze']) {
+    const response = await worker.fetch(new Request(`https://example.workers.dev${route}`, {
+      method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: '{}'
+    }), {});
+    assert.equal(response.status, 503, `${route} is missing or bypassed its secret gate`);
+    assert.equal(response.headers.get('Access-Control-Allow-Origin'), origin);
+  }
+});
+
 test('Admin inline scripts parse after mock management cleanup', () => {
   for (const file of ['admin/index.html', 'Admin-site/index.html']) {
     const html = read(file);

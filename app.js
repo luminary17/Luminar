@@ -135,6 +135,7 @@ const DAILY_QUOTES = [
 const MATERIAL_DATABASE_URL = 'https://dataluminary-default-rtdb.europe-west1.firebasedatabase.app';
 const QUESTION_DATABASE_URL = 'https://luminary-46748-default-rtdb.europe-west1.firebasedatabase.app';
 const LUMINARY_AI_SERVICE_URL = 'https://lsatieltsai.crazy-dinow.workers.dev';
+let aiMockAnalysisAvailable = null;
 const IELTS_SKILL_DETAILS = {
   Listening: 'Train comprehension, vocabulary and attention to spoken detail.',
   Reading: 'Build speed, accuracy and control across IELTS text types.',
@@ -547,11 +548,15 @@ function renderHomeGuidance() {
   if (pending) {
     $('home-guidance-kicker').textContent = 'Your last score';
     $('home-guidance-title').textContent = `${mockScoreLabel(pending)} correct`;
-    $('home-guidance-description').textContent = pending.analyzing
-      ? 'Luminary is turning this result into a focused study plan.'
-      : `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
+    $('home-guidance-description').textContent = aiMockAnalysisAvailable === false
+      ? 'Your result is saved. Detailed mock analysis is temporarily unavailable.'
+      : pending.analyzing
+        ? 'Luminary is turning this result into a focused study plan.'
+        : `${pending.title || 'Practice mock'} · ${dateText(localDateKey(new Date(pending.completedAt)))}. Analyse it before your next session.`;
     metrics.innerHTML = `<article><strong>${pending.correct}/${pending.total}</strong><span>Correct</span></article><article><strong>${pending.accuracy}%</strong><span>Accuracy</span></article>`;
-    actions.innerHTML = `<button class="button button-primary" data-analyze-mock="${escapeHtml(pending.id)}" type="button" ${pending.analyzing ? 'disabled' : ''}>${pending.analyzing ? 'Analyzing…' : 'Analyze with Luminary'}</button>`;
+    actions.innerHTML = aiMockAnalysisAvailable === false
+      ? '<button class="button button-primary" data-open-mocks type="button">Continue IELTS practice</button>'
+      : `<button class="button button-primary" data-analyze-mock="${escapeHtml(pending.id)}" type="button" ${pending.analyzing ? 'disabled' : ''}>${pending.analyzing ? 'Analyzing…' : 'Analyze with Luminary'}</button>`;
     return;
   }
 
@@ -672,6 +677,10 @@ async function analyzeMockResult(resultId) {
       body: JSON.stringify(mockAnalysisPayload(result))
     });
     const body = await response.json().catch(() => ({}));
+    if (response.status === 404) {
+      aiMockAnalysisAvailable = false;
+      throw new Error('Mock analysis is temporarily unavailable. Your result is saved.');
+    }
     if (!response.ok || !body.analysis) throw new Error(body.error || 'Mock analysis is unavailable.');
     result.analysis = body.analysis;
     result.analyzedAt = Date.now();
@@ -684,6 +693,16 @@ async function analyzeMockResult(resultId) {
     renderHome();
     showToast(error.message || 'Mock analysis is unavailable. Please try again.');
   }
+}
+
+async function checkAiCapabilities() {
+  try {
+    const response = await fetch(`${LUMINARY_AI_SERVICE_URL}/`, { signal: AbortSignal.timeout(6000) });
+    if (!response.ok) return;
+    const status = await response.json();
+    aiMockAnalysisAvailable = status.mockAnalysis === 'ready';
+    renderHome();
+  } catch { /* Keep the action available when the status check cannot run. */ }
 }
 
 function renderHome() {
@@ -3690,6 +3709,7 @@ async function init() {
   navigate(currentRoute(), true);
   applyAuthenticatedUser(window.luminaryAuthUser);
   startOnboarding();
+  checkAiCapabilities();
 }
 
 init();
