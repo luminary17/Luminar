@@ -63,6 +63,8 @@
   const safeUrl = (value, audio = false) => {
     const source = String(value || '').trim();
     if (/^https?:\/\//i.test(source)) return source;
+    if (audio && /^assets\/[a-z0-9/_-]+\.(?:mp3|wav|ogg|webm)$/i.test(source)) return source;
+    if (!audio && /^assets\/[a-z0-9/_-]+\.(?:png|jpe?g|webp|gif|svg)$/i.test(source)) return source;
     if (audio && /^data:audio\/(mpeg|mp3|wav|ogg|webm);base64,/i.test(source)) return source;
     if (!audio && /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(source)) return source;
     return '';
@@ -463,11 +465,11 @@
     dock.hidden = false;
     dock.innerHTML = `<div><span>${escapeHtml(part.title || 'Listening recording')}</span><strong>${completed ? 'Recording complete' : started ? 'Recording paused' : 'Play once when ready'}</strong></div><button class="button button-primary" data-full-play-audio type="button" ${completed ? 'disabled' : ''}>${started ? 'Resume recording' : 'Play recording'}</button><audio id="full-exam-audio" preload="metadata" src="${escapeHtml(audioUrl)}"></audio>`;
     const audio = $('full-exam-audio');
-    audio.addEventListener('loadedmetadata', () => { if (state.audioProgress[part.id]) audio.currentTime = Math.min(state.audioProgress[part.id], Math.max(0, audio.duration - .25)); });
+    audio.addEventListener('loadedmetadata', () => { if (state.audioProgress[part.id]) audio.currentTime = Math.min(state.audioProgress[part.id], Number.isFinite(audio.duration) ? Math.max(0, audio.duration - .25) : state.audioProgress[part.id]); });
     audio.addEventListener('timeupdate', () => { state.audioProgress[part.id] = audio.currentTime; persistSession(); });
     audio.addEventListener('ended', () => {
       state.audioCompleted[part.id] = true;
-      state.audioProgress[part.id] = audio.duration || state.audioProgress[part.id];
+      state.audioProgress[part.id] = Number.isFinite(audio.duration) ? audio.duration : audio.currentTime;
       const label = dock.querySelector('strong'), button = dock.querySelector('[data-full-play-audio]');
       if (label) label.textContent = 'Recording complete';
       if (button) { button.disabled = true; button.textContent = 'Recording complete'; }

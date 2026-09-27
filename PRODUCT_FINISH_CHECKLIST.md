@@ -1,11 +1,11 @@
 # Luminary: finish checklist
 
-Status checked on 26 September 2026. This list distinguishes implemented UI from flows that still need a real end-to-end check.
+Status checked on 27 September 2026. This list distinguishes implemented UI from flows that still need a real end-to-end check.
 
 ## Done in the current cleanup
 
 - SAT mock pages, navigation, bundled data, and Admin management removed. SAT Question Bank remains usable.
-- Ten bundled IELTS Reading and Writing practice tests pass strict schema validation. Missing Listening audio is shown as pending.
+- Ten bundled IELTS Listening, Reading and Writing practice tests pass strict schema validation. All 40 Listening recordings and 10 Writing Task 1 charts are bundled; the exam runner now loads their relative asset paths.
 - IELTS Reading answer controls and Writing reference layout improved.
 - SAT Math Question Bank now has an embedded Desmos graphing calculator; the API script loads only when opened. The calculator was opened and used in the local browser.
 - The mobile exam switch is in the left part of the header.
@@ -16,7 +16,7 @@ Status checked on 26 September 2026. This list distinguishes implemented UI from
 
 ## Required before calling the site finished
 
-1. **Provide IELTS Listening recordings.** All 10 bundled tests have 40 Listening questions but no audio. Add recordings with correct section timing, then test playback, seeking policy, interruption, submission, and review on desktop and mobile.
+1. **Finish IELTS Listening playback QA.** The 40 recordings are bundled. The first recording loaded locally with valid metadata, and its audio control appeared in the exam runner. Complete a real playback, interruption, submission, and review check on desktop and mobile. Confirm the one-play policy and section timing match the intended practice format.
 2. **Review every exam question against its source.** The SAT quality gate prevents clearly unusable records from reaching students, but it cannot verify every equation, answer key, explanation, or inferred skill. Review the remaining questions and all IELTS Reading headings, prompts, answers, and Writing tables or images against source material before using scores as study advice.
    - Restore the source graphs, tables, and diagrams for the 126 SAT records that contain only filenames such as `sat_rw_001.png`; those files are not in this repository and their Firebase Storage paths could not be resolved. Also supply images for other records that refer to a missing visual. Edit the flagged records in Admin and rerun the audit.
    - Confirm inferred skill labels against the source and add explicit `skill` metadata for questions that need exact lesson-level practice. Questions without a reliable skill remain available at topic level.

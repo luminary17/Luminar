@@ -15,11 +15,23 @@ const speaking = require(path.join(root, 'ielts-speaking.js'));
 test('all bundled IELTS tests remain complete and valid', () => {
   const mocks = JSON.parse(read('data/full-mocks/ielts-academic.json'));
   assert.equal(mocks.length, 10);
+  let recordings = 0;
   for (const source of mocks) {
     const { valid, errors, mock } = global.FullExamSchema.validate(source, { strictCounts: true });
     assert.ok(valid, `${source.id}: ${errors.join('; ')}`);
     assert.deepEqual(mock.sections.map((section) => section.id), ['listening', 'reading', 'writing']);
+    for (const module of mock.sections[0].modules) for (const part of module.parts) {
+      assert.match(part.audioUrl, /^assets\/ielts-audio\/[a-z0-9-]+\.wav$/);
+      const file = fs.readFileSync(path.join(root, part.audioUrl));
+      assert.equal(file.toString('ascii', 0, 4), 'RIFF', part.audioUrl);
+      assert.equal(file.toString('ascii', 8, 12), 'WAVE', part.audioUrl);
+      recordings += 1;
+    }
+    const taskImage = mock.sections[2].modules.flatMap((module) => module.parts.flatMap((part) => part.questions)).find((question) => question.type === 'writing' && question.image)?.image;
+    assert.match(taskImage, /^assets\/ielts-task1\/task-(?:10|[1-9])\.svg$/);
+    assert.match(read(taskImage), /<svg\b/);
   }
+  assert.equal(recordings, 40);
 });
 
 test('SAT mocks are unavailable while the SAT Question Bank remains', () => {
